@@ -10,6 +10,8 @@
 - built a reproducible experiment code skeleton in `src/`, including config loading, dataset manifests, teacher/student models, distillation loss, training, and evaluation entrypoints
 - completed a first paper revision pass focused on title, abstract, keywords, contributions, section naming, conclusion, and journal-style author formatting
 - recompiled the manuscript successfully and regenerated `paper/build/main.pdf`
+- added a paper-asset generation script in `src/` that exports summary figures and CSV results into `paper/images/generated/` and `paper/results/`
+- updated the experiments section so the paper now references the generated figures, corrected repeated-run summary statistics, and aligns the experimental explanation with the available results
 
 ### In Progress
 

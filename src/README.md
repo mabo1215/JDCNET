@@ -48,7 +48,14 @@ Evaluation:
 python -m jdcnet_exp.evaluate --config .\configs\student_ct_distill.json --checkpoint .\runs\student_ct_distill\best.pt
 ```
 
+Generate paper figures and result summaries from structured experiment statistics:
+
+```powershell
+python -m jdcnet_exp.generate_paper_assets
+```
+
 ## Notes
 
 - The current models are intentionally lightweight placeholders so we can make the training pipeline reproducible before we swap in the final JDCNET architecture.
 - All experiments save outputs under `runs/<experiment_name>/`.
+- Paper-ready summary figures are exported to `paper/images/generated/`, and tabulated summaries are exported to `paper/results/`.
