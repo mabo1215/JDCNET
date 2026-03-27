@@ -11,8 +11,8 @@
 - added configurable DPE/MHRA/DFPN switches and paired-input late-fusion support in the executable code
 - added `src/jdcnet_exp/download_kaggle_datasets.py` and downloaded curated Kaggle CT/MRI and COVID imaging datasets into `src/data/kaggle/`
 - reframed the paper into an honest reproducible pilot study after the repeated runs showed that late fusion and cross-modality distillation do not stably beat the student-only paired-cohort baseline
-- created `paper/build.sh` and verified that the manuscript now builds successfully from the shell entrypoint required for the submission package
-- created `paper/appendix.tex` and integrated it into the manuscript
+- created `paper/build.sh` and verified that the submission package can now build separate `main.pdf` and `appendix.pdf` outputs from the shell entrypoint
+- created `paper/appendix.tex` as a standalone supplementary document
 - added `src/jdcnet_exp/generate_submission_assets.py` so the submission tables and appendix assets are generated from code instead of being hardcoded in LaTeX
 - replaced the hardcoded main-text cohort table and main results table with generated LaTeX inputs under `paper/tables/generated/`
 - generated and inserted appendix-ready reproducibility assets:
@@ -27,11 +27,13 @@
 - added a qualitative appendix-level error-analysis table for the four paired validation cases using representative seed-42 checkpoints
 - replaced the earlier conceptual architecture panel with a code-generated implementation-faithful schematic and added an appendix implementation-details table generated from the executable scaffold
 - removed unstable secondary metrics from the main-text headline table so the manuscript now emphasizes only the more defensible repeated-run comparisons under the tiny paired split
+- added seed-aggregated paired confusion summaries that make the dominant false-positive bias explicit without treating repeated predictions as a larger independent test set
+- split `main.tex` and `appendix.tex` into separately compiled PDFs and removed cross-file numbered appendix references from the main paper so standalone appendix builds do not produce `??` references
 - rebuilt the PDF successfully after the manuscript/package changes
 
 ### In Progress
 
-- assessing whether additional failure-case or error-analysis material can be extracted from the current tiny validation split without overstating the evidence
+- assessing whether any additional negative-result analysis can still be extracted from the current tiny validation split without turning repeated predictions into pseudo-samples
 
 ### Next
 
@@ -44,6 +46,7 @@
 - `paper/appendix.tex`
 - `paper/references.bib`
 - `paper/build.sh`
+- `paper/build.ps1`
 - `paper/tables/generated/dataset_protocol.tex`
 - `paper/tables/generated/main_results.tex`
 - `paper/tables/generated/split_audit.tex`
@@ -51,10 +54,12 @@
 - `paper/tables/generated/paired_seed_results.tex`
 - `paper/tables/generated/failure_cases.tex`
 - `paper/tables/generated/implementation_details.tex`
+- `paper/tables/generated/paired_confusion_summary.tex`
 - `paper/images/generated/covid_matrix_main.png`
 - `paper/images/generated/covid_matrix_module_ablation.png`
 - `paper/images/generated/covid_paired_seed_instability.png`
 - `paper/images/generated/jdcnet_executable_architecture.png`
+- `paper/images/generated/paired_confusion_summary.png`
 - `src/jdcnet_exp/models.py`
 - `src/jdcnet_exp/data.py`
 - `src/jdcnet_exp/train.py`
@@ -71,6 +76,7 @@
 - `src/results/submission_assets_report.json`
 - `src/results/failure_analysis_report.json`
 - `paper/results/paired_failure_analysis.csv`
+- `paper/results/paired_confusion_summary.csv`
 
 ### Experiments Run
 
@@ -86,6 +92,7 @@
 - `paper/images/generated/covid_matrix_module_ablation.png`
 - `paper/images/generated/covid_paired_seed_instability.png`
 - `paper/images/generated/jdcnet_executable_architecture.png`
+- `paper/images/generated/paired_confusion_summary.png`
 - `paper/tables/generated/dataset_protocol.tex`
 - `paper/tables/generated/main_results.tex`
 - `paper/tables/generated/split_audit.tex`
@@ -93,6 +100,7 @@
 - `paper/tables/generated/paired_seed_results.tex`
 - `paper/tables/generated/failure_cases.tex`
 - `paper/tables/generated/implementation_details.tex`
+- `paper/tables/generated/paired_confusion_summary.tex`
 
 ### Top 10 Submission Blockers
 
@@ -130,7 +138,7 @@
 
 8. `Figure evidence did not clearly communicate run-to-run instability`
    - status: `resolved`
-   - action taken: regenerated the main and module-ablation figures with per-seed overlays and added an appendix instability figure
+   - action taken: regenerated the main and module-ablation figures with per-seed overlays, added an appendix instability figure, and added seed-aggregated paired confusion summaries to make the dominant false-positive pattern explicit
 
 9. `Appendix-level reproducibility detail and implementation-faithful packaging were missing`
   - status: `resolved`

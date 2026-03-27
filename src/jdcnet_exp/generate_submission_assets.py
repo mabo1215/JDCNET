@@ -11,6 +11,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[2]
 SRC_RESULTS = ROOT / "src" / "results"
 SRC_DATA = ROOT / "src" / "data" / "covid_real"
+SRC_RUNS = ROOT / "src" / "runs" / "covid_matrix"
 PAPER_DIR = ROOT / "paper"
 TABLE_DIR = PAPER_DIR / "tables" / "generated"
 IMAGE_DIR = PAPER_DIR / "images" / "generated"
@@ -244,6 +245,95 @@ def _write_paired_seed_table(run_frame: pd.DataFrame) -> None:
         ]
     )
     _write_text(TABLE_DIR / "paired_seed_results.tex", table + "\n")
+
+
+def _build_paired_confusion_summary() -> pd.DataFrame:
+    model_map = {
+        "student_xray_supervised_paired": "Student-only",
+        "late_fusion_paired": "Late fusion",
+        "student_xray_same_modality_distill": "Same-modality KD",
+        "student_xray_cross_modal_distill": "Cross-modality KD",
+        "student_xray_cross_modal_distill_nomhra": "Cross-modal KD w/o MHRA",
+    }
+    rows = []
+    for run_prefix, display_name in model_map.items():
+        total = [[0, 0], [0, 0]]
+        for seed in (42, 43, 44, 45):
+            metrics_path = SRC_RUNS / f"{run_prefix}_s{seed}" / "best_metrics.json"
+            with open(metrics_path, "r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+            matrix = payload["confusion_matrix"]
+            total = [[total[i][j] + int(matrix[i][j]) for j in range(2)] for i in range(2)]
+        tn, fp = total[0]
+        fn, tp = total[1]
+        rows.append(
+            {
+                "display_name": display_name,
+                "tn": tn,
+                "fp": fp,
+                "fn": fn,
+                "tp": tp,
+                "specificity": tn / (tn + fp) if (tn + fp) else 0.0,
+                "recall": tp / (tp + fn) if (tp + fn) else 0.0,
+                "total_predictions": tn + fp + fn + tp,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _write_paired_confusion_table(confusion_frame: pd.DataFrame) -> None:
+    rows = []
+    for _, row in confusion_frame.iterrows():
+        rows.append(
+            f"{row['display_name']} & {int(row['tn'])} & {int(row['fp'])} & {int(row['fn'])} & {int(row['tp'])} & "
+            f"{_fmt_float(row['specificity'])} & {_fmt_float(row['recall'])} \\\\ \\hline"
+        )
+
+    table = "\n".join(
+        [
+            r"\begin{table*}[htbp]",
+            r"\caption{Seed-aggregated confusion summaries for the paired-cohort models. Counts are summed over the four repeated runs on the same four validation images, so the table is intended to show qualitative error tendencies rather than to create a larger independent test set.}",
+            r"\label{tab:paired_confusion_summary}",
+            r"\centering",
+            r"\begin{tabular}{|l|c|c|c|c|c|c|}",
+            r"\hline",
+            r"Model & TN & FP & FN & TP & Specificity & Recall \\ \hline",
+            *rows,
+            r"\end{tabular}",
+            r"\end{table*}",
+        ]
+    )
+    _write_text(TABLE_DIR / "paired_confusion_summary.tex", table + "\n")
+
+
+def _plot_paired_confusion_summary(confusion_frame: pd.DataFrame) -> None:
+    figure, axes = plt.subplots(1, len(confusion_frame), figsize=(14.5, 3.0), constrained_layout=True)
+    if len(confusion_frame) == 1:
+        axes = [axes]
+
+    max_value = int(confusion_frame[["tn", "fp", "fn", "tp"]].to_numpy().max())
+    image = None
+    for axis, (_, row) in zip(axes, confusion_frame.iterrows()):
+        matrix = [[int(row["tn"]), int(row["fp"])], [int(row["fn"]), int(row["tp"])]]
+        image = axis.imshow(matrix, cmap="Blues", vmin=0, vmax=max_value)
+        axis.set_title(str(row["display_name"]), fontsize=9)
+        axis.set_xticks([0, 1], labels=["Pred Neg", "Pred Pos"])
+        axis.set_yticks([0, 1], labels=["True Neg", "True Pos"])
+        axis.tick_params(axis="both", labelsize=8)
+        for i in range(2):
+            for j in range(2):
+                axis.text(j, i, str(matrix[i][j]), ha="center", va="center", color="#102a43", fontsize=10, fontweight="bold")
+
+    figure.suptitle(
+        "Seed-aggregated paired-cohort confusion matrices (4 validation images x 4 seeds)",
+        fontsize=12,
+        y=0.98,
+    )
+    if image is not None:
+        colorbar = figure.colorbar(image, ax=axes, shrink=0.88, fraction=0.03, pad=0.02)
+        colorbar.ax.tick_params(labelsize=8)
+    figure.savefig(IMAGE_DIR / "paired_confusion_summary.png", dpi=300, bbox_inches="tight")
+    plt.close(figure)
 
 
 def _plot_paired_seed_instability(run_frame: pd.DataFrame) -> None:
@@ -540,17 +630,21 @@ def main() -> None:
     summary_frame = pd.read_csv(SRC_RESULTS / "covid_matrix_summary.csv")
     run_frame = pd.read_csv(SRC_RESULTS / "covid_matrix_per_run.csv")
     module_frame = pd.read_csv(SRC_RESULTS / "covid_matrix_module_ablation.csv")
+    confusion_frame = _build_paired_confusion_summary()
 
     _write_dataset_protocol_table(summary)
     _write_main_results_table(summary_frame)
     _write_split_audit_table()
     _write_module_ablation_table(module_frame)
     _write_paired_seed_table(run_frame)
+    _write_paired_confusion_table(confusion_frame)
     _write_implementation_details_table()
     _plot_executable_architecture()
     _plot_main_results(summary_frame, run_frame)
     _plot_module_ablation(module_frame, run_frame)
     _plot_paired_seed_instability(run_frame)
+    _plot_paired_confusion_summary(confusion_frame)
+    confusion_frame.to_csv(RESULT_DIR / "paired_confusion_summary.csv", index=False)
 
     report = {
         "dataset_protocol_table": str(TABLE_DIR / "dataset_protocol.tex"),
@@ -558,9 +652,11 @@ def main() -> None:
         "split_audit_table": str(TABLE_DIR / "split_audit.tex"),
         "module_ablation_table": str(TABLE_DIR / "module_ablation.tex"),
         "paired_seed_results_table": str(TABLE_DIR / "paired_seed_results.tex"),
+        "paired_confusion_summary_table": str(TABLE_DIR / "paired_confusion_summary.tex"),
         "implementation_details_table": str(TABLE_DIR / "implementation_details.tex"),
         "architecture_figure": str(IMAGE_DIR / "jdcnet_executable_architecture.png"),
         "paired_seed_instability_figure": str(IMAGE_DIR / "covid_paired_seed_instability.png"),
+        "paired_confusion_summary_figure": str(IMAGE_DIR / "paired_confusion_summary.png"),
     }
     with open(SRC_RESULTS / "submission_assets_report.json", "w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2)
