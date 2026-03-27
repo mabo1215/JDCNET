@@ -46,6 +46,14 @@
   - 在实验协议中明确写出“当前实验矩阵足以测试可行性和暴露 failure modes，但不足以给 cross-modality 设计排出最终名次”
   - 在主文限制部分新增 field-level evidential standard 表述
   - 在附录中进一步解释“minimum next experiment”不是泛泛地要更多数据，而是要满足明确证据条件
+- 已进一步按 `revision_suggestions.tex` 做最后一轮“收口式”强化：
+  - 摘要改得更偏“问题-答案-意义”，进一步压缩模块列举感
+  - 引言新增“为什么这个设定若不被厘清，领域会继续误读小样本 cross-modality 结果”的说明
+  - 方法部分明确区分 conceptual architecture 与 current executable instantiation
+  - 实验部分补上“当前最重要的是划清哪些结论可以写、哪些不能写”的原则性表述
+  - 主文更明确召回 supplementary appendix 中的 split audit、per-seed instability 和 confusion evidence
+  - 结论末尾新增“未来 CT-to-X-ray transfer claim 的可信最低实验条件”总结句
+- 已进一步统一 `paper/references.bib` 中 `X-Ray / X-Rays` 等题目大小写写法。
 - 已成功重新编译最新 PDF。
 
 ### 进行中
@@ -181,7 +189,7 @@
 
 - `摘要改成更结果驱动、避免过度方法堆砌`
   - 状态：`已修改`
-  - 说明：当前摘要已明确把 strongest paired result、negative finding 与 pilot benchmark 定位写进结论句。
+  - 说明：本轮已继续压缩模块罗列感，把摘要进一步改成“问题-答案-意义”导向，并明确本文价值是 benchmark scaffold 与 evidence boundary，而不是性能增益。
 
 - `引言补 gap paragraph，并把贡献收束为统一三层结构`
   - 状态：`已修改`
@@ -239,19 +247,15 @@
   - 状态：`已修改`
   - 说明：附录现在已承担证据仓库角色，而不只是堆材料。
 
-#### 部分修改
+- `主文更明确召回附录中的关键证据`
+  - 状态：`已修改`
+  - 说明：本轮已在主文中更明确召回 supplementary appendix 的 split audit、per-seed instability 和 confusion evidence，同时避免正文被补充材料细节淹没。
 
-- `摘要还可以进一步压缩模块存在感，做得更像“问题-答案-意义”`
-  - 状态：`部分修改`
-  - 原因：当前摘要已经比早期版本克制很多，但仍保留了 DPE/MHRA/DFPN 的最小必要说明；如果继续压缩，可能会让方法定义不够自洽。
+#### 部分修改
 
 - `Results/Discussion 再进一步提升为 field-level takeaway，而不只是当前实验总结`
   - 状态：`部分修改`
-  - 原因：主文已经有 transferable lessons 和 evidential standard，但受当前证据规模限制，仍不能把这些 lessons 写得像更广泛适用的强结论。
-
-- `主文对附录证据的主动调用还可以更充分`
-  - 状态：`部分修改`
-  - 原因：目前主文已经引用 supplementary appendix 中的 confusion summaries 和补充证据，但还没有把所有附录表逐一调入正文叙述，以免主文过载。
+  - 原因：本轮已把三条 lessons 写得更判断驱动，但受当前 paired split 极小这一事实限制，仍不能把这些 takeaway 扩展成更普适的强结论。
 
 #### 未修改
 

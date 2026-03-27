@@ -2,21 +2,20 @@
 
 \subsection*{总体评价}
 \begin{itemize}
-    \item 与前一版相比，当前稿件已经进一步提升了 \textbf{贡献定位的清晰度}、\textbf{基线不足的诚实披露} 和 \textbf{后续关键实验路径的可解释性}。
-    \item 特别是以下几点改动是正确且重要的：
+    \item 当前版本已经进一步从“方法原型稿”转向“\textbf{可复现实证研究稿}”。最重要的进步包括：
     \begin{itemize}
-        \item 在 Related Work 结尾明确指出，\textbf{JDCNet 更应被理解为 module-augmented cross-modality logit-distillation scaffold，而不是已被充分验证的 feature-distillation paradigm}；
-        \item 在 Baselines 中主动承认当前仓库下仍缺少一个 \textbf{stripped-down cross-modal logit-KD baseline}；
-        \item 在主文与附录中都给出了 \textbf{minimum decisive next experiment} 的具体定义；
-        \item 主文与附录对于 \textbf{prevalence bias}、\textbf{validation split 极小}、\textbf{MHRA 未验证} 的证据链已经更完整。
+        \item 明确将主贡献定位为 \textbf{controlled experimental formulation} 与 \textbf{executable evaluation scaffold}；
+        \item 新增 \textbf{Why the Current Method Is Still Hypothesis-Driven}，使方法定位与实验证据更加一致；
+        \item 在主文与附录中都更明确地提出了 \textbf{minimum decisive next experiment} 与 \textbf{minimum evidential standard}；
+        \item 对 prevalence bias、tiny validation split、missing minimal cross-modal baseline、MHRA 未验证等问题的披露更主动、更系统。
     \end{itemize}
-    \item 这些改动使稿件从“方法性文章但证据偏弱”进一步转向“\textbf{以可复现实证为中心的谨慎研究论文}”。
-    \item 但若按顶刊/顶会标准，当前稿件仍需继续强化四个关键点：
+    \item 这些修改显著提升了稿件的可信度，也更符合顶刊/顶会对于“诚实、可审计、可复验”的期待。
+    \item 但若按严格顶刊/顶会标准，当前稿件仍有若干关键点值得继续打磨，主要不在“增加更多内容”，而在于：
     \begin{enumerate}
-        \item \textbf{Abstract 需要更结论驱动，而非方法罗列驱动；}
-        \item \textbf{Introduction/Related Work 的 novelty pressure 还可以更强；}
-        \item \textbf{Method 的必要性论证仍弱于其模块数量；}
-        \item \textbf{Results/Discussion 还可以更进一步提炼成“社区应记住的经验教训”。}
+        \item \textbf{进一步统一全文中心信息；}
+        \item \textbf{让摘要与结论更结论驱动；}
+        \item \textbf{进一步增强领域层面的意义表达；}
+        \item \textbf{继续减少任何可能被误读为方法已被充分验证的语气。}
     \end{enumerate}
 \end{itemize}
 
@@ -24,28 +23,28 @@
 \begin{itemize}
     \item \textbf{当前优点}
     \begin{itemize}
-        \item 摘要已经非常明确地说明了任务、模块构成、实验设置和负结果结论；
-        \item 已经避免了夸大式表述，尤其明确指出当前最优 paired-cohort 结果来自 student-only baseline；
-        \item 结尾已经将论文价值落在 \textbf{reproducible pilot benchmark} 上，这一点是正确的。
+        \item 摘要已经清楚说明了研究问题、方法框架、实验设置与核心结论；
+        \item 已明确指出 student-only baseline 是当前 paired-cohort 下最强结果；
+        \item 结尾已经把论文价值转向 \textbf{reproducible cross-modality pilot benchmark}，这是正确方向。
     \end{itemize}
 
     \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item 当前摘要仍然略偏“先讲模块、再讲结果”的结构，而顶刊摘要通常更强调“\textbf{问题—答案—意义}”。
-        \item DPE/MHRA/DFPN 在摘要里占比略高，但这篇论文当前最有价值的，其实不是模块本身，而是：
+        \item 当前摘要仍然略偏“模块列举型”，而顶刊摘要更强调“\textbf{问题—答案—意义}”。
+        \item DPE/MHRA/DFPN 在摘要中仍占较大比重，但现阶段论文真正最强的价值并不是模块本身，而是：
         \begin{itemize}
-            \item 一个明确的 cross-modality training-only setting；
-            \item 一组可重复的 negative/neutral findings；
-            \item 一个可供未来工作继承的 benchmark scaffold。
+            \item 对 CT-to-X-ray training-only transfer 问题的明确化；
+            \item 对当前负结果的可复验呈现；
+            \item 对未来研究最低证据条件的前置定义。
         \end{itemize}
     \end{itemize}
 
     \item \textbf{建议修改}
     \begin{itemize}
-        \item 把摘要后半部分进一步压缩为“结果驱动”形式，减少模块细节篇幅。
-        \item 最后一句建议写得更像顶刊风格，例如强调：
+        \item 适度压缩模块名称在摘要中的存在感，把最后三分之一改得更结论驱动。
+        \item 建议将摘要最后一句进一步强化为：
         \begin{quote}
-            The contribution of this paper is not a validated performance gain, but a controlled and executable benchmark that clarifies when CT-to-X-ray transfer is not yet justified by the available evidence.
+            本文的价值不在于证明当前方法取得了稳定性能优势，而在于建立了一个可执行、可复验、能够明确暴露失败模式与证据边界的 CT-to-X-ray transfer benchmark scaffold。
         \end{quote}
     \end{itemize}
 \end{itemize}
@@ -54,27 +53,29 @@
 \begin{itemize}
     \item \textbf{当前优点}
     \begin{itemize}
-        \item 动机已经完整：CT richer, X-ray deployable；
-        \item 已经明确区分了 multi-modal fusion 与 training-only cross-modality transfer；
-        \item “negative or neutral result is scientifically useful” 这一句很有价值，保留得很好。
+        \item 引言已经比较完整地说明了 CT richer / X-ray deployable 的现实动机；
+        \item 也已较清楚地区分了 multi-modal fusion 与 training-only cross-modality transfer；
+        \item “negative or neutral result is scientifically useful” 的论点仍然是当前全文的重要支撑点。
     \end{itemize}
 
     \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item 目前 Introduction 已经合理，但还不够“压审稿人”的强度。
-        \item 贡献点虽然清楚，但还可以更突出“为什么这个问题在今天值得被单独研究”。
-        \item 当前引言仍然略偏“问题可以做”，还不够“问题必须被厘清”。
+        \item 当前引言已经合理，但还可以更有“领域压力感”。
+        \item 也就是说，不只是说明这是一个可研究的问题，而是要更明确说明：
+        \begin{quote}
+            这个问题若不被厘清，领域内很容易继续把数据小、模态差异大、baseline 不充分的 cross-modality 结果误写成方法改进。
+        \end{quote}
     \end{itemize}
 
     \item \textbf{建议修改}
     \begin{itemize}
-        \item 在引言结束前再增加一小段，明确指出：
+        \item 在引言最后再增加 2--4 句，强调本文不仅是在研究一个具体模型，而是在澄清一个容易被误判的研究设定。
+        \item contributions 的三点可以再轻微重写为：
         \begin{enumerate}
-            \item 现有 medical KD 文献并未真正回答 training-only CT supervision for X-ray deployment 这一问题；
-            \item 这个问题困难的核心不是 KD 本身，而是 \textbf{modality gap + tiny paired evidence}；
-            \item 因此一个诚实、可复验、可暴露失败模式的 study 对领域是必要的。
+            \item \textbf{Problem definition under deployment realism}；
+            \item \textbf{Executable protocol and benchmark scaffold}；
+            \item \textbf{Evidence-bounded empirical conclusion and minimum next-step criteria}。
         \end{enumerate}
-        \item 把贡献列表再向“问题定义 / 可执行协议 / 经验性结论”三层结构微调，使其更统一。
     \end{itemize}
 \end{itemize}
 
@@ -82,33 +83,31 @@
 \begin{itemize}
     \item \textbf{当前优点}
     \begin{itemize}
-        \item 当前版本比上一版更好的一点，是已经明确说清：
+        \item 当前版本比之前更强的一点，是已经明确写出：
         \begin{quote}
-            JDCNet should be read as a module-augmented cross-modality logit-distillation scaffold rather than as a fully validated feature-distillation paradigm.
+            当前论文主贡献不是宣称现有模块堆栈已经构成成熟 distillation paradigm，而是提出一个受控实验框架与可执行评测协议。
         \end{quote}
-        \item 这是很关键的定位修正，能有效缓解“你是不是把 feature distillation 说得太大”的质疑。
+        \item 这一点非常重要，能够显著缓解“novelty 不够纯方法化”的质疑。
     \end{itemize}
 
     \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item 当前 Related Work 仍然更像“合理定位”，但还不够“强比较”。
-        \item 对以下几类工作的边界还可以更明确：
+        \item 虽然定位已经更清楚，但 Related Work 目前还略偏“解释自己的位置”，而顶刊风格通常会更进一步上升到“\textbf{重画领域边界}”。
+        \item 当前还可以更强地说明：
         \begin{itemize}
-            \item same-modality compression KD；
-            \item cross-modal representation alignment；
-            \item multi-modal fusion at inference；
-            \item logit-only transfer vs feature-level transfer。
+            \item same-modality KD 解决的是 compression，不是 modality gap；
+            \item multi-modal fusion 解决的是 information availability，不是 deployment-time modality asymmetry；
+            \item cross-modal logit transfer 与 feature-level transfer 不是一回事；
+            \item 当前论文优先回答的是“这个 setting 值不值得继续深挖”，而不是“当前 feature transfer 是否最优”。
         \end{itemize}
-        \item 顶刊审稿人通常会追问：\textbf{你的真正新意是 setting，还是 architecture，还是 executable protocol？}
     \end{itemize}
 
     \item \textbf{建议修改}
     \begin{itemize}
-        \item 在 Related Work 最后再补一句更尖锐的总结，例如：
+        \item 在 Related Work 末尾再增加一个一两句的小总结，把本文提升到“领域判断标准”的层面，例如：
         \begin{quote}
-            Accordingly, the present paper contributes primarily a controlled experimental formulation and executable evaluation scaffold for cross-modality transfer, rather than claiming that its current module stack constitutes a mature new distillation paradigm.
+            因此，本文更像是在提出一种针对 CT-to-X-ray transfer 的证据约束框架，而不是单纯增加一个模块化医疗影像 KD 方法。
         \end{quote}
-        \item 若能补充 2--3 篇更贴近 \textbf{cross-modal distillation / modality transfer} 的近年参考文献，会进一步增强文献面。
     \end{itemize}
 \end{itemize}
 
@@ -116,31 +115,29 @@
 \begin{itemize}
     \item \textbf{当前优点}
     \begin{itemize}
-        \item Method 部分已经比较成熟，尤其是 Design Rationale 很重要；
-        \item 当前稿件已经成功把 DPE/MHRA/DFPN 从“已验证提升模块”转成“待验证假设模块”；
-        \item 这使方法部分的诚实度明显提升。
+        \item 新增的 3.4 小节是这一轮最有价值的修改之一；
+        \item 现在 Method 部分已经不再与 Results 相冲突，而是明确承认整个方法栈是 \textbf{hypothesis-driven}；
+        \item DPE/MHRA/DFPN 的存在理由、当前证据边界以及方法部分的真正作用都比之前清楚得多。
     \end{itemize}
 
     \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item 当前 Method 的主要短板不在表达清晰度，而在 \textbf{必要性论证的证据支撑还不够强}。
-        \item 换句话说，方法写得已经像一个成熟框架，但实验还不足以证明这些模块值得存在。
-        \item 其中 MHRA 尤其敏感，因为当前 ablation 直接显示 w/o MHRA 更好。
+        \item 尽管如此，Method 仍然可能让审稿人有一种“写得像成熟方法，证据却像 feasibility prototype”的感觉。
+        \item 这是因为方程、模块、图示都已经很完整，而实验上却尚不能支持强方法结论。
     \end{itemize}
 
     \item \textbf{建议修改}
     \begin{itemize}
-        \item 建议在 3.3 Design Rationale 后新增一个很短的小段，标题可为：
-        \begin{quote}
-            \textbf{Why the current method is still hypothesis-driven}
-        \end{quote}
-        \item 明确点出：
+        \item 在 3.2 或 3.4 中再加入一句过渡语，明确区分：
         \begin{itemize}
-            \item DPE/MHRA/DFPN 的存在基于机制猜想；
-            \item 但当前证据尚不足以支持强方法结论；
-            \item 因此本文更重视“验证 setting 是否值得继续深挖”，而非“证明当前架构最优”。
+            \item \textbf{conceptual architecture}；
+            \item \textbf{current executable instantiation}。
         \end{itemize}
-        \item 这样会让 Method 与 Results 更一致。
+        \item 例如可强调：
+        \begin{quote}
+            本文当前实现应理解为对这些机制假设的最小可执行检验，而非对其最优实现形式的定论。
+        \end{quote}
+        \item 这会进一步减少“方法成熟度错觉”。
     \end{itemize}
 \end{itemize}
 
@@ -148,34 +145,36 @@
 \begin{itemize}
     \item \textbf{当前优点}
     \begin{itemize}
-        \item 当前 Experiments 比上一版又更好，因为你已经在 4.3 Baselines 中主动解释了不同 baseline 的比较角色；
-        \item 更重要的是，你已经明确承认：
-        \begin{quote}
-            a cleaner minimal cross-modal KD baseline is an explicit future-work requirement.
-        \end{quote}
-        \item 这是非常好的写法，因为它把潜在缺陷转化成了清晰的未来验证条件。
+        \item 当前 Experiments 已经明显更像高水平论文的实验设计部分，而非简单跑表；
+        \item 你现在已经明确写出：
+        \begin{itemize}
+            \item 当前实验矩阵只足以支持 feasibility / failure-mode 分析；
+            \item 不足以支持 definitive ranking；
+            \item 缺少 stripped-down cross-modal logit-KD baseline；
+            \item 当前 baseline 各自承担不同比较角色。
+        \end{itemize}
+        \item 这种主动界定证据边界的写法很加分。
     \end{itemize}
 
     \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item 即便如此，这一节依然是全文最容易被拒稿理由攻击的地方，因为核心问题仍是：
+        \item 当前最大短板依然不是写法，而是数据事实本身：
         \begin{itemize}
-            \item paired validation split 太小；
-            \item CT-only val 不可解释；
-            \item missing minimal cross-modal KD baseline；
-            \item 没有 external cohort。
+            \item paired validation split 只有 4 张图；
+            \item CT-only validation 全为 positive；
+            \item 无 external cohort；
+            \item missing minimal cross-modal baseline。
         \end{itemize}
-        \item 也就是说，这一节现在是“写法正确”，但“证据仍弱”。
+        \item 因此本节还需继续强化“为什么在这种条件下，本文仍然有发表价值”的说服力。
     \end{itemize}
 
     \item \textbf{建议修改}
     \begin{itemize}
-        \item 在 4.2 或 4.3 中再加一句更加原则化的话：
+        \item 在 4.2 或 4.3 末尾增加一句更有原则感的话，例如：
         \begin{quote}
-            The present experiment matrix is sufficient to test feasibility and expose failure modes, but not sufficient to support a definitive ranking among cross-modality transfer designs.
+            在当前证据规模下，最重要的不是比较哪一种 transfer design 暂时更高，而是确定哪些结论已经可以被支持，哪些结论仍然不应被写出。
         \end{quote}
-        \item 这样可以进一步避免 reviewer 误以为你想用这一组实验支持“方法 superiority”。
-        \item 若篇幅允许，可以把 “missing stripped-down cross-modal KD baseline” 再在 Experiments 末尾呼应一次。
+        \item 这会把 Experiments 的价值进一步从“跑结果”提升为“划定证据边界”。
     \end{itemize}
 \end{itemize}
 
@@ -183,114 +182,132 @@
 \begin{itemize}
     \item \textbf{当前优点}
     \begin{itemize}
-        \item 当前结果节已经比一般论文更成熟，因为它没有硬讲提升，而是集中讲：
+        \item Results 和 Discussion 现在已经高度一致，三条主线也很明确：
         \begin{itemize}
             \item no stable gain；
             \item prevalence-biased positive prediction；
             \item module complexity not justified。
         \end{itemize}
-        \item 这三条主线已经很接近一篇高质量 negative-result paper 的结构。
+        \item 从图表上看，page 5 的 repeated-run summary 已经很好地支撑“student-only paired baseline 最强但不稳定”的判断，而 page 6 的 Figure 3 与 Figure 4 也很直观地支持“当前 regime 被 data scarcity 主导、MHRA 尚未被验证”这一解释。:contentReference[oaicite:2]{index=2}
     \end{itemize}
 
     \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item Results 目前已经可信，但还可以更像“社区 takeaway”，而不是“当前实验现象总结”。
-        \item 顶刊风格通常要求结果不仅说明发生了什么，还说明：
-        \begin{quote}
-            这些结果改变了我们对这个问题的什么认识？
-        \end{quote}
+        \item 当前结果节已经可信，但还可以再提升一个层次：从“当前实验的现象总结”升级为“对社区未来写作与实验设计的约束性经验”。
+        \item 换言之，结果节还可以更像“\textbf{这项研究改变了我们应该如何解读类似论文}”。
     \end{itemize}
 
     \item \textbf{建议修改}
     \begin{itemize}
-        \item 建议把 4.7 Discussion 的三条 lessons 再写得更具有“结论性”：
+        \item 把三条 Discussion lessons 的措辞再收紧一点，进一步强调判断性：
         \begin{enumerate}
-            \item \textbf{Current evidence does not justify claiming that CT supervision improves X-ray deployment under tiny paired cohorts.}
-            \item \textbf{The observed failure is dominated by prevalence bias rather than by useful cross-modality transfer.}
-            \item \textbf{Additional architecture is not meaningful unless the evaluation regime itself becomes interpretable.}
+            \item \textbf{Current evidence does not justify claiming CT-to-X-ray transfer gains under tiny paired cohorts.}
+            \item \textbf{The dominant observable pattern is prevalence bias, not reliable transfer benefit.}
+            \item \textbf{Additional transfer machinery should not be rewarded unless the evaluation regime itself becomes interpretable.}
         \end{enumerate}
-        \item 这会让结果节从“谨慎”进一步升级为“有判断力”。
+        \item 这样会更像一篇顶刊风格的结论，而不是谨慎的实验汇报。
     \end{itemize}
 \end{itemize}
 
-\subsection*{7. Discussion and Limitations}
+\subsection*{7. Limitations and Future Work}
 \begin{itemize}
     \item \textbf{当前优点}
     \begin{itemize}
-        \item 当前版本在 Limitations and Future Work 中新增了 \textbf{minimum decisive next experiment}，这是本轮最重要的加强点之一；
-        \item 附录 1.7 也与主文形成了呼应，说明你已经不只是承认不足，而是在定义“下一步什么样的证据才算有效”。
-    \end{itemize}
-
-    \item \textbf{仍需修改的问题}
-    \begin{itemize}
-        \item 当前这一节已经不错，但 ఇంకా 可以更“顶刊式”，即把 limitations 从“弱点列表”进一步升级成“审稿标准”。
-        \item 也就是说，不只是说自己现在不够，而是明确指出：
-        \begin{quote}
-            未来任何想主张 CT-to-X-ray transfer 有效的论文，至少应满足哪些证据条件。
-        \end{quote}
-    \end{itemize}
-
-    \item \textbf{建议修改}
-    \begin{itemize}
-        \item 在 4.8 的最后再加一个总结句，例如：
-        \begin{quote}
-            More broadly, these requirements define not only the next step for JDCNet, but also a minimum evidential standard for future claims about CT-to-X-ray transfer under patient-level paired evaluation.
-        \end{quote}
-        \item 这会明显提升论文的“field-level value”。
-    \end{itemize}
-\end{itemize}
-
-\subsection*{8. Supplementary Appendix}
-\begin{itemize}
-    \item \textbf{当前优点}
-    \begin{itemize}
-        \item 附录已经很强，特别是：
+        \item 这一节现在已经很强，尤其是你不再停留在“需要更多数据”的泛泛表述，而是明确给出了：
         \begin{itemize}
-            \item Table 1 patient-level split audit；
-            \item Table 2 per-seed instability；
-            \item Table 5 seed-aggregated confusion summaries；
-            \item Table 6 implementation details；
-            \item 以及新增的 1.7 Minimum Next Experiment。
+            \item 更大 patient-level paired cohort；
+            \item interpretable validation split；
+            \item five-way comparison；
+            \item stripped-down cross-modal logit-KD baseline；
+            \item 以及 minimum evidential standard。
         \end{itemize}
-        \item 这些内容使附录不再是“堆材料”，而是主文核心论点的证据支撑库。
+        \item 这使 Limitations 不再只是弱点陈述，而开始具有“设定领域最低合格证据标准”的作用。
     \end{itemize}
 
     \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item 当前附录本身已经足够，但主文对附录证据的主动调用还可以更充分。
-        \item 特别是 prevalence bias、per-seed instability、minimum next experiment，这三项都值得在主文中更强地指向附录。
+        \item 目前这一节已经很好，但 ఇంకా 可以更进一步强调：
+        \begin{quote}
+            这些要求不仅是 JDCNet 的下一步，也是未来任何 CT-to-X-ray transfer claim 的最低证据条件。
+        \end{quote}
+        \item 虽然你已经写了类似的话，但还能再写得更“field-level”一点。
     \end{itemize}
 
     \item \textbf{建议修改}
     \begin{itemize}
-        \item 在主文中更明确点名：
+        \item 建议在本节最后再补一小句，把这层意义说满，例如：
+        \begin{quote}
+            因而，本文的负结果不仅限制了当前方法的结论范围，也为未来类似研究提供了更明确的最低证据门槛。
+        \end{quote}
+    \end{itemize}
+\end{itemize}
+
+\subsection*{8. Conclusion}
+\begin{itemize}
+    \item \textbf{当前优点}
+    \begin{itemize}
+        \item Conclusion 现在已经足够克制，也和全文主线一致；
+        \item 已经明确指出：当前 lightweight implementation 没有稳定优于最强 student-only baseline，MHRA 需要进一步 refinement，强结论必须等待更大、更平衡、外部验证的 cohort。
+    \end{itemize}
+
+    \item \textbf{仍需修改的问题}
+    \begin{itemize}
+        \item 当前结论仍然略偏“总结本文做了什么”，而顶刊式结论通常会再多一步：总结“\textbf{本文为领域留下了什么判断标准}”。
+    \end{itemize}
+
+    \item \textbf{建议修改}
+    \begin{itemize}
+        \item 建议在 Conclusion 最后增加一句与 4.8 呼应的话，把全文升格为“evidential standard paper”的方向，例如：
+        \begin{quote}
+            Beyond the present repository, the study also clarifies the minimum experimental conditions under which future CT-to-X-ray transfer claims should be regarded as credible.
+        \end{quote}
+    \end{itemize}
+\end{itemize}
+
+\subsection*{9. Supplementary Appendix}
+\begin{itemize}
+    \item \textbf{当前优点}
+    \begin{itemize}
+        \item 附录依然是全文的重要加分项；
+        \item Appendix page 2 的 Table 1、Table 2、Table 3、Table 4 分别对应 patient leakage audit、per-seed instability、module ablation、qualitative error analysis，已经形成了很清楚的证据链；Appendix page 3 的 Table 5 与 confusion matrices 则很直接地支撑了 prevalence-biased positive prediction 的主结论。:contentReference[oaicite:3]{index=3}
+        \item 新增的 appendix-level requirement 也很强，它已经不只是“补充材料”，而是“主文观点的证据加强器”。
+    \end{itemize}
+
+    \item \textbf{仍需修改的问题}
+    \begin{itemize}
+        \item 目前附录本身已足够，但主文仍可更频繁、更明确地召回附录证据。
+    \end{itemize}
+
+    \item \textbf{建议修改}
+    \begin{itemize}
+        \item 在主文中更明确标注：
         \begin{itemize}
-            \item split audit 见 Appendix Table 1；
+            \item patient-level audit 见 Appendix Table 1；
             \item per-seed instability 见 Appendix Table 2 / Fig. 1；
             \item prevalence bias 见 Appendix Table 5 / Fig. 2；
             \item minimum next experiment 见 Appendix Sec. 1.7。
         \end{itemize}
-        \item 这样会使正文更紧，同时增强证据闭环。
+        \item 这样可以进一步增强正文与附录的闭环。
     \end{itemize}
 \end{itemize}
 
 \subsection*{按优先级排序的剩余修改任务}
 \begin{enumerate}
-    \item \textbf{最高优先级：}进一步把全文核心定位固定为“\textbf{cross-modality feasibility and failure-mode study}”，而不是方法性能论文。
-    \item \textbf{高优先级：}让 Abstract 更结论驱动，减少模块枚举感。
-    \item \textbf{高优先级：}在 Introduction / Related Work 中进一步强化“field-level gap”与“minimum evidential standard”。
-    \item \textbf{高优先级：}在 Method 中再强调一次 hypothesis-driven nature，减少“模块成熟度”错觉。
-    \item \textbf{中优先级：}在正文中更频繁、更有针对性地引用附录证据。
-    \item \textbf{中优先级：}对缺失的 stripped-down cross-modal logit-KD baseline 再做一次轻微呼应，避免审稿人认为你试图回避这一缺口。
+    \item \textbf{最高优先级：}继续统一全文中心信息——本文是关于 \textbf{CT-to-X-ray transfer 的证据边界、失败模式与最低证据标准}，而不是关于当前模块栈 superiority 的论文。
+    \item \textbf{高优先级：}让 Abstract 与 Conclusion 更加结论驱动、判断驱动。
+    \item \textbf{高优先级：}在 Introduction / Related Work 中进一步强化“领域层面为什么必须厘清这一设定”。
+    \item \textbf{高优先级：}进一步减少任何让读者误读为“模块已被证实有效”的潜在语气。
+    \item \textbf{中优先级：}增加主文对附录关键证据的定点引用。
+    \item \textbf{中优先级：}在 Results/Discussion 中再提高一层，把经验总结写成“未来类似论文应如何被判断”的形式。
 \end{enumerate}
 
 \subsection*{最终判断}
 \begin{itemize}
-    \item 当前这一版已经明显优于前一版，尤其在 \textbf{研究定位、证据诚实度、未来验证条件定义} 上都有实质增强。
-    \item 如果按普通会议或一般期刊标准，这一版已经具备较好的提交基础。
-    \item 但若目标是顶刊/顶会，仍建议再做最后一轮“收口式”强化，重点不是加更多方法细节，而是：
+    \item 当前这一版已经比前几版更接近一篇真正成熟的顶刊/顶会风格稿件。
+    \item 如果目标是一般会议或普通期刊，当前版本已经具备较强投稿基础。
+    \item 如果目标是顶刊/顶会，则建议再做最后一轮“收口式”强化，重点不是新增方法细节，而是把全文彻底统一到以下核心信息上：
     \begin{quote}
-        让全文更加统一地服务于一个核心信息：当前 CT-to-X-ray distillation 在极小 paired cohort 下尚未被证据支持，而本文的贡献在于为这一结论提供了可复验、可审计、可扩展的实验基线与最低证据标准。
+        当前 CT-to-X-ray distillation 在极小 paired cohort 下尚未获得可信支持，而本文的核心贡献在于建立了一个可执行、可复验、可审计、并能定义最低证据门槛的 cross-modality evaluation scaffold。
     \end{quote}
-    \item 一旦这个中心思想在 Abstract、Introduction、Results、Limitations 中完全对齐，稿件就会更像一篇顶刊/顶会风格的成熟研究论文，而不是一篇“谨慎但还略显分散”的工程实验报告。
+    \item 一旦 Abstract、Introduction、Discussion、Conclusion 都完全围绕这一点对齐，整篇文章就会更像一篇顶刊/顶会标准的成熟研究论文，而不是一篇“已经很谨慎，但仍稍带方法展示感”的实验文章。
 \end{itemize}
