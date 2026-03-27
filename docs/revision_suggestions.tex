@@ -1,256 +1,360 @@
-\section*{Section-by-Section Revision Checklist (Top-Tier Journal/Conference Standard)}
+\section*{按顶刊/顶会标准的逐节修改清单（基于当前修订版）}
 
-\subsection*{Overall Assessment}
+\subsection*{总体评价}
 \begin{itemize}
-    \item The revised manuscript has already improved substantially in \textbf{honesty, reproducibility, and claim control}. In particular, the paper now explicitly states that:
+    \item 当前版本相比早期稿件已经有了明显提升，最大的改进在于：
     \begin{itemize}
-        \item the study is a \textbf{reproducible pilot study},
-        \item the paired validation split is \textbf{extremely small} (4 X-ray images),
-        \item the \textbf{student-only baseline} is currently the strongest paired-cohort result,
-        \item and the current \textbf{MHRA implementation is not yet robust}.
+        \item 明确将论文定位为 \textbf{reproducible pilot study}；
+        \item 显式承认当前 paired validation split 只有 \textbf{4 张图像}，证据强度有限；
+        \item 明确指出当前最强 paired-cohort 结果实际上来自 \textbf{student-only baseline}；
+        \item 不再把 MHRA 作为已被验证的有效模块，而是作为 \textbf{待验证假设} 来表述；
+        \item 增加了附录中的 \textbf{split audit / per-seed instability / confusion analysis}，提高了可信度与可复现性。
     \end{itemize}
-    \item These changes are important and move the manuscript away from overclaiming.
-    \item However, under top-tier standards, the manuscript still needs another round of refinement to make the contribution framing, methodological necessity, experimental rigor, and limitation-to-future-work logic more convincing.
+    \item 这些修改方向是正确的，也使稿件从“可能被批评为过度宣称”转向了“诚实、克制、可复核”的风格。
+    \item 但若按顶刊/顶会标准衡量，当前稿件仍然需要继续加强以下四个方面：
+    \begin{enumerate}
+        \item \textbf{贡献定位还可以更锋利}；
+        \item \textbf{方法必要性论证还不够强}；
+        \item \textbf{实验说服力仍明显弱于方法叙述}；
+        \item \textbf{负结果的科学价值还可以进一步提炼成更强的信息。}
+    \end{enumerate}
 \end{itemize}
 
 \subsection*{1. Abstract}
 \begin{itemize}
-    \item \textbf{Already improved:}
+    \item \textbf{当前优点}
     \begin{itemize}
-        \item The abstract now clearly states the task, the proposed framework, the dataset setting, and the key negative finding that cross-modality distillation does not yet stably outperform the student-only baseline.
-        \item The wording is much more conservative and scientifically credible than a typical overclaimed medical-AI abstract.
+        \item 已经明确交代了问题背景：CT 与 X-ray 的跨模态知识迁移；
+        \item 已经说明了方法组成：DPE、MHRA、DFPN；
+        \item 已经诚实给出关键结论：当前实现下 cross-modality distillation \textbf{没有稳定优于} student-only baseline；
+        \item 最后一段能够把论文落到 \textbf{reproducible benchmark / cautionary baseline} 上，这比直接硬讲性能提升更符合当前证据。
     \end{itemize}
-    \item \textbf{Still needs revision:}
+
+    \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item The current abstract lists DPE, MHRA, and DFPN, but it still does not make fully clear \emph{why these three modules are necessary together} rather than being a generic modular stack.
-        \item The abstract should more sharply distinguish between:
+        \item 当前摘要虽然已经克制，但仍然偏“方法介绍型”，还不够“结论驱动型”。
+        \item DPE、MHRA、DFPN 被列出，但尚未在摘要中突出：
         \begin{itemize}
-            \item the \textbf{scientific question} (Can CT supervise X-ray through cross-modality distillation?),
-            \item the \textbf{engineering artifact} (the executable JDCNet scaffold),
-            \item and the \textbf{empirical conclusion} (no stable gain yet under the current small paired cohort).
+            \item \textbf{这篇论文真正回答了什么问题}；
+            \item \textbf{为什么负结果仍然有价值}；
+            \item \textbf{为什么这不是一个普通的 KD 堆模块论文。}
         \end{itemize}
-        \item For a top-tier venue, the last sentence should emphasize the paper's value as a \textbf{negative-but-reproducible benchmarked finding}, not just as an underperforming method.
+        \item 摘要中应更明显地区分：
+        \begin{enumerate}
+            \item \textbf{研究问题}：CT 能否作为训练期教师帮助 X-ray 学生？
+            \item \textbf{实现载体}：JDCNet 是一个可执行的实验 scaffold；
+            \item \textbf{经验结论}：在当前小样本 paired cohort 下并未观察到稳定收益。
+        \end{enumerate}
     \end{itemize}
-    \item \textbf{Recommended action:}
+
+    \item \textbf{建议修改}
     \begin{itemize}
-        \item Rewrite the final two sentences so that the contribution is framed as:
+        \item 将摘要最后两句进一步改成“问题答案 + 科学价值”的形式，而不是“方法组件总结”。
+        \item 最终落点建议突出：
         \begin{quote}
-            a reproducible cross-modality benchmark/pilot pipeline that prevents overstated claims and establishes a controlled baseline for future CT-to-X-ray distillation research.
+            本文的价值不在于宣称当前方法已取得性能突破，而在于建立了一个可复现、可审计、能够暴露失败模式的 CT-to-X-ray cross-modality distillation 基线框架。
         \end{quote}
     \end{itemize}
 \end{itemize}
 
 \subsection*{2. Introduction}
 \begin{itemize}
-    \item \textbf{Already improved:}
+    \item \textbf{当前优点}
     \begin{itemize}
-        \item The introduction now has a clear motivation: CT provides richer supervision, while X-ray is the target deployment modality.
-        \item The problem setting is more realistic than multi-modal fusion at test time.
-        \item The contribution list is cleaner and now includes the executable evaluation pipeline.
+        \item 引言已经能清晰说明：X-ray 易部署，CT 信息更丰富，因此训练时用 CT、推理时只保留 X-ray 是一个有实际意义的问题；
+        \item 已经加入了对 prior work gap 的说明：现有 KD 多为同模态，multi-modal learning 常要求测试时保留所有模态；
+        \item contributions 三点式结构较清晰，比之前版本更统一。
     \end{itemize}
-    \item \textbf{Still needs revision:}
+
+    \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item The introduction currently explains \emph{what} the paper does, but not strongly enough \emph{why this problem matters now} in the context of modern medical multi-modal learning.
-        \item It still lacks a sharper statement of the \textbf{gap in prior work}: existing KD papers are mostly same-modality, while medical multi-modal papers often assume inference-time access to all modalities.
-        \item The current contribution list is partially \textbf{method-oriented} and partially \textbf{pipeline-oriented}; this should be unified.
+        \item 现有引言虽然逻辑顺，但还不够“顶刊式锋利”。
+        \item 目前的 gap statement 是合理的，但还不够有压强，尚未彻底把本文与以下几类工作拉开距离：
+        \begin{itemize}
+            \item same-modality KD；
+            \item inference-time multi-modal fusion；
+            \item 简单的 teacher-student transfer；
+            \item 纯 engineering benchmark paper。
+        \end{itemize}
+        \item contributions 的三点已经比之前好，但仍然可以进一步提升层次，让审稿人更快抓住“为何值得发表”。
     \end{itemize}
-    \item \textbf{Recommended action:}
+
+    \item \textbf{建议修改}
     \begin{itemize}
-        \item Add one paragraph at the end of the introduction explicitly stating:
+        \item 在引言末尾增加一个更强的总结段，明确说明：
         \begin{enumerate}
-            \item what prior work has \emph{not} done,
-            \item why cross-modality distillation is technically nontrivial,
-            \item and why a reproducible negative/neutral result is still valuable.
+            \item \textbf{已有工作缺什么}；
+            \item \textbf{跨模态 distillation 的技术难点是什么}；
+            \item \textbf{为什么一个严格控制、结果为负或中性的研究依然值得发表。}
         \end{enumerate}
-        \item Rewrite the contributions into three layers:
+        \item 将 contributions 重写成如下三层逻辑会更强：
         \begin{enumerate}
-            \item \textbf{Problem formulation},
-            \item \textbf{Executable framework},
-            \item \textbf{Empirical finding and cautionary conclusion}.
+            \item \textbf{Problem formulation}: training-only CT supervision for X-ray deployment；
+            \item \textbf{Executable benchmark scaffold}: JDCNet + reproducibility pipeline；
+            \item \textbf{Empirical lesson}: current lightweight cross-modality transfer is not yet justified by the present evidence.
         \end{enumerate}
     \end{itemize}
 \end{itemize}
 
 \subsection*{3. Related Work}
 \begin{itemize}
-    \item \textbf{Already improved:}
+    \item \textbf{当前优点}
     \begin{itemize}
-        \item The related work is now logically divided into chest imaging, transformers/attention, knowledge distillation, and cross-modality/multi-modal learning.
-        \item The manuscript correctly positions the paper closer to cross-modality distillation than to conventional multi-modal fusion.
+        \item 结构已经比较清楚：chest X-ray/CT、transformer/attention、KD、cross-modality/multi-modal learning；
+        \item 末尾的 gap-summary 已经明显优于普通“文献罗列式”写法。
     \end{itemize}
-    \item \textbf{Still needs revision:}
+
+    \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item The section is still too \textbf{descriptive} and not sufficiently \textbf{comparative}.
-        \item It does not yet clearly identify the exact methodological niche of JDCNet relative to:
-        \begin{itemize}
-            \item same-modality distillation,
-            \item feature distillation,
-            \item logit distillation,
-            \item multi-modal fusion,
-            \item and cross-modal representation transfer.
-        \end{itemize}
-        \item There is still a risk that reviewers will ask: ``Is this really a new method, or mainly a new experimental packaging of known blocks?''
-    \end{itemize}
-    \item \textbf{Recommended action:}
-    \begin{itemize}
-        \item End the related work with a \textbf{gap-summary paragraph} in this style:
+        \item 当前 related work 仍略显“描述性综述”，还不够“比较性综述”。
+        \item 审稿人仍可能追问：
         \begin{quote}
-            Existing medical KD studies mostly focus on same-modality compression, whereas multi-modal medical studies often require all modalities at inference. In contrast, this work studies training-only CT supervision for X-ray deployment and evaluates that setting under an executable, patient-level, repeated-run protocol.
+            这篇论文到底是提出了一个新方法，还是把一些已有模块放进了一个新的实验设定中？
         \end{quote}
-        \item If possible, add 1--3 stronger and more recent references specifically on \textbf{cross-modal distillation} or \textbf{teacher-student transfer across modalities}, even if they are outside chest imaging.
+        \item 目前对 cross-modality distillation 的定位虽有，但还没有足够系统地说明它与以下方向的边界：
+        \begin{itemize}
+            \item feature distillation；
+            \item logit distillation；
+            \item multi-modal fusion；
+            \item representation alignment；
+            \item domain transfer / modality transfer。
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{建议修改}
+    \begin{itemize}
+        \item 在 Related Work 结尾新增一个更明确的小结段，说明：
+        \begin{quote}
+            本文的 novelty 不主要来自单个模块本身，而来自于将 training-only CT supervision for X-ray deployment 明确化、可执行化，并在 patient-level repeated-run setting 下给出负结果可复验结论。
+        \end{quote}
+        \item 如果篇幅允许，建议补充 2--4 篇更贴近“cross-modal distillation / modality transfer”的近年工作，即使这些工作不在胸部影像领域，也会显著提升文献定位的完整性。
     \end{itemize}
 \end{itemize}
 
-\subsection*{4. Method}
+\subsection*{4. Methodology}
 \begin{itemize}
-    \item \textbf{Already improved:}
+    \item \textbf{当前优点}
     \begin{itemize}
-        \item The method section is structurally clear.
-        \item The paper now gives equations for DPE, MHRA, DFPN, and the hard/soft distillation objective.
-        \item The text explicitly states which parts are conceptual and which parts correspond to the current executable implementation.
+        \item Method 部分的结构已经较完整：Problem Formulation、Architecture、Design Rationale、DPE、MHRA、DFPN、Training Objective；
+        \item 现在最好的改进是加入了 \textbf{Design Rationale}，并且明确说三者是“hypotheses”而不是已被验证的 gain；
+        \item 这一点大幅降低了因“模块堆叠但证据不足”而被批评的风险。
     \end{itemize}
-    \item \textbf{Still needs revision:}
+
+    \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item The current method is understandable, but the \textbf{methodological novelty is still not fully defended}.
-        \item DPE, MHRA, and DFPN are introduced as intuitive modules, but their \textbf{necessity, interaction, and modality-specific role separation} are not yet argued strongly enough.
-        \item Since the ablation shows that \textbf{w/o MHRA performs slightly better}, reviewers may question whether MHRA is conceptually justified or currently unnecessary.
-    \end{itemize}
-    \item \textbf{Recommended action:}
-    \begin{itemize}
-        \item Add a short paragraph called something like \textbf{``Design Rationale''} after the architecture overview.
-        \item Explicitly explain:
+        \item 当前方法写法已经可以发表在一般性 venue，但若按顶刊标准看，\textbf{方法必要性与方法交互逻辑仍然偏弱}。
+        \item 审稿人可能仍会问：
         \begin{itemize}
-            \item why teacher-side saliency refinement is needed before transfer,
-            \item why student-side multi-scale fusion is especially relevant for X-ray,
-            \item and why these modules were chosen instead of plain logit KD alone.
+            \item 为什么不能只做 plain logit KD？
+            \item 为什么 teacher 端要做 DPE 和 MHRA，而不是更简单的 feature projection？
+            \item 为什么 student 端必须使用 DFPN？
+            \item 为什么这些模块是 cross-modality setting 特有的，而不是一般 CNN trick？
         \end{itemize}
-        \item Add one sentence openly acknowledging:
+        \item 当前 ablation 显示 w/o MHRA 反而略好，因此 MHRA 部分极易成为攻击点。
+    \end{itemize}
+
+    \item \textbf{建议修改}
+    \begin{itemize}
+        \item 在 Method 最前面或 Design Rationale 末尾再加一个短段落，名字可为：
         \begin{quote}
-            although the present MHRA instantiation is not yet empirically validated, it is included as a testable hypothesis about teacher-side saliency aggregation rather than as a confirmed improvement.
+            \textbf{Why plain KD is insufficient in this setting}
         \end{quote}
-        \item This kind of wording can preempt novelty and ablation criticisms.
+        \item 明确写出：
+        \begin{enumerate}
+            \item 模态间 appearance statistics 不同；
+            \item teacher 端 rich CT signal 未必可直接迁移；
+            \item student 端 X-ray 需要更强的多尺度支持；
+            \item 因此本文将 plain KD 视为基础，而非充分方案。
+        \end{enumerate}
+        \item 对 MHRA 的措辞建议进一步保守，例如：
+        \begin{quote}
+            MHRA is retained in the current scaffold as a hypothesis-driven teacher-side aggregation mechanism, but the present evidence does not justify treating it as a validated improvement.
+        \end{quote}
+        \item 若可能，建议在方法中显式区分：
+        \begin{itemize}
+            \item \textbf{conceptual architecture}；
+            \item \textbf{current executable implementation}。
+        \end{itemize}
+        这样可以减少“理论写得很大，但实现很轻量”的落差感。
     \end{itemize}
 \end{itemize}
 
 \subsection*{5. Experiments}
 \begin{itemize}
-    \item \textbf{Already improved:}
+    \item \textbf{当前优点}
     \begin{itemize}
-        \item The experimental section is now much more reproducible.
-        \item The manuscript clearly states cohort construction, patient-level splitting, repeated seeds, baseline types, optimizer settings, and executable pipeline generation.
-        \item The paper also explicitly warns that the dataset should not be treated as a competition benchmark or clinical validation benchmark.
-    \end{itemize}
-    \item \textbf{Still needs revision:}
-    \begin{itemize}
-        \item Under top-tier standards, the experimental evidence is still the manuscript's weakest part.
-        \item The main issue is not presentation quality, but \textbf{evidence strength}: the paired validation set has only 4 images, and the CT validation split is effectively unusable for meaningful comparison.
-        \item The current baselines are reasonable, but the study still lacks stronger external anchors, such as:
+        \item 实验部分已经比之前规范很多，尤其是：
         \begin{itemize}
-            \item a plain student trained on all available X-ray data and evaluated under a matched protocol,
-            \item a simpler cross-modal KD baseline without DPE/MHRA/DFPN,
-            \item or a non-distillation transfer baseline.
+            \item patient-level split；
+            \item repeated seeds；
+            \item cohort construction 透明；
+            \item 明确指出 dataset 不能视为 competition benchmark；
+            \item 明确把实验分成 benchmarking / stress tests / reproducibility utilities。
+        \end{itemize}
+        \item 这些都很符合认真做研究的写法。
+    \end{itemize}
+
+    \item \textbf{仍需修改的问题}
+    \begin{itemize}
+        \item 这一节仍然是全文最薄弱之处，不是因为写得差，而是因为 \textbf{证据基础太弱}。
+        \item 顶刊/顶会评审很可能会直接指出：
+        \begin{itemize}
+            \item paired validation split 只有 4 张图像；
+            \item CT subset 极小且严重失衡；
+            \item CT-only teacher 的验证集全为 positive，基本不可解释；
+            \item 当前比较更像 feasibility probe，而不是成熟 benchmark。
+        \end{itemize}
+        \item baseline 已经比之前合理，但还不够强，尤其缺少：
+        \begin{itemize}
+            \item plain cross-modality logit KD baseline 的更突出呈现；
+            \item 更简单、更强的 teacher/student backbone 对照；
+            \item 外部 cohort 或更大 paired set 的 supporting evidence。
         \end{itemize}
     \end{itemize}
-    \item \textbf{Recommended action:}
+
+    \item \textbf{建议修改}
     \begin{itemize}
-        \item Strengthen the experiment section by explicitly separating:
-        \begin{enumerate}
-            \item \textbf{benchmarking experiments},
-            \item \textbf{stress-test experiments},
-            \item \textbf{reproducibility utilities}.
-        \end{enumerate}
-        \item Add one paragraph clarifying that the current experiment is designed to test \textbf{feasibility and reproducibility}, not to establish state-of-the-art performance.
-        \item If no new data can be added, then make that limitation part of the experimental design logic rather than leaving it as a passive weakness.
+        \item 在 Experiments 开头或 4.2 末尾增加一句更强的 framing：
+        \begin{quote}
+            The goal of the present experiments is to evaluate feasibility, instability, and failure modes under a controlled executable protocol, rather than to establish state-of-the-art medical classification performance.
+        \end{quote}
+        \item 将 baseline 说明写得更“评审友好”：
+        \begin{itemize}
+            \item 哪个 baseline 是 deployment-relevant；
+            \item 哪个 baseline 只是 reference；
+            \item 哪个 baseline 用于测试 cross-modality transfer 是否真的有增益。
+        \end{itemize}
+        \item 如果当前无法增加数据，建议在实验节中主动把“样本小”转化为实验设计动机，而不是只作为被动弱点。
     \end{itemize}
 \end{itemize}
 
-\subsection*{6. Results}
+\subsection*{6. Results and Discussion}
 \begin{itemize}
-    \item \textbf{Already improved:}
+    \item \textbf{当前优点}
     \begin{itemize}
-        \item The results section is now much more honest and publishable than before.
-        \item The paper correctly avoids overemphasizing unstable metrics and focuses on accuracy, macro-F1, and balanced accuracy.
-        \item The discussion of the student-only baseline, the flat temperature/alpha ablation, and the unstable MHRA behavior is scientifically appropriate.
-        \item The appendix usefully supports the main text with per-seed tables, qualitative error analysis, and seed-aggregated confusion summaries.
+        \item 结果部分已经明显成熟，尤其是：
+        \begin{itemize}
+            \item 主文只保留 accuracy / macro-F1 / balanced accuracy，避免在极小 split 上过度展示不稳定指标；
+            \item 对 CT-only teacher 结果的解释是谨慎的；
+            \item 温度与 $\alpha$ ablation 的“近乎平坦”解释合理；
+            \item 讨论部分已经提炼出三条 transferable lessons，这是很大的进步。
+        \end{itemize}
     \end{itemize}
-    \item \textbf{Still needs revision:}
+
+    \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item The results are credible, but the \textbf{narrative structure} can still be stronger.
-        \item Right now the section mainly says what happened; it should more explicitly tell the reader \textbf{what we learn from the failure to improve}.
-        \item Top-tier reviewers often accept negative results only when the paper extracts a strong, transferable lesson.
-    \end{itemize}
-    \item \textbf{Recommended action:}
-    \begin{itemize}
-        \item Reorganize the results discussion around three takeaways:
+        \item 虽然结果已经诚实，但“可发表的结论张力”还可以更强。
+        \item 当前结果节主要在说“发生了什么”，但还没有把“为什么这些负结果本身值得社区关注”推到最强。
+        \item 审稿人会更愿意接受负结果论文，如果它能提供：
         \begin{enumerate}
-            \item \textbf{No stable gain from current cross-modality KD under the tiny paired cohort;}
-            \item \textbf{the dominant failure mode is prevalence-biased positive prediction;}
-            \item \textbf{module complexity is not justified unless the paired cohort and implementation quality are both improved.}
+            \item 清晰失败模式；
+            \item 可转移经验；
+            \item 对未来研究的直接启发。
         \end{enumerate}
-        \item This will make the paper read less like an unsuccessful method paper and more like a carefully designed empirical study.
+    \end{itemize}
+
+    \item \textbf{建议修改}
+    \begin{itemize}
+        \item 建议将结果和讨论的核心叙事进一步聚焦为以下三条：
+        \begin{enumerate}
+            \item \textbf{Current CT-to-X-ray KD does not show stable gains under the present tiny paired cohort.}
+            \item \textbf{The dominant failure mode is prevalence-biased positive prediction rather than meaningful cross-modality transfer.}
+            \item \textbf{Architectural complexity is not justified unless paired data scale and implementation robustness are improved together.}
+        \end{enumerate}
+        \item 建议在每条结论后各加一句“对未来研究意味着什么”，这样会更像顶刊论文，而不是单纯实验汇报。
+        \item 对 Figure 2--4 的描述可更强调“evidence quality”而非“visual summary”，例如指出：
+        \begin{itemize}
+            \item Figure 2 说明 paired-cohort ranking 的不稳定；
+            \item Figure 3 说明当前 regime 被 data scarcity 主导；
+            \item Figure 4 说明 MHRA 目前尚未通过证据验证。
+        \end{itemize}
     \end{itemize}
 \end{itemize}
 
 \subsection*{7. Limitations}
 \begin{itemize}
-    \item \textbf{Already improved:}
+    \item \textbf{当前优点}
     \begin{itemize}
-        \item The manuscript already acknowledges the main limitations clearly:
+        \item 当前 limitation 写得已经相当不错，尤其是已经按：
         \begin{itemize}
-            \item tiny paired cohort,
-            \item tiny validation split,
-            \item CT imbalance,
-            \item unstable MHRA behavior,
-            \item and lack of strong benchmarking validity.
+            \item data limitations；
+            \item method limitations；
+            \item evaluation limitations
         \end{itemize}
-        \item The appendix further reinforces these limitations with concrete patient counts, per-seed instability, and confusion-pattern analysis.
+        进行了组织，这很符合高水平论文的写法。
+        \item 这一节与附录中的 split audit、per-seed instability、confusion summaries 是互相支撑的。
     \end{itemize}
-    \item \textbf{Still needs revision:}
+
+    \item \textbf{仍需修改的问题}
     \begin{itemize}
-        \item The limitations are currently embedded mostly inside discussion-style prose.
-        \item For top-tier style, they should be turned into a more \textbf{structured limitations-to-future-work bridge}.
-        \item Reviewers should leave the paper with the impression that the next steps are concrete and technically justified.
+        \item 当前 limitation 虽然清楚，但仍略偏“总结式”，还可以更进一步做成“limitations-to-action bridge”。
+        \item 顶刊审稿人更喜欢看到：
+        \begin{quote}
+            每个 limitation 都能自然导向一个清晰、可执行、技术上合理的 next step。
+        \end{quote}
     \end{itemize}
-    \item \textbf{Recommended action:}
+
+    \item \textbf{建议修改}
     \begin{itemize}
-        \item Add a dedicated paragraph or subsection that separates limitations into:
-        \begin{enumerate}
-            \item \textbf{data limitations},
-            \item \textbf{method limitations},
-            \item \textbf{evaluation limitations}.
-        \end{enumerate}
-        \item Then map each limitation to a direct future action:
+        \item 对每类 limitation 增加更直接的 future-action mapping：
         \begin{itemize}
-            \item larger paired cohort,
-            \item stronger teacher/student backbones,
-            \item simpler and stronger KD baselines,
-            \item external evaluation,
-            \item and better-calibrated teacher-side feature transfer.
+            \item \textbf{Data} $\rightarrow$ larger paired cohort, stronger negative-class coverage, cleaner patient-level pairing；
+            \item \textbf{Method} $\rightarrow$ simpler/stronger KD baselines, stronger teacher/student backbones, feature-level transfer redesign；
+            \item \textbf{Evaluation} $\rightarrow$ interpretable held-out set, external cohort, more stable validation protocol。
         \end{itemize}
+        \item 可以在结尾加入一句总结：
+        \begin{quote}
+            These limitations do not merely weaken the present study; they define the minimum conditions under which future CT-to-X-ray transfer claims should be considered credible.
+        \end{quote}
     \end{itemize}
 \end{itemize}
 
-\subsection*{Priority Ranking of Remaining Revisions}
+\subsection*{8. Supplementary Appendix}
+\begin{itemize}
+    \item \textbf{当前优点}
+    \begin{itemize}
+        \item 附录现在是全文的重要加分项，而不是简单堆材料；
+        \item patient-level split audit 非常重要，它能直接回应数据泄漏质疑；
+        \item per-seed results 与 confusion summaries 很适合支撑“结果不稳定但结论诚实”的主线；
+        \item Table 6 的 implementation details 也很好，增强了 reproducibility。
+    \end{itemize}
+
+    \item \textbf{仍需修改的问题}
+    \begin{itemize}
+        \item 附录目前信息是足够的，但主文与附录之间的“引用关系”还可以更紧。
+        \item 有些关键结论虽然在附录里有证据，但主文中引用得还不够积极。
+    \end{itemize}
+
+    \item \textbf{建议修改}
+    \begin{itemize}
+        \item 在主文 Results / Discussion 中更明确点名附录证据，例如：
+        \begin{itemize}
+            \item patient-level audit 见附录 Table 1；
+            \item per-seed instability 见附录 Table 2 / Figure 1；
+            \item prevalence bias 见附录 Table 5 / Figure 2；
+            \item executable scaffold details 见附录 Table 6。
+        \end{itemize}
+        \item 这样可以让主文更紧凑，同时把附录真正变成“证据库”。
+    \end{itemize}
+\end{itemize}
+
+\subsection*{按优先级排序的剩余修改任务}
 \begin{enumerate}
-    \item \textbf{Highest priority:} strengthen the paper's contribution framing as a reproducible and cautionary cross-modality pilot study rather than as a performance-driven new SOTA method.
-    \item \textbf{High priority:} sharpen the novelty/gap statement in the Introduction and Related Work.
-    \item \textbf{High priority:} add stronger design rationale in the Method section, especially for MHRA.
-    \item \textbf{High priority:} reorganize the Results section around transferable empirical lessons.
-    \item \textbf{Medium priority:} make the Limitations section more structured and forward-linked.
-    \item \textbf{Medium priority:} polish wording to further reduce any residual ambiguity between ``proposed validated module'' and ``currently tested hypothesis''.
+    \item \textbf{最高优先级：}进一步强化论文的核心定位——这是一篇关于 \textbf{cross-modality distillation feasibility and failure modes} 的可复现实证论文，而不是一篇已经证明方法优越性的 SOTA 论文。
+    \item \textbf{高优先级：}进一步增强 Introduction 和 Related Work 中的 novelty / gap 锋利度。
+    \item \textbf{高优先级：}继续加强 Method 中“为什么不是 plain KD 就够了”的必要性论证。
+    \item \textbf{高优先级：}把 Results/Discussion 更明确地组织成“负结果的三条可迁移经验”。
+    \item \textbf{中优先级：}增强主文与附录之间的证据指向关系。
+    \item \textbf{中优先级：}继续减少任何可能被理解为“模块已验证有效”的措辞。
 \end{enumerate}
 
-\subsection*{Bottom-Line Recommendation}
+\subsection*{最终判断}
 \begin{itemize}
-    \item The revised manuscript is \textbf{substantially better than before} and is now much closer to a defensible submission.
-    \item However, under strict top-tier standards, it is \textbf{not yet optimal} mainly because:
-    \begin{itemize}
-        \item the novelty positioning is still not maximally sharp,
-        \item the method rationale is still somewhat under-argued,
-        \item and the experimental evidence remains too small to support a strong method-driven claim.
-    \end{itemize}
-    \item Therefore, the next revision should focus less on adding decorative text and more on:
+    \item 当前版本已经比之前明显更接近“可以投稿”的状态；
+    \item 如果目标是一般会议/普通期刊，目前已经具备一定提交基础；
+    \item 但如果目标是 \textbf{顶刊/顶会标准}，则还建议再做一轮针对性强化，重点不是再堆文字，而是：
     \begin{quote}
-        sharpening contribution logic, clarifying methodological necessity, and converting the current negative/neutral findings into a strong reproducible scientific message.
+        进一步 sharpen contribution framing, strengthen methodological necessity, and turn the current negative findings into a stronger reproducible scientific message.
     \end{quote}
+    \item 换言之，下一轮最重要的不是“把方法写得更厉害”，而是“把论文写得更可信、更锋利、更像一篇值得社区记住的负结果研究”。
 \end{itemize}

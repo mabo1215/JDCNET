@@ -30,17 +30,18 @@
 - added seed-aggregated paired confusion summaries that make the dominant false-positive bias explicit without treating repeated predictions as a larger independent test set
 - split `main.tex` and `appendix.tex` into separately compiled PDFs and removed cross-file numbered appendix references from the main paper so standalone appendix builds do not produce `??` references
 - revised the manuscript against `docs/revision_suggestions.tex` by sharpening the abstract framing, adding an introduction gap paragraph, adding a related-work gap summary, adding a method design-rationale subsection, separating benchmarking/stress-test/reproducibility roles in the experiments, reorganizing the discussion around three transferable lessons, and adding a structured limitations-and-future-work subsection
+- further tightened the comparative framing by clarifying the exact role of each baseline, explicitly marking a cleaner minimal cross-modal KD baseline as future work rather than pretending it already exists, and removing residual template-comment clutter from `paper/main.tex`
+- documented the minimum decisive next experiment in the main paper and appendix, and explicitly closed off further micro-analysis on the current four-image validation split as likely pseudo-evidence rather than stronger science
+- normalized bibliography title capitalization for `COVID-19`, `CT`, and `X-ray` so the standalone manuscript and appendix use cleaner citation formatting
 - rebuilt the PDF successfully after the manuscript/package changes
 
 ### In Progress
 
-- assessing whether any additional negative-result analysis can still be extracted from the current tiny validation split without turning repeated predictions into pseudo-samples
 - deciding whether any extra baseline beyond the current executable set can still be added honestly from the present repository without diluting the paper's pilot-study framing
 
 ### Next
 
-- identify the minimum additional experiment that would most directly test the core novelty once more paired data become available
-- decide whether to add one explicit simpler KD baseline discussion paragraph in the experiments section, or leave it as a clearly documented future-work requirement
+- decide whether the current repository can support one stripped-down executable cross-modal logit-KD anchor beyond the already discussed student-only / same-modality KD / module-ablation comparisons
 - if no stronger evidence can be added from the current repository, keep tightening the framing toward a rigorous negative-result-informed feasibility paper rather than a performance-claim paper
 
 ### Exact Changed Files
@@ -170,5 +171,11 @@
 - `Related-work gap-summary paragraph`: `resolved`
 - `Method design-rationale paragraph with MHRA caveat`: `resolved`
 - `Experiments reframed as benchmarking/stress-test/reproducibility`: `resolved`
+- `Comparative role of each baseline made explicit`: `resolved`
+- `Cleaner minimal cross-modal KD baseline`: `unresolved but now explicitly documented`
+  - reason: the current repository still lacks a stronger stripped-down executable cross-modal anchor beyond the existing student-only, same-modality KD, and module-ablation comparisons
+- `Minimum additional experiment needed to test the core novelty`: `resolved`
+- `Further negative-result analysis on the current tiny split`: `resolved as intentionally stopped`
+  - reason: the appendix now contains the strongest honest diagnostic material available from the present split, and more slicing would risk pseudo-replication rather than better evidence
 - `Results reorganized around transferable lessons`: `resolved`
 - `Structured limitations-to-future-work bridge`: `resolved`
