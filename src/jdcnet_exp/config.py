@@ -10,6 +10,10 @@ class ModelConfig:
     name: str
     num_classes: int
     input_size: int
+    use_dpe: bool = True
+    use_mhra: bool = True
+    use_dfpn: bool = True
+    paired_input: bool = False
 
 
 @dataclass
@@ -20,6 +24,7 @@ class DataConfig:
     val_modalities: list[str]
     batch_size: int
     num_workers: int
+    paired_image_column: str = "teacher_image_path"
 
 
 @dataclass

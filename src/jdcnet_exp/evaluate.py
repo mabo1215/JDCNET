@@ -24,7 +24,7 @@ def main() -> None:
     _, val_loader = create_dataloaders(config)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = build_model(config.model.name, config.model.num_classes).to(device)
+    model = build_model(config.model).to(device)
     model.load_state_dict(torch.load(Path(args.checkpoint), map_location=device))
 
     metrics = evaluate_model(model, val_loader, device)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import re
 import subprocess
 import sys
@@ -23,16 +22,39 @@ BASE_EXPERIMENTS = [
     "teacher_xray_all",
     "teacher_ct_all",
     "student_xray_supervised_paired",
+    "late_fusion_paired",
     "student_xray_same_modality_distill",
     "student_xray_cross_modal_distill",
+]
+
+MODULE_ABLATION_EXPERIMENTS = [
+    "student_xray_cross_modal_distill",
+    "student_xray_cross_modal_distill_nodpe",
+    "student_xray_cross_modal_distill_nomhra",
+    "student_xray_cross_modal_distill_nodfpn",
 ]
 
 DISPLAY_NAMES = {
     "teacher_xray_all": "Teacher-only X-ray (all patients)",
     "teacher_ct_all": "Teacher-only CT (all patients)",
     "student_xray_supervised_paired": "Student-only X-ray (paired cohort)",
+    "late_fusion_paired": "Late-fusion X-ray+CT",
     "student_xray_same_modality_distill": "Same-modality distillation",
     "student_xray_cross_modal_distill": "Cross-modality distillation",
+    "student_xray_cross_modal_distill_nodpe": "Cross-modality distillation w/o DPE",
+    "student_xray_cross_modal_distill_nomhra": "Cross-modality distillation w/o MHRA",
+    "student_xray_cross_modal_distill_nodfpn": "Cross-modality distillation w/o DFPN",
+}
+
+SHORT_NAMES = {
+    "teacher_xray_all": "Teacher X-ray",
+    "student_xray_supervised_paired": "Student only",
+    "late_fusion_paired": "Late fusion",
+    "student_xray_same_modality_distill": "Same-modality KD",
+    "student_xray_cross_modal_distill": "Cross-modal KD",
+    "student_xray_cross_modal_distill_nodpe": "w/o DPE",
+    "student_xray_cross_modal_distill_nomhra": "w/o MHRA",
+    "student_xray_cross_modal_distill_nodfpn": "w/o DFPN",
 }
 
 
@@ -94,6 +116,10 @@ def _build_config(
     teacher_checkpoint: str = "",
     temperature: float = 4.0,
     alpha: float = 0.6,
+    use_dpe: bool = True,
+    use_mhra: bool = True,
+    use_dfpn: bool = True,
+    paired_input: bool = False,
 ) -> dict[str, object]:
     return {
         "experiment_name": experiment_name,
@@ -104,6 +130,10 @@ def _build_config(
             "name": model_name,
             "num_classes": 2,
             "input_size": input_size,
+            "use_dpe": use_dpe,
+            "use_mhra": use_mhra,
+            "use_dfpn": use_dfpn,
+            "paired_input": paired_input,
         },
         "data": {
             "train_split": "train",
@@ -112,6 +142,7 @@ def _build_config(
             "val_modalities": val_modalities,
             "batch_size": batch_size,
             "num_workers": 0,
+            "paired_image_column": "teacher_image_path",
         },
         "optimization": {
             "epochs": epochs,
@@ -196,8 +227,7 @@ def _collect_run_rows(runs_root: Path) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _aggregate_main_results(run_frame: pd.DataFrame) -> pd.DataFrame:
-    base_frame = run_frame[(run_frame["is_ablation"] == False) & (run_frame["experiment_group"].isin(BASE_EXPERIMENTS))].copy()
+def _aggregate_mean_std(frame: pd.DataFrame, experiment_groups: list[str]) -> pd.DataFrame:
     metric_columns = [
         "accuracy",
         "balanced_accuracy",
@@ -208,8 +238,9 @@ def _aggregate_main_results(run_frame: pd.DataFrame) -> pd.DataFrame:
         "roc_auc",
         "val_samples",
     ]
+    filtered = frame[(frame["is_ablation"] == False) & (frame["experiment_group"].isin(experiment_groups))].copy()
     aggregated = (
-        base_frame.groupby(["experiment_group", "display_name"])[metric_columns]
+        filtered.groupby(["experiment_group", "display_name"])[metric_columns]
         .agg(["mean", "std"])
         .reset_index()
     )
@@ -218,9 +249,31 @@ def _aggregate_main_results(run_frame: pd.DataFrame) -> pd.DataFrame:
     ]
     aggregated = aggregated.sort_values(
         by="experiment_group",
-        key=lambda series: series.map({name: index for index, name in enumerate(BASE_EXPERIMENTS)}),
+        key=lambda series: series.map({name: index for index, name in enumerate(experiment_groups)}),
     )
-    return aggregated
+    return aggregated.reset_index(drop=True)
+
+
+def _aggregate_main_results(run_frame: pd.DataFrame) -> pd.DataFrame:
+    return _aggregate_mean_std(run_frame, BASE_EXPERIMENTS)
+
+
+def _aggregate_module_results(run_frame: pd.DataFrame) -> pd.DataFrame:
+    module_frame = _aggregate_mean_std(run_frame, MODULE_ABLATION_EXPERIMENTS)
+    if module_frame.empty:
+        return module_frame
+
+    baseline_row = module_frame[module_frame["experiment_group"] == "student_xray_cross_modal_distill"]
+    if baseline_row.empty:
+        module_frame["macro_f1_delta_vs_baseline"] = None
+        module_frame["accuracy_delta_vs_baseline"] = None
+        return module_frame
+
+    baseline_macro_f1 = float(baseline_row.iloc[0]["macro_f1_mean"])
+    baseline_accuracy = float(baseline_row.iloc[0]["accuracy_mean"])
+    module_frame["macro_f1_delta_vs_baseline"] = module_frame["macro_f1_mean"] - baseline_macro_f1
+    module_frame["accuracy_delta_vs_baseline"] = module_frame["accuracy_mean"] - baseline_accuracy
+    return module_frame
 
 
 def _prepare_paper_main_table(summary_frame: pd.DataFrame) -> pd.DataFrame:
@@ -247,6 +300,25 @@ def _prepare_paper_main_table(summary_frame: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _prepare_paper_module_table(summary_frame: pd.DataFrame) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for _, row in summary_frame.iterrows():
+        rows.append(
+            {
+                "experiment": row["display_name"],
+                "accuracy_mean": row["accuracy_mean"],
+                "accuracy_std": row["accuracy_std"],
+                "macro_f1_mean": row["macro_f1_mean"],
+                "macro_f1_std": row["macro_f1_std"],
+                "balanced_accuracy_mean": row["balanced_accuracy_mean"],
+                "balanced_accuracy_std": row["balanced_accuracy_std"],
+                "macro_f1_delta_vs_baseline": row["macro_f1_delta_vs_baseline"],
+                "accuracy_delta_vs_baseline": row["accuracy_delta_vs_baseline"],
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def _aggregate_ablation_results(run_frame: pd.DataFrame) -> pd.DataFrame:
     ablation_frame = run_frame[run_frame["is_ablation"] == True].copy()
     if ablation_frame.empty:
@@ -255,29 +327,24 @@ def _aggregate_ablation_results(run_frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _plot_main_results(summary_frame: pd.DataFrame, output_path: Path) -> None:
-    plot_frame = summary_frame[
-        summary_frame["experiment_group"].isin(
-            [
-                "teacher_xray_all",
-                "student_xray_supervised_paired",
-                "student_xray_same_modality_distill",
-                "student_xray_cross_modal_distill",
-            ]
-        )
-    ].copy()
-    plot_frame["short_name"] = plot_frame["experiment_group"].map(
-        {
-            "teacher_xray_all": "Teacher X-ray",
-            "student_xray_supervised_paired": "Student only",
-            "student_xray_same_modality_distill": "Same-modality KD",
-            "student_xray_cross_modal_distill": "Cross-modality KD",
-        }
+    plot_order = [
+        "teacher_xray_all",
+        "student_xray_supervised_paired",
+        "late_fusion_paired",
+        "student_xray_same_modality_distill",
+        "student_xray_cross_modal_distill",
+    ]
+    plot_frame = summary_frame[summary_frame["experiment_group"].isin(plot_order)].copy()
+    plot_frame = plot_frame.sort_values(
+        by="experiment_group",
+        key=lambda series: series.map({name: index for index, name in enumerate(plot_order)}),
     )
+    plot_frame["short_name"] = plot_frame["experiment_group"].map(SHORT_NAMES)
 
-    figure, axes = plt.subplots(1, 3, figsize=(15, 5), constrained_layout=True)
+    figure, axes = plt.subplots(1, 3, figsize=(17, 5), constrained_layout=True)
     metrics = [
         ("accuracy", "Accuracy", "#355070"),
-        ("macro_f1", "Macro-F1", "#6d597a"),
+        ("macro_f1", "Macro-F1", "#b56576"),
         ("balanced_accuracy", "Balanced Accuracy", "#2a6f97"),
     ]
     x_positions = list(range(len(plot_frame)))
@@ -292,7 +359,7 @@ def _plot_main_results(summary_frame: pd.DataFrame, output_path: Path) -> None:
             capsize=4,
         )
         axis.set_xticks(x_positions)
-        axis.set_xticklabels(plot_frame["short_name"], rotation=25, ha="right")
+        axis.set_xticklabels(plot_frame["short_name"], rotation=20, ha="right")
         axis.set_ylim(0.0, 1.05)
         axis.set_title(title)
         axis.grid(axis="y", linestyle="--", alpha=0.3)
@@ -329,7 +396,52 @@ def _plot_ablation(ablation_frame: pd.DataFrame, output_path: Path) -> None:
     plt.close(figure)
 
 
-def _write_paper_assets(run_frame: pd.DataFrame, summary_frame: pd.DataFrame, ablation_frame: pd.DataFrame) -> None:
+def _plot_module_ablation(summary_frame: pd.DataFrame, output_path: Path) -> None:
+    if summary_frame.empty:
+        return
+
+    plot_frame = summary_frame.copy()
+    plot_frame["short_name"] = plot_frame["experiment_group"].map(SHORT_NAMES)
+    x_positions = list(range(len(plot_frame)))
+    width = 0.35
+
+    figure, axis = plt.subplots(figsize=(9, 5), constrained_layout=True)
+    axis.bar(
+        [position - width / 2 for position in x_positions],
+        plot_frame["accuracy_mean"],
+        width=width,
+        yerr=plot_frame["accuracy_std"].fillna(0.0),
+        label="Accuracy",
+        color="#355070",
+        capsize=4,
+    )
+    axis.bar(
+        [position + width / 2 for position in x_positions],
+        plot_frame["macro_f1_mean"],
+        width=width,
+        yerr=plot_frame["macro_f1_std"].fillna(0.0),
+        label="Macro-F1",
+        color="#b56576",
+        capsize=4,
+    )
+    axis.set_xticks(x_positions)
+    axis.set_xticklabels(plot_frame["short_name"], rotation=18, ha="right")
+    axis.set_ylim(0.0, 1.05)
+    axis.set_title("Module ablations for cross-modality distillation")
+    axis.grid(axis="y", linestyle="--", alpha=0.3)
+    axis.legend(loc="upper right")
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(figure)
+
+
+def _write_paper_assets(
+    run_frame: pd.DataFrame,
+    summary_frame: pd.DataFrame,
+    ablation_frame: pd.DataFrame,
+    module_frame: pd.DataFrame,
+) -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     PAPER_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     PAPER_IMAGE_DIR.mkdir(parents=True, exist_ok=True)
@@ -337,32 +449,259 @@ def _write_paper_assets(run_frame: pd.DataFrame, summary_frame: pd.DataFrame, ab
     per_run_path = RESULTS_DIR / "covid_matrix_per_run.csv"
     summary_path = RESULTS_DIR / "covid_matrix_summary.csv"
     ablation_path = RESULTS_DIR / "covid_matrix_ablation.csv"
+    module_path = RESULTS_DIR / "covid_matrix_module_ablation.csv"
     paper_main_table_path = PAPER_RESULTS_DIR / "covid_matrix_main_results.csv"
     paper_ablation_path = PAPER_RESULTS_DIR / "covid_matrix_ablation_results.csv"
+    paper_module_path = PAPER_RESULTS_DIR / "covid_matrix_module_ablation_results.csv"
     main_figure_path = PAPER_IMAGE_DIR / "covid_matrix_main.png"
     ablation_figure_path = PAPER_IMAGE_DIR / "covid_matrix_ablation.png"
+    module_figure_path = PAPER_IMAGE_DIR / "covid_matrix_module_ablation.png"
 
     run_frame.to_csv(per_run_path, index=False)
     summary_frame.to_csv(summary_path, index=False)
+    _prepare_paper_main_table(summary_frame).to_csv(paper_main_table_path, index=False)
+
     if not ablation_frame.empty:
         ablation_frame.to_csv(ablation_path, index=False)
-    _prepare_paper_main_table(summary_frame).to_csv(paper_main_table_path, index=False)
-    if not ablation_frame.empty:
         ablation_frame.to_csv(paper_ablation_path, index=False)
+    if not module_frame.empty:
+        module_frame.to_csv(module_path, index=False)
+        _prepare_paper_module_table(module_frame).to_csv(paper_module_path, index=False)
 
     _plot_main_results(summary_frame, main_figure_path)
     _plot_ablation(ablation_frame, ablation_figure_path)
+    _plot_module_ablation(module_frame, module_figure_path)
 
     report_payload = {
         "per_run_csv": str(per_run_path),
         "summary_csv": str(summary_path),
         "ablation_csv": str(ablation_path) if not ablation_frame.empty else None,
+        "module_ablation_csv": str(module_path) if not module_frame.empty else None,
         "paper_main_results_csv": str(paper_main_table_path),
         "paper_ablation_results_csv": str(paper_ablation_path) if not ablation_frame.empty else None,
+        "paper_module_results_csv": str(paper_module_path) if not module_frame.empty else None,
         "paper_main_figure": str(main_figure_path),
         "paper_ablation_figure": str(ablation_figure_path) if not ablation_frame.empty else None,
+        "paper_module_figure": str(module_figure_path) if not module_frame.empty else None,
     }
     _write_json(report_payload, RESULTS_DIR / "covid_matrix_report.json")
+
+
+def _run_seed_matrix(
+    seed: int,
+    config_dir: Path,
+    runs_root: Path,
+    xray_manifest_path: Path,
+    ct_manifest_path: Path,
+    paired_cross_manifest_path: Path,
+    same_modal_manifest_path: Path,
+    batch_size: int,
+    input_size: int,
+    epochs: int,
+    force: bool,
+) -> None:
+    experiment_specs = [
+        (
+            f"teacher_xray_all_s{seed}",
+            _build_config(
+                experiment_name=f"teacher_xray_all_s{seed}",
+                manifest_path=xray_manifest_path,
+                output_dir=f"runs/covid_matrix/teacher_xray_all_s{seed}",
+                seed=seed,
+                model_name="teacher",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=False,
+            ),
+        ),
+        (
+            f"teacher_ct_all_s{seed}",
+            _build_config(
+                experiment_name=f"teacher_ct_all_s{seed}",
+                manifest_path=ct_manifest_path,
+                output_dir=f"runs/covid_matrix/teacher_ct_all_s{seed}",
+                seed=seed,
+                model_name="teacher",
+                train_modalities=["ct"],
+                val_modalities=["ct"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=False,
+            ),
+        ),
+        (
+            f"teacher_ct_all_nodpe_s{seed}",
+            _build_config(
+                experiment_name=f"teacher_ct_all_nodpe_s{seed}",
+                manifest_path=ct_manifest_path,
+                output_dir=f"runs/covid_matrix/teacher_ct_all_nodpe_s{seed}",
+                seed=seed,
+                model_name="teacher",
+                train_modalities=["ct"],
+                val_modalities=["ct"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=False,
+                use_dpe=False,
+            ),
+        ),
+        (
+            f"teacher_ct_all_nomhra_s{seed}",
+            _build_config(
+                experiment_name=f"teacher_ct_all_nomhra_s{seed}",
+                manifest_path=ct_manifest_path,
+                output_dir=f"runs/covid_matrix/teacher_ct_all_nomhra_s{seed}",
+                seed=seed,
+                model_name="teacher",
+                train_modalities=["ct"],
+                val_modalities=["ct"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=False,
+                use_mhra=False,
+            ),
+        ),
+    ]
+
+    for run_name, config_payload in experiment_specs:
+        config_path = config_dir / f"{run_name}.json"
+        _write_config(config_path, config_payload)
+        _run_training_config(config_path, runs_root / run_name, force=force)
+
+    student_specs = [
+        (
+            f"student_xray_supervised_paired_s{seed}",
+            _build_config(
+                experiment_name=f"student_xray_supervised_paired_s{seed}",
+                manifest_path=paired_cross_manifest_path,
+                output_dir=f"runs/covid_matrix/student_xray_supervised_paired_s{seed}",
+                seed=seed,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=False,
+            ),
+        ),
+        (
+            f"late_fusion_paired_s{seed}",
+            _build_config(
+                experiment_name=f"late_fusion_paired_s{seed}",
+                manifest_path=paired_cross_manifest_path,
+                output_dir=f"runs/covid_matrix/late_fusion_paired_s{seed}",
+                seed=seed,
+                model_name="late_fusion",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=False,
+                paired_input=True,
+            ),
+        ),
+        (
+            f"student_xray_same_modality_distill_s{seed}",
+            _build_config(
+                experiment_name=f"student_xray_same_modality_distill_s{seed}",
+                manifest_path=same_modal_manifest_path,
+                output_dir=f"runs/covid_matrix/student_xray_same_modality_distill_s{seed}",
+                seed=seed,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_matrix/teacher_xray_all_s{seed}/best.pt",
+            ),
+        ),
+        (
+            f"student_xray_cross_modal_distill_s{seed}",
+            _build_config(
+                experiment_name=f"student_xray_cross_modal_distill_s{seed}",
+                manifest_path=paired_cross_manifest_path,
+                output_dir=f"runs/covid_matrix/student_xray_cross_modal_distill_s{seed}",
+                seed=seed,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_matrix/teacher_ct_all_s{seed}/best.pt",
+            ),
+        ),
+        (
+            f"student_xray_cross_modal_distill_nodpe_s{seed}",
+            _build_config(
+                experiment_name=f"student_xray_cross_modal_distill_nodpe_s{seed}",
+                manifest_path=paired_cross_manifest_path,
+                output_dir=f"runs/covid_matrix/student_xray_cross_modal_distill_nodpe_s{seed}",
+                seed=seed,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_matrix/teacher_ct_all_nodpe_s{seed}/best.pt",
+                use_dpe=False,
+            ),
+        ),
+        (
+            f"student_xray_cross_modal_distill_nomhra_s{seed}",
+            _build_config(
+                experiment_name=f"student_xray_cross_modal_distill_nomhra_s{seed}",
+                manifest_path=paired_cross_manifest_path,
+                output_dir=f"runs/covid_matrix/student_xray_cross_modal_distill_nomhra_s{seed}",
+                seed=seed,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_matrix/teacher_ct_all_nomhra_s{seed}/best.pt",
+                use_mhra=False,
+            ),
+        ),
+        (
+            f"student_xray_cross_modal_distill_nodfpn_s{seed}",
+            _build_config(
+                experiment_name=f"student_xray_cross_modal_distill_nodfpn_s{seed}",
+                manifest_path=paired_cross_manifest_path,
+                output_dir=f"runs/covid_matrix/student_xray_cross_modal_distill_nodfpn_s{seed}",
+                seed=seed,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_matrix/teacher_ct_all_s{seed}/best.pt",
+                use_dfpn=False,
+            ),
+        ),
+    ]
+
+    for run_name, config_payload in student_specs:
+        config_path = config_dir / f"{run_name}.json"
+        _write_config(config_path, config_payload)
+        _run_training_config(config_path, runs_root / run_name, force=force)
 
 
 def main() -> None:
@@ -398,107 +737,19 @@ def main() -> None:
 
     seeds = _parse_int_list(args.seeds)
     for seed in seeds:
-        experiment_specs = [
-            (
-                f"teacher_xray_all_s{seed}",
-                _build_config(
-                    experiment_name=f"teacher_xray_all_s{seed}",
-                    manifest_path=xray_manifest_path,
-                    output_dir=f"runs/covid_matrix/teacher_xray_all_s{seed}",
-                    seed=seed,
-                    model_name="teacher",
-                    train_modalities=["xray"],
-                    val_modalities=["xray"],
-                    batch_size=args.batch_size,
-                    input_size=args.input_size,
-                    epochs=args.epochs,
-                    distillation_enabled=False,
-                ),
-            ),
-            (
-                f"teacher_ct_all_s{seed}",
-                _build_config(
-                    experiment_name=f"teacher_ct_all_s{seed}",
-                    manifest_path=ct_manifest_path,
-                    output_dir=f"runs/covid_matrix/teacher_ct_all_s{seed}",
-                    seed=seed,
-                    model_name="teacher",
-                    train_modalities=["ct"],
-                    val_modalities=["ct"],
-                    batch_size=args.batch_size,
-                    input_size=args.input_size,
-                    epochs=args.epochs,
-                    distillation_enabled=False,
-                ),
-            ),
-        ]
-
-        for run_name, config_payload in experiment_specs:
-            config_path = config_dir / f"{run_name}.json"
-            _write_config(config_path, config_payload)
-            _run_training_config(config_path, runs_root / run_name, force=args.force)
-
-        student_specs = [
-            (
-                f"student_xray_supervised_paired_s{seed}",
-                _build_config(
-                    experiment_name=f"student_xray_supervised_paired_s{seed}",
-                    manifest_path=paired_cross_manifest_path,
-                    output_dir=f"runs/covid_matrix/student_xray_supervised_paired_s{seed}",
-                    seed=seed,
-                    model_name="student",
-                    train_modalities=["xray"],
-                    val_modalities=["xray"],
-                    batch_size=args.batch_size,
-                    input_size=args.input_size,
-                    epochs=args.epochs,
-                    distillation_enabled=False,
-                ),
-            ),
-            (
-                f"student_xray_same_modality_distill_s{seed}",
-                _build_config(
-                    experiment_name=f"student_xray_same_modality_distill_s{seed}",
-                    manifest_path=same_modal_manifest_path,
-                    output_dir=f"runs/covid_matrix/student_xray_same_modality_distill_s{seed}",
-                    seed=seed,
-                    model_name="student",
-                    train_modalities=["xray"],
-                    val_modalities=["xray"],
-                    batch_size=args.batch_size,
-                    input_size=args.input_size,
-                    epochs=args.epochs,
-                    distillation_enabled=True,
-                    teacher_checkpoint=f"runs/covid_matrix/teacher_xray_all_s{seed}/best.pt",
-                    temperature=4.0,
-                    alpha=0.6,
-                ),
-            ),
-            (
-                f"student_xray_cross_modal_distill_s{seed}",
-                _build_config(
-                    experiment_name=f"student_xray_cross_modal_distill_s{seed}",
-                    manifest_path=paired_cross_manifest_path,
-                    output_dir=f"runs/covid_matrix/student_xray_cross_modal_distill_s{seed}",
-                    seed=seed,
-                    model_name="student",
-                    train_modalities=["xray"],
-                    val_modalities=["xray"],
-                    batch_size=args.batch_size,
-                    input_size=args.input_size,
-                    epochs=args.epochs,
-                    distillation_enabled=True,
-                    teacher_checkpoint=f"runs/covid_matrix/teacher_ct_all_s{seed}/best.pt",
-                    temperature=4.0,
-                    alpha=0.6,
-                ),
-            ),
-        ]
-
-        for run_name, config_payload in student_specs:
-            config_path = config_dir / f"{run_name}.json"
-            _write_config(config_path, config_payload)
-            _run_training_config(config_path, runs_root / run_name, force=args.force)
+        _run_seed_matrix(
+            seed=seed,
+            config_dir=config_dir,
+            runs_root=runs_root,
+            xray_manifest_path=xray_manifest_path,
+            ct_manifest_path=ct_manifest_path,
+            paired_cross_manifest_path=paired_cross_manifest_path,
+            same_modal_manifest_path=same_modal_manifest_path,
+            batch_size=args.batch_size,
+            input_size=args.input_size,
+            epochs=args.epochs,
+            force=args.force,
+        )
 
     if not args.skip_ablation:
         for temperature in [2.0, 4.0, 6.0]:
@@ -527,7 +778,8 @@ def main() -> None:
     run_frame = _collect_run_rows(runs_root)
     summary_frame = _aggregate_main_results(run_frame)
     ablation_frame = _aggregate_ablation_results(run_frame)
-    _write_paper_assets(run_frame, summary_frame, ablation_frame)
+    module_frame = _aggregate_module_results(run_frame)
+    _write_paper_assets(run_frame, summary_frame, ablation_frame, module_frame)
 
     print("Wrote updated experiment CSVs and figures into paper/.")
 

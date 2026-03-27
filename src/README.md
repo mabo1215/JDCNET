@@ -11,7 +11,10 @@ This directory contains the reproducible experiment scaffold for revising JDCNET
 - JSON config based experiment setup
 - patient-level manifest splitting
 - ablation config generation
+- paired-input late-fusion baseline support
+- configurable DPE / MHRA / DFPN module switches
 - run aggregation and paper-asset export
+- Kaggle dataset download utility for auxiliary CT / MRI and COVID imaging datasets
 
 ## Manifest Format
 
@@ -69,6 +72,12 @@ Run the full real-data experiment matrix and export updated assets into `paper/`
 python -m jdcnet_exp.run_covid_matrix
 ```
 
+Download curated Kaggle datasets into `src/data/kaggle/`:
+
+```powershell
+python -m jdcnet_exp.download_kaggle_datasets
+```
+
 Create deterministic patient-level splits:
 
 ```powershell
@@ -89,7 +98,7 @@ python -m jdcnet_exp.summarize_runs --runs-root .\runs --output .\runs\summary.c
 
 ## Notes
 
-- The current models are intentionally lightweight placeholders so we can make the training pipeline reproducible before we swap in the final JDCNET architecture.
+- The current models remain lightweight research scaffolds; the late-fusion and module-ablation results are useful for revision, but they should not be mistaken for a final submission-grade JDCNet implementation.
 - All experiments save outputs under `runs/<experiment_name>/`.
 - Paper-ready summary figures are exported to `paper/images/generated/`, and tabulated summaries are exported to `paper/results/`.
 - Training now exports `history.json`, `history.csv`, `learning_curves.png`, `best_metrics.json`, and `confusion_matrix.png` for each run.

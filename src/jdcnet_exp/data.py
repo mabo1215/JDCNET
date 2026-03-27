@@ -35,11 +35,13 @@ class MedicalImageManifestDataset(Dataset):
         manifest: pd.DataFrame,
         image_size: int,
         is_train: bool,
-        include_teacher_image: bool,
+        paired_image_column: str,
+        include_paired_image: bool,
     ) -> None:
         self.manifest = manifest.reset_index(drop=True)
         self.transform = _build_transform(image_size=image_size, is_train=is_train)
-        self.include_teacher_image = include_teacher_image and "teacher_image_path" in self.manifest.columns
+        self.paired_image_column = paired_image_column
+        self.include_paired_image = include_paired_image and paired_image_column in self.manifest.columns
 
     def __len__(self) -> int:
         return len(self.manifest)
@@ -48,14 +50,14 @@ class MedicalImageManifestDataset(Dataset):
         row = self.manifest.iloc[index]
         image_tensor = self.transform(_load_rgb_image(row["image_path"]))
         label = int(row["label"])
-        if not self.include_teacher_image:
+        if not self.include_paired_image:
             return image_tensor, label
 
-        teacher_path = row.get("teacher_image_path", row["image_path"])
-        if pd.isna(teacher_path):
-            teacher_path = row["image_path"]
-        teacher_tensor = self.transform(_load_rgb_image(teacher_path))
-        return image_tensor, teacher_tensor, label
+        paired_path = row.get(self.paired_image_column, row["image_path"])
+        if pd.isna(paired_path):
+            paired_path = row["image_path"]
+        paired_tensor = self.transform(_load_rgb_image(paired_path))
+        return image_tensor, paired_tensor, label
 
 
 def _filter_manifest(manifest: pd.DataFrame, split: str, modalities: list[str]) -> pd.DataFrame:
@@ -93,19 +95,23 @@ def load_filtered_manifests(config: ExperimentConfig) -> tuple[pd.DataFrame, pd.
 
 def create_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader]:
     train_manifest, val_manifest = load_filtered_manifests(config)
-    include_teacher_image = config.distillation.enabled and "teacher_image_path" in train_manifest.columns
+    include_paired_image = (
+        config.model.paired_input or config.distillation.enabled
+    ) and config.data.paired_image_column in train_manifest.columns
 
     train_dataset = MedicalImageManifestDataset(
         train_manifest,
         image_size=config.model.input_size,
         is_train=True,
-        include_teacher_image=include_teacher_image,
+        paired_image_column=config.data.paired_image_column,
+        include_paired_image=include_paired_image,
     )
     val_dataset = MedicalImageManifestDataset(
         val_manifest,
         image_size=config.model.input_size,
         is_train=False,
-        include_teacher_image=include_teacher_image,
+        paired_image_column=config.data.paired_image_column,
+        include_paired_image=include_paired_image,
     )
 
     train_loader = DataLoader(

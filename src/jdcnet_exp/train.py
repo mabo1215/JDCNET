@@ -35,6 +35,19 @@ def _unpack_batch(batch: tuple[torch.Tensor, ...]) -> tuple[torch.Tensor, torch.
     raise ValueError(f"Unexpected batch structure with {len(batch)} elements.")
 
 
+def _forward_model(
+    model: nn.Module,
+    images: torch.Tensor,
+    paired_images: torch.Tensor | None,
+) -> torch.Tensor:
+    if paired_images is not None:
+        try:
+            return model(images, paired_images)
+        except TypeError:
+            return model(images)
+    return model(images)
+
+
 def _compute_class_weights(train_manifest, num_classes: int, device: torch.device) -> torch.Tensor:
     counts = train_manifest["label"].value_counts().reindex(range(num_classes), fill_value=0).astype(float)
     non_zero_counts = counts.replace(0, np.nan)
@@ -50,10 +63,12 @@ def evaluate_model(model: nn.Module, loader: DataLoader, device: torch.device) -
 
     with torch.no_grad():
         for batch in loader:
-            images, _, labels = _unpack_batch(batch)
+            images, paired_images, labels = _unpack_batch(batch)
             images = images.to(device)
+            if paired_images is not None:
+                paired_images = paired_images.to(device)
             labels = labels.to(device)
-            logits = model(images)
+            logits = _forward_model(model, images, paired_images)
             probabilities = torch.softmax(logits, dim=1).cpu().numpy()
             all_probabilities.append(probabilities)
             all_labels.extend(labels.cpu().tolist())
@@ -72,10 +87,20 @@ def run_training(config: ExperimentConfig) -> None:
     train_loader, val_loader = create_dataloaders(config)
     class_weights = _compute_class_weights(train_manifest, config.model.num_classes, device)
 
-    model = build_model(config.model.name, config.model.num_classes).to(device)
+    model = build_model(config.model).to(device)
     teacher_model = None
     if config.distillation.enabled:
-        teacher_model = build_model("teacher", config.model.num_classes).to(device)
+        teacher_model = build_model(
+            config.model.__class__(
+                name="teacher",
+                num_classes=config.model.num_classes,
+                input_size=config.model.input_size,
+                use_dpe=config.model.use_dpe,
+                use_mhra=config.model.use_mhra,
+                use_dfpn=True,
+                paired_input=False,
+            )
+        ).to(device)
         teacher_checkpoint = Path(config.distillation.teacher_checkpoint)
         if not teacher_checkpoint.exists():
             raise FileNotFoundError(
@@ -105,7 +130,7 @@ def run_training(config: ExperimentConfig) -> None:
             labels = labels.to(device)
 
             optimizer.zero_grad()
-            student_logits = model(images)
+            student_logits = _forward_model(model, images, teacher_images)
 
             if config.distillation.enabled and teacher_model is not None:
                 with torch.no_grad():
