@@ -1,50 +1,70 @@
-# Progress Log
+# 进度日志
 
-## 2026-03-27
+## 2026-03-28
 
-### Completed
+### 已完成
 
-- confirmed that `paper/` is a nested project directory and added a PDF build workflow
-- built a reproducible experiment scaffold in `src/` for teacher/student training, distillation, evaluation, manifest preparation, and paper asset export
-- connected the local dataset at `D:\source\covid-chestxray-dataset` to the experiment pipeline and generated executable manifests for `xray_all`, `ct_all`, and the paired `CT -> X-ray` cohort
-- ran the real-data experiment matrix with repeated seeds, late-fusion, temperature/alpha ablation, and module ablations (`w/o DPE`, `w/o MHRA`, `w/o DFPN`)
-- added configurable DPE/MHRA/DFPN switches and paired-input late-fusion support in the executable code
-- added `src/jdcnet_exp/download_kaggle_datasets.py` and downloaded curated Kaggle CT/MRI and COVID imaging datasets into `src/data/kaggle/`
-- reframed the paper into an honest reproducible pilot study after the repeated runs showed that late fusion and cross-modality distillation do not stably beat the student-only paired-cohort baseline
-- created `paper/build.sh` and verified that the submission package can now build separate `main.pdf` and `appendix.pdf` outputs from the shell entrypoint
-- created `paper/appendix.tex` as a standalone supplementary document
-- added `src/jdcnet_exp/generate_submission_assets.py` so the submission tables and appendix assets are generated from code instead of being hardcoded in LaTeX
-- replaced the hardcoded main-text cohort table and main results table with generated LaTeX inputs under `paper/tables/generated/`
-- generated and inserted appendix-ready reproducibility assets:
+- 已确认 `paper/` 是嵌套项目目录，并补齐 PDF 构建流程。
+- 已在 `src/` 下建立可复现实验脚手架，覆盖 teacher/student 训练、蒸馏、评估、manifest 生成与论文资产导出。
+- 已将本地数据集 `D:\source\covid-chestxray-dataset` 接入实验流水线，并生成 `xray_all`、`ct_all` 以及配对的 `CT -> X-ray` cohort manifests。
+- 已完成真实数据实验矩阵运行，包含 repeated seeds、late fusion、temperature/alpha ablation 和模块消融（`w/o DPE`、`w/o MHRA`、`w/o DFPN`）。
+- 已在可执行代码中加入可配置的 `DPE / MHRA / DFPN` 开关和配对输入的 late-fusion 支持。
+- 已新增 `src/jdcnet_exp/download_kaggle_datasets.py`，并下载整理 Kaggle 上的 CT/MRI 与 COVID 影像数据到 `src/data/kaggle/`。
+- 在 repeated runs 显示 late fusion 与 cross-modality distillation 都不能稳定超过 student-only baseline 后，已将论文重新定位为“诚实、可复现的 pilot study”，而非性能提升论文。
+- 已创建 `paper/build.sh`，并验证投稿包现在可从命令行分别生成 `main.pdf` 与 `appendix.pdf`。
+- 已创建独立可编译的 `paper/appendix.tex`。
+- 已新增 `src/jdcnet_exp/generate_submission_assets.py`，使主文表格和附录资产尽量由代码生成，而不是手工硬编码进 LaTeX。
+- 已将主文中的 cohort table 和 main results table 替换为 `paper/tables/generated/` 下的自动生成 LaTeX 片段。
+- 已生成并接入可复现附录资产，包括：
   - patient-level split audit table
   - per-seed paired-cohort results table
   - module ablation summary table
   - per-seed instability figure
-- cleaned `paper/references.bib` to keep only cited, relevant medical-imaging references plus the dataset citation
-- added explicit dataset citations and a dataset-curator caution in the experiments section
-- strengthened the method text so the DPE, MHRA, and DFPN descriptions now map more directly to the current executable implementation
-- regenerated the key paper figures with per-seed overlays to make result instability visually explicit
-- added a qualitative appendix-level error-analysis table for the four paired validation cases using representative seed-42 checkpoints
-- replaced the earlier conceptual architecture panel with a code-generated implementation-faithful schematic and added an appendix implementation-details table generated from the executable scaffold
-- removed unstable secondary metrics from the main-text headline table so the manuscript now emphasizes only the more defensible repeated-run comparisons under the tiny paired split
-- added seed-aggregated paired confusion summaries that make the dominant false-positive bias explicit without treating repeated predictions as a larger independent test set
-- split `main.tex` and `appendix.tex` into separately compiled PDFs and removed cross-file numbered appendix references from the main paper so standalone appendix builds do not produce `??` references
-- revised the manuscript against `docs/revision_suggestions.tex` by sharpening the abstract framing, adding an introduction gap paragraph, adding a related-work gap summary, adding a method design-rationale subsection, separating benchmarking/stress-test/reproducibility roles in the experiments, reorganizing the discussion around three transferable lessons, and adding a structured limitations-and-future-work subsection
-- further tightened the comparative framing by clarifying the exact role of each baseline, explicitly marking a cleaner minimal cross-modal KD baseline as future work rather than pretending it already exists, and removing residual template-comment clutter from `paper/main.tex`
-- documented the minimum decisive next experiment in the main paper and appendix, and explicitly closed off further micro-analysis on the current four-image validation split as likely pseudo-evidence rather than stronger science
-- normalized bibliography title capitalization for `COVID-19`, `CT`, and `X-ray` so the standalone manuscript and appendix use cleaner citation formatting
-- rebuilt the PDF successfully after the manuscript/package changes
+- 已清理 `paper/references.bib`，仅保留正文实际引用且相关的医学影像文献和数据集引用。
+- 已在实验部分加入显式的数据集引用和数据集作者的 caution，避免把该资源写成正式 benchmark。
+- 已强化方法部分文字，使 DPE、MHRA、DFPN 的文字描述与当前可执行实现更一致。
+- 已重新生成关键图，并加入 per-seed overlays，让结果不稳定性在图上可见。
+- 已加入附录级定性误差分析表，展示四个 paired validation case 在代表性 seed-42 checkpoint 下的预测情况。
+- 已将早先偏概念化的架构图替换为与当前代码一致的 implementation-faithful schematic，并加入自动生成的 appendix implementation-details table。
+- 已从主文 headline table 中去掉在极小 split 下不稳定的次级指标，只保留更可辩护的 repeated-run 比较。
+- 已加入 seed-aggregated paired confusion summaries，用于揭示主导性的假阳性偏置，同时明确说明这不是更大的独立测试集。
+- 已将 `main.tex` 和 `appendix.tex` 分开编译，并移除主文中对附录的跨文件编号引用，避免独立编译时出现 `??`。
+- 已根据 `docs/revision_suggestions.tex` 收紧稿件，包括：
+  - sharpened abstract framing
+  - introduction gap paragraph
+  - related-work gap summary
+  - method design-rationale subsection
+  - 将 experiments 明确区分为 benchmarking / stress-test / reproducibility
+  - 围绕三条 transferable lessons 重组 discussion
+  - 新增结构化 `Limitations and Future Work`
+- 已进一步澄清各 baseline 的确切角色，明确说明更干净的 minimal cross-modal KD baseline 仍属于 future work，而不是假装当前仓库已经实现。
+- 已在主文和附录中写清“minimum decisive next experiment”，并且明确停止对当前四张验证图像做更多 micro-analysis，以避免把 pseudo-evidence 包装成更强证据。
+- 已规范参考文献标题中的大小写，保护 `{COVID-19}`、`{CT}`、`{X}-ray`、`{FitNets}` 等术语在独立编译时不被错误折叠。
+- 已根据最新 revision 建议继续收紧主文：
+  - 在 `Related Work` 中进一步强调本文核心贡献是“受控实验设定 + 可执行评估框架”，而不是成熟的新范式
+  - 在方法部分新增 `Why the Current Method Is Still Hypothesis-Driven`
+  - 在实验协议中明确写出“当前实验矩阵足以测试可行性和暴露 failure modes，但不足以给 cross-modality 设计排出最终名次”
+  - 在主文限制部分新增 field-level evidential standard 表述
+  - 在附录中进一步解释“minimum next experiment”不是泛泛地要更多数据，而是要满足明确证据条件
+- 已成功重新编译最新 PDF。
 
-### In Progress
+### 进行中
 
-- deciding whether any extra baseline beyond the current executable set can still be added honestly from the present repository without diluting the paper's pilot-study framing
+- 正在判断：当前仓库是否还能诚实地补出一个比现有 student-only / same-modality KD / module-ablation 更“剥离式”的 executable cross-modal logit-KD anchor，而不破坏当前论文作为 pilot study 的诚实定位。
 
-### Next
+### 下一步
 
-- decide whether the current repository can support one stripped-down executable cross-modal logit-KD anchor beyond the already discussed student-only / same-modality KD / module-ablation comparisons
-- if no stronger evidence can be added from the current repository, keep tightening the framing toward a rigorous negative-result-informed feasibility paper rather than a performance-claim paper
+- 继续审查 `src/` 当前训练与蒸馏实现，确认是否真的存在可单独抽离出的 stripped-down cross-modal logit-KD baseline。
+- 如果当前仓库仍无法支撑更强 baseline，就继续收紧主文与附录的论证，使论文稳定定位为“negative-result-informed feasibility paper”，而不是“性能声明论文”。
 
-### Exact Changed Files
+### 本轮精确修改文件
+
+- `paper/main.tex`
+- `paper/appendix.tex`
+- `paper/references.bib`
+- `docs/progress.md`
+
+### 目前累计修改文件
 
 - `paper/main.tex`
 - `paper/appendix.tex`
@@ -60,6 +80,7 @@
 - `paper/tables/generated/implementation_details.tex`
 - `paper/tables/generated/paired_confusion_summary.tex`
 - `paper/images/generated/covid_matrix_main.png`
+- `paper/images/generated/covid_matrix_ablation.png`
 - `paper/images/generated/covid_matrix_module_ablation.png`
 - `paper/images/generated/covid_paired_seed_instability.png`
 - `paper/images/generated/jdcnet_executable_architecture.png`
@@ -82,14 +103,15 @@
 - `paper/results/paired_failure_analysis.csv`
 - `paper/results/paired_confusion_summary.csv`
 
-### Experiments Run
+### 已运行实验与命令
 
 - `python -m jdcnet_exp.run_covid_matrix --force`
 - `python -m jdcnet_exp.download_kaggle_datasets`
 - `python -m jdcnet_exp.generate_submission_assets`
 - `python -m jdcnet_exp.generate_error_analysis`
+- `bash paper/build.sh`
 
-### Figures and Tables Regenerated
+### 已重新生成图表
 
 - `paper/images/generated/covid_matrix_main.png`
 - `paper/images/generated/covid_matrix_ablation.png`
@@ -106,76 +128,141 @@
 - `paper/tables/generated/implementation_details.tex`
 - `paper/tables/generated/paired_confusion_summary.tex`
 
-### Top 10 Submission Blockers
+### 当前前 10 个投稿阻塞项
 
-1. `Cross-modality novelty is not supported by a stable gain over the strongest paired-cohort baseline`
-   - status: `partially resolved`
-   - action taken: reframed the manuscript into a reproducible pilot study and removed the earlier positive-overclaim wording
-   - remaining gap: no amount of writing can replace the missing empirical gain
+1. `cross-modality novelty 目前没有被稳定优于最强 paired-cohort baseline 的结果支撑`
+   - 状态：`部分解决`
+   - 已做修改：已将论文重写为可复现 pilot study，并删除早先偏“方法优越”的表述。
+   - 未完全解决原因：写作可以降级表述，但不能替代真正缺失的经验性增益证据。
 
-2. `Validation protocol is too weak because the paired validation split has only four X-ray images`
-   - status: `unresolved`
-   - action taken: surfaced the exact split sizes in the main text and appendix, added per-seed instability reporting, and avoided stronger claims
-   - remaining gap: requires more paired data
+2. `验证协议过弱，因为 paired validation split 只有 4 张 X-ray`
+   - 状态：`未解决`
+   - 已做修改：已在主文和附录中明确 split 大小、报告 per-seed instability，并避免更强 claim。
+   - 未解决原因：这需要更多 patient-level paired data，不是文字能补出来的。
 
-3. `MHRA is described as an innovation but is not positively validated`
-   - status: `partially resolved`
-   - action taken: added executable module ablations and weakened the claim
-   - remaining gap: current ablations show that removing MHRA slightly improves the mean result
+3. `MHRA 被写作创新点，但当前并没有被正向验证`
+   - 状态：`部分解决`
+   - 已做修改：已加入可执行模块消融，并将 MHRA 改写为 provisional / hypothesis-driven 组件。
+   - 未解决原因：当前消融结果反而显示去掉 MHRA 的平均结果略好。
 
-4. `Main-text tables were manually hardcoded instead of being generated from executable outputs`
-   - status: `resolved`
-   - action taken: added `generate_submission_assets.py` and replaced the main tables with generated LaTeX inputs
+4. `主文表格最初是手工硬编码，不利于可复现`
+   - 状态：`已解决`
+   - 已做修改：已加入 `generate_submission_assets.py`，并用自动生成的 LaTeX 输入替换主表。
 
-5. `The submission package was incomplete because `paper/build.sh` and `paper/appendix.tex` were missing`
-   - status: `resolved`
-   - action taken: created both files and verified `bash paper/build.sh`
+5. `投稿包不完整，最初缺少 paper/build.sh 和独立 appendix`
+   - 状态：`已解决`
+   - 已做修改：已创建 `paper/build.sh` 和 `paper/appendix.tex`，并验证可分开编译。
 
-6. `The bibliography contained a large number of irrelevant / duplicate / non-medical-imaging entries`
-   - status: `resolved`
-   - action taken: replaced `paper/references.bib` with a clean, cited-only bibliography
+6. `参考文献曾包含较多无关、重复或非当前稿件需要的条目`
+   - 状态：`已解决`
+   - 已做修改：已清理为“正文实际引用且相关”的 bibliography，并进一步规范术语大小写。
 
-7. `Dataset protocol and leakage defense were not explicit enough`
-   - status: `partially resolved`
-   - action taken: added dataset citations, dataset-curator caution, split audit table, explicit train/val patient counts, and reduced the main-text headline table to accuracy, macro-F1, and balanced accuracy
-   - remaining gap: the current split is still too small for a submission-grade benchmark protocol
+7. `数据协议和 leakage 防御原先写得不够清楚`
+   - 状态：`部分解决`
+   - 已做修改：已加入 dataset citation、curator caution、split audit、train/val patient counts，并收缩主文 headline metrics。
+   - 未完全解决原因：当前 split 仍然太小，不足以构成 submission-grade benchmark protocol。
 
-8. `Figure evidence did not clearly communicate run-to-run instability`
-   - status: `resolved`
-   - action taken: regenerated the main and module-ablation figures with per-seed overlays, added an appendix instability figure, and added seed-aggregated paired confusion summaries to make the dominant false-positive pattern explicit
+8. `图表证据过去不能直观看出 run-to-run instability`
+   - 状态：`已解决`
+   - 已做修改：已重新生成主结果图和模块消融图，加入 per-seed overlays，并加入附录 instability 图与 confusion summary。
 
-9. `Appendix-level reproducibility detail and implementation-faithful packaging were missing`
-  - status: `resolved`
-  - action taken: added appendix sections for split audit, per-seed results, module ablations, representative failure cases, implementation details, and implementation-faithful manuscript assets
+9. `附录层面的 reproducibility 细节和 implementation-faithful packaging 原先不足`
+   - 状态：`已解决`
+   - 已做修改：已补齐 split audit、per-seed results、module ablations、failure cases、implementation details，以及与主文呼应的 appendix evidence。
 
-10. `The current executable architecture/backbones are still lightweight research scaffolds rather than submission-grade final models`
-   - status: `unresolved`
-   - action taken: aligned the manuscript wording with the actual implementation and explicitly described the scaffold nature
-   - remaining gap: requires substantial modeling work or stronger data to justify it
+10. `当前可执行架构和 backbone 仍更像 lightweight scaffold，而不是 submission-grade final model`
+   - 状态：`未解决`
+   - 已做修改：已让主文措辞与实际实现严格对齐，并明确说明这是 scaffold。
+   - 未解决原因：这需要更实质的建模工作或更强的数据支持，而不是单靠改文稿。
 
-### Former Revision-Suggestion Items
+### 根据 revision_suggestions.tex 的修改状态
 
-- `Revised abstract`: `resolved`
-- `Introduction restructuring`: `resolved`
-- `Related work restructuring`: `resolved`
-- `Method top-down rewrite`: `resolved`
-- `Late-fusion baseline`: `resolved`
-- `Temperature / alpha ablation`: `resolved`
-- `Module ablations (w/o DPE / MHRA / DFPN)`: `resolved`
-- `Implementation and reproducibility section`: `resolved`
-- `Discussion and limitation framing`: `resolved`
-- `Target venue positioning text inside the main paper`: `intentionally unresolved`
-  - reason: this belongs in internal notes, not in the manuscript
-- `Abstract framing as benchmark/pilot finding`: `resolved`
-- `Introduction gap paragraph and unified contribution layers`: `resolved`
-- `Related-work gap-summary paragraph`: `resolved`
-- `Method design-rationale paragraph with MHRA caveat`: `resolved`
-- `Experiments reframed as benchmarking/stress-test/reproducibility`: `resolved`
-- `Comparative role of each baseline made explicit`: `resolved`
-- `Cleaner minimal cross-modal KD baseline`: `unresolved but now explicitly documented`
-  - reason: the current repository still lacks a stronger stripped-down executable cross-modal anchor beyond the existing student-only, same-modality KD, and module-ablation comparisons
-- `Minimum additional experiment needed to test the core novelty`: `resolved`
-- `Further negative-result analysis on the current tiny split`: `resolved as intentionally stopped`
-  - reason: the appendix now contains the strongest honest diagnostic material available from the present split, and more slicing would risk pseudo-replication rather than better evidence
-- `Results reorganized around transferable lessons`: `resolved`
-- `Structured limitations-to-future-work bridge`: `resolved`
+#### 已修改
+
+- `摘要改成更结果驱动、避免过度方法堆砌`
+  - 状态：`已修改`
+  - 说明：当前摘要已明确把 strongest paired result、negative finding 与 pilot benchmark 定位写进结论句。
+
+- `引言补 gap paragraph，并把贡献收束为统一三层结构`
+  - 状态：`已修改`
+  - 说明：已明确区分 same-modality KD、multi-modal fusion 和 training-only cross-modality transfer，并将贡献写成 problem formulation / executable framework / empirical finding。
+
+- `Related Work 末尾补更强的 gap-summary 和比较定位`
+  - 状态：`已修改`
+  - 说明：已明确指出本文更像“module-augmented cross-modality logit-distillation scaffold”，并进一步补上“controlled experimental formulation and executable evaluation scaffold”这一定位。
+
+- `Method 改成 top-down 结构并加入 design rationale`
+  - 状态：`已修改`
+  - 说明：已完成 Problem Formulation、Architecture、DPE、MHRA、DFPN、Training Objective 的 top-down 组织。
+
+- `补一段 Why the current method is still hypothesis-driven`
+  - 状态：`已修改`
+  - 说明：已在方法部分明确写出 DPE/MHRA/DFPN 是机制驱动假设，不应被读成已验证最优解。
+
+- `Experiments 明确区分 benchmarking / stress-test / reproducibility`
+  - 状态：`已修改`
+  - 说明：已在实验协议中分清三类结果的角色，避免 reviewer 误读为性能榜单。
+
+- `补一句说明当前实验矩阵足以测试 feasibility，但不足以给 cross-modality 设计做 definitive ranking`
+  - 状态：`已修改`
+  - 说明：已加入明确表述，主动限制结论边界。
+
+- `明确每个 baseline 的比较角色`
+  - 状态：`已修改`
+  - 说明：teacher-only X-ray、student-only、late fusion、same-modality KD 的比较职能都已写清。
+
+- `late-fusion baseline`
+  - 状态：`已修改`
+  - 说明：代码和论文中都已纳入，并有重复运行结果。
+
+- `temperature / alpha ablation`
+  - 状态：`已修改`
+  - 说明：已执行并写入主文，结论是当前 split 下几乎平坦，主要受数据稀缺主导。
+
+- `module ablations (w/o DPE / MHRA / DFPN)`
+  - 状态：`已修改`
+  - 说明：代码、图表、主文和附录都已接入。
+
+- `Results 围绕 transferable lessons 重写`
+  - 状态：`已修改`
+  - 说明：discussion 已围绕“无稳定收益 / prevalence bias / 复杂模块缺乏支撑”三条经验结论组织。
+
+- `Limitations and Future Work 改成结构化，并定义 minimum decisive next experiment`
+  - 状态：`已修改`
+  - 说明：主文和附录都已明确写出最小决定性后续实验需要满足的条件。
+
+- `把 minimum next experiment 提升为 field-level evidential standard`
+  - 状态：`已修改`
+  - 说明：主文末尾已加入“这不仅是 JDCNet 的下一步，也是未来 CT-to-X-ray transfer claim 的最低证据标准”这一层含义。
+
+- `附录补 reproducibility、failure cases、implementation details、minimum next experiment`
+  - 状态：`已修改`
+  - 说明：附录现在已承担证据仓库角色，而不只是堆材料。
+
+#### 部分修改
+
+- `摘要还可以进一步压缩模块存在感，做得更像“问题-答案-意义”`
+  - 状态：`部分修改`
+  - 原因：当前摘要已经比早期版本克制很多，但仍保留了 DPE/MHRA/DFPN 的最小必要说明；如果继续压缩，可能会让方法定义不够自洽。
+
+- `Results/Discussion 再进一步提升为 field-level takeaway，而不只是当前实验总结`
+  - 状态：`部分修改`
+  - 原因：主文已经有 transferable lessons 和 evidential standard，但受当前证据规模限制，仍不能把这些 lessons 写得像更广泛适用的强结论。
+
+- `主文对附录证据的主动调用还可以更充分`
+  - 状态：`部分修改`
+  - 原因：目前主文已经引用 supplementary appendix 中的 confusion summaries 和补充证据，但还没有把所有附录表逐一调入正文叙述，以免主文过载。
+
+#### 未修改
+
+- `补充 2--3 篇更贴近 cross-modal distillation / modality transfer 的近年文献`
+  - 状态：`未修改`
+  - 原因：当前仓库和现有引用集中没有经过核实且可直接接入的新文献条目；为避免引入未核实或虚构引用，这一项暂不硬加。
+
+- `加入一个 cleaner stripped-down cross-modal KD baseline`
+  - 状态：`未修改`
+  - 原因：当前仓库尚未实现一个比现有 student-only / same-modality KD / module-ablation 更“剥离式”的可执行 cross-modal logit-KD anchor；在没有真实实现和结果前，不能把它写成已完成。
+
+- `把论文写成方法 superiority 论文`
+  - 状态：`未修改（刻意不修改）`
+  - 原因：当前真实结果并不支持这种叙事；保持 negative-result-informed pilot framing 更诚实，也更符合现有证据。
