@@ -29,15 +29,18 @@
 - removed unstable secondary metrics from the main-text headline table so the manuscript now emphasizes only the more defensible repeated-run comparisons under the tiny paired split
 - added seed-aggregated paired confusion summaries that make the dominant false-positive bias explicit without treating repeated predictions as a larger independent test set
 - split `main.tex` and `appendix.tex` into separately compiled PDFs and removed cross-file numbered appendix references from the main paper so standalone appendix builds do not produce `??` references
+- revised the manuscript against `docs/revision_suggestions.tex` by sharpening the abstract framing, adding an introduction gap paragraph, adding a related-work gap summary, adding a method design-rationale subsection, separating benchmarking/stress-test/reproducibility roles in the experiments, reorganizing the discussion around three transferable lessons, and adding a structured limitations-and-future-work subsection
 - rebuilt the PDF successfully after the manuscript/package changes
 
 ### In Progress
 
 - assessing whether any additional negative-result analysis can still be extracted from the current tiny validation split without turning repeated predictions into pseudo-samples
+- deciding whether any extra baseline beyond the current executable set can still be added honestly from the present repository without diluting the paper's pilot-study framing
 
 ### Next
 
 - identify the minimum additional experiment that would most directly test the core novelty once more paired data become available
+- decide whether to add one explicit simpler KD baseline discussion paragraph in the experiments section, or leave it as a clearly documented future-work requirement
 - if no stronger evidence can be added from the current repository, keep tightening the framing toward a rigorous negative-result-informed feasibility paper rather than a performance-claim paper
 
 ### Exact Changed Files
@@ -162,3 +165,10 @@
 - `Discussion and limitation framing`: `resolved`
 - `Target venue positioning text inside the main paper`: `intentionally unresolved`
   - reason: this belongs in internal notes, not in the manuscript
+- `Abstract framing as benchmark/pilot finding`: `resolved`
+- `Introduction gap paragraph and unified contribution layers`: `resolved`
+- `Related-work gap-summary paragraph`: `resolved`
+- `Method design-rationale paragraph with MHRA caveat`: `resolved`
+- `Experiments reframed as benchmarking/stress-test/reproducibility`: `resolved`
+- `Results reorganized around transferable lessons`: `resolved`
+- `Structured limitations-to-future-work bridge`: `resolved`

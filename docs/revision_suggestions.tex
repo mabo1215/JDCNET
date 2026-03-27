@@ -1,202 +1,256 @@
-\section{Target Venue and Positioning}
+\section*{Section-by-Section Revision Checklist (Top-Tier Journal/Conference Standard)}
 
-This work is currently positioned as a reproducible cross-modality knowledge distillation (KD) study on chest X-ray and CT, with a strong emphasis on an executable experimental pipeline and a proof-of-concept result on a small paired cohort. It is more suitable, in its present form, for:
+\subsection*{Overall Assessment}
 \begin{itemize}
-  \item Medical imaging / medical AI workshops (e.g., workshops colocated with MICCAI that focus on knowledge distillation or multi-modal learning).
-  \item Application- or engineering-oriented journals or special issues that value reproducible pipelines and small-cohort proof-of-concept studies over state-of-the-art benchmarks.
-\end{itemize}
-After strengthening the data scale, baselines, and implementation of the full JDCNet architecture, the work can be further aimed at higher-tier venues (e.g., MICCAI, IPMI, IEEE TMI, JBHI).
-
-\section{Revised Abstract (Template)}
-
-\begin{abstract}
-Chest X-ray and computed tomography (CT) provide complementary views of thoracic disease, yet most existing computer-aided diagnosis pipelines are trained on a single imaging modality. This limits the reuse of labeled data and under-utilizes paired examinations that frequently occur in clinical workflows. In this paper, we study cross-modality knowledge distillation for chest image classification and ask whether a teacher model trained on CT can provide useful supervisory signals for a student model operating on X-ray images. We propose JDCNet, a teacher--student framework that combines a modality-specific teacher branch, a lightweight student branch, and a distillation objective that aligns class-level predictions across modalities. The architecture includes a Deep Probe Expedition (DPE) module to emphasize discriminative regions before distillation, a Multi-Head Retain Area (MHRA) module to aggregate class-relevant teacher tokens, and a Distillate Feature Pyramid Network (DFPN) on the student side to absorb transferred knowledge. We evaluate JDCNet on a curated cohort of paired chest X-ray and CT images derived from a public COVID-19 collection, using patient-level splits and repeated runs for robust estimation. On the paired X-ray target task, cross-modality distillation improves the student performance over student-only training and same-modality distillation in terms of accuracy, macro-F1, and balanced accuracy under the present protocol. All manifests, training scripts, and result summaries are released as an executable pipeline to facilitate reproduction and future extensions on larger cohorts.
-\end{abstract}
-
-% Note: After you finalize the experiments, update the performance sentence
-% (the metrics and the strength of the claim) to match the actual results.
-
-\section{Revised Contributions}
-
-In Section~1.2, the contributions can be rewritten as:
-
-\begin{itemize}
-  \item \textbf{Problem formulation.} We formalize cross-modality thoracic image classification as a teacher--student knowledge distillation problem, where a CT-based teacher transfers class-discriminative information to an X-ray-based student under realistic patient-level pairing constraints.
-  \item \textbf{Architecture.} We introduce JDCNet, a distillation framework that integrates a region-selection module (DPE), a token-aggregation module (MHRA), and a student-side feature pyramid (DFPN) to preserve modality-specific cues while exposing transferable supervisory signals.
-  \item \textbf{Executable evaluation pipeline.} We implement a fully executable experiment pipeline on a public COVID-19 chest imaging collection, including manifest generation, patient-level splitting, repeated-run evaluation, and automatic export of tables and figures, and show that cross-modality distillation improves the X-ray target performance over strong student-only and same-modality baselines under the current cohort.
+    \item The revised manuscript has already improved substantially in \textbf{honesty, reproducibility, and claim control}. In particular, the paper now explicitly states that:
+    \begin{itemize}
+        \item the study is a \textbf{reproducible pilot study},
+        \item the paired validation split is \textbf{extremely small} (4 X-ray images),
+        \item the \textbf{student-only baseline} is currently the strongest paired-cohort result,
+        \item and the current \textbf{MHRA implementation is not yet robust}.
+    \end{itemize}
+    \item These changes are important and move the manuscript away from overclaiming.
+    \item However, under top-tier standards, the manuscript still needs another round of refinement to make the contribution framing, methodological necessity, experimental rigor, and limitation-to-future-work logic more convincing.
 \end{itemize}
 
-\section{Proposed Section-Level Restructuring}
+\subsection*{1. Abstract}
+\begin{itemize}
+    \item \textbf{Already improved:}
+    \begin{itemize}
+        \item The abstract now clearly states the task, the proposed framework, the dataset setting, and the key negative finding that cross-modality distillation does not yet stably outperform the student-only baseline.
+        \item The wording is much more conservative and scientifically credible than a typical overclaimed medical-AI abstract.
+    \end{itemize}
+    \item \textbf{Still needs revision:}
+    \begin{itemize}
+        \item The current abstract lists DPE, MHRA, and DFPN, but it still does not make fully clear \emph{why these three modules are necessary together} rather than being a generic modular stack.
+        \item The abstract should more sharply distinguish between:
+        \begin{itemize}
+            \item the \textbf{scientific question} (Can CT supervise X-ray through cross-modality distillation?),
+            \item the \textbf{engineering artifact} (the executable JDCNet scaffold),
+            \item and the \textbf{empirical conclusion} (no stable gain yet under the current small paired cohort).
+        \end{itemize}
+        \item For a top-tier venue, the last sentence should emphasize the paper's value as a \textbf{negative-but-reproducible benchmarked finding}, not just as an underperforming method.
+    \end{itemize}
+    \item \textbf{Recommended action:}
+    \begin{itemize}
+        \item Rewrite the final two sentences so that the contribution is framed as:
+        \begin{quote}
+            a reproducible cross-modality benchmark/pilot pipeline that prevents overstated claims and establishes a controlled baseline for future CT-to-X-ray distillation research.
+        \end{quote}
+    \end{itemize}
+\end{itemize}
 
-\subsection{Introduction}
+\subsection*{2. Introduction}
+\begin{itemize}
+    \item \textbf{Already improved:}
+    \begin{itemize}
+        \item The introduction now has a clear motivation: CT provides richer supervision, while X-ray is the target deployment modality.
+        \item The problem setting is more realistic than multi-modal fusion at test time.
+        \item The contribution list is cleaner and now includes the executable evaluation pipeline.
+    \end{itemize}
+    \item \textbf{Still needs revision:}
+    \begin{itemize}
+        \item The introduction currently explains \emph{what} the paper does, but not strongly enough \emph{why this problem matters now} in the context of modern medical multi-modal learning.
+        \item It still lacks a sharper statement of the \textbf{gap in prior work}: existing KD papers are mostly same-modality, while medical multi-modal papers often assume inference-time access to all modalities.
+        \item The current contribution list is partially \textbf{method-oriented} and partially \textbf{pipeline-oriented}; this should be unified.
+    \end{itemize}
+    \item \textbf{Recommended action:}
+    \begin{itemize}
+        \item Add one paragraph at the end of the introduction explicitly stating:
+        \begin{enumerate}
+            \item what prior work has \emph{not} done,
+            \item why cross-modality distillation is technically nontrivial,
+            \item and why a reproducible negative/neutral result is still valuable.
+        \end{enumerate}
+        \item Rewrite the contributions into three layers:
+        \begin{enumerate}
+            \item \textbf{Problem formulation},
+            \item \textbf{Executable framework},
+            \item \textbf{Empirical finding and cautionary conclusion}.
+        \end{enumerate}
+    \end{itemize}
+\end{itemize}
 
-Suggested structure for Section~1:
+\subsection*{3. Related Work}
+\begin{itemize}
+    \item \textbf{Already improved:}
+    \begin{itemize}
+        \item The related work is now logically divided into chest imaging, transformers/attention, knowledge distillation, and cross-modality/multi-modal learning.
+        \item The manuscript correctly positions the paper closer to cross-modality distillation than to conventional multi-modal fusion.
+    \end{itemize}
+    \item \textbf{Still needs revision:}
+    \begin{itemize}
+        \item The section is still too \textbf{descriptive} and not sufficiently \textbf{comparative}.
+        \item It does not yet clearly identify the exact methodological niche of JDCNet relative to:
+        \begin{itemize}
+            \item same-modality distillation,
+            \item feature distillation,
+            \item logit distillation,
+            \item multi-modal fusion,
+            \item and cross-modal representation transfer.
+        \end{itemize}
+        \item There is still a risk that reviewers will ask: ``Is this really a new method, or mainly a new experimental packaging of known blocks?''
+    \end{itemize}
+    \item \textbf{Recommended action:}
+    \begin{itemize}
+        \item End the related work with a \textbf{gap-summary paragraph} in this style:
+        \begin{quote}
+            Existing medical KD studies mostly focus on same-modality compression, whereas multi-modal medical studies often require all modalities at inference. In contrast, this work studies training-only CT supervision for X-ray deployment and evaluates that setting under an executable, patient-level, repeated-run protocol.
+        \end{quote}
+        \item If possible, add 1--3 stronger and more recent references specifically on \textbf{cross-modal distillation} or \textbf{teacher-student transfer across modalities}, even if they are outside chest imaging.
+    \end{itemize}
+\end{itemize}
 
+\subsection*{4. Method}
+\begin{itemize}
+    \item \textbf{Already improved:}
+    \begin{itemize}
+        \item The method section is structurally clear.
+        \item The paper now gives equations for DPE, MHRA, DFPN, and the hard/soft distillation objective.
+        \item The text explicitly states which parts are conceptual and which parts correspond to the current executable implementation.
+    \end{itemize}
+    \item \textbf{Still needs revision:}
+    \begin{itemize}
+        \item The current method is understandable, but the \textbf{methodological novelty is still not fully defended}.
+        \item DPE, MHRA, and DFPN are introduced as intuitive modules, but their \textbf{necessity, interaction, and modality-specific role separation} are not yet argued strongly enough.
+        \item Since the ablation shows that \textbf{w/o MHRA performs slightly better}, reviewers may question whether MHRA is conceptually justified or currently unnecessary.
+    \end{itemize}
+    \item \textbf{Recommended action:}
+    \begin{itemize}
+        \item Add a short paragraph called something like \textbf{``Design Rationale''} after the architecture overview.
+        \item Explicitly explain:
+        \begin{itemize}
+            \item why teacher-side saliency refinement is needed before transfer,
+            \item why student-side multi-scale fusion is especially relevant for X-ray,
+            \item and why these modules were chosen instead of plain logit KD alone.
+        \end{itemize}
+        \item Add one sentence openly acknowledging:
+        \begin{quote}
+            although the present MHRA instantiation is not yet empirically validated, it is included as a testable hypothesis about teacher-side saliency aggregation rather than as a confirmed improvement.
+        \end{quote}
+        \item This kind of wording can preempt novelty and ablation criticisms.
+    \end{itemize}
+\end{itemize}
+
+\subsection*{5. Experiments}
+\begin{itemize}
+    \item \textbf{Already improved:}
+    \begin{itemize}
+        \item The experimental section is now much more reproducible.
+        \item The manuscript clearly states cohort construction, patient-level splitting, repeated seeds, baseline types, optimizer settings, and executable pipeline generation.
+        \item The paper also explicitly warns that the dataset should not be treated as a competition benchmark or clinical validation benchmark.
+    \end{itemize}
+    \item \textbf{Still needs revision:}
+    \begin{itemize}
+        \item Under top-tier standards, the experimental evidence is still the manuscript's weakest part.
+        \item The main issue is not presentation quality, but \textbf{evidence strength}: the paired validation set has only 4 images, and the CT validation split is effectively unusable for meaningful comparison.
+        \item The current baselines are reasonable, but the study still lacks stronger external anchors, such as:
+        \begin{itemize}
+            \item a plain student trained on all available X-ray data and evaluated under a matched protocol,
+            \item a simpler cross-modal KD baseline without DPE/MHRA/DFPN,
+            \item or a non-distillation transfer baseline.
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Recommended action:}
+    \begin{itemize}
+        \item Strengthen the experiment section by explicitly separating:
+        \begin{enumerate}
+            \item \textbf{benchmarking experiments},
+            \item \textbf{stress-test experiments},
+            \item \textbf{reproducibility utilities}.
+        \end{enumerate}
+        \item Add one paragraph clarifying that the current experiment is designed to test \textbf{feasibility and reproducibility}, not to establish state-of-the-art performance.
+        \item If no new data can be added, then make that limitation part of the experimental design logic rather than leaving it as a passive weakness.
+    \end{itemize}
+\end{itemize}
+
+\subsection*{6. Results}
+\begin{itemize}
+    \item \textbf{Already improved:}
+    \begin{itemize}
+        \item The results section is now much more honest and publishable than before.
+        \item The paper correctly avoids overemphasizing unstable metrics and focuses on accuracy, macro-F1, and balanced accuracy.
+        \item The discussion of the student-only baseline, the flat temperature/alpha ablation, and the unstable MHRA behavior is scientifically appropriate.
+        \item The appendix usefully supports the main text with per-seed tables, qualitative error analysis, and seed-aggregated confusion summaries.
+    \end{itemize}
+    \item \textbf{Still needs revision:}
+    \begin{itemize}
+        \item The results are credible, but the \textbf{narrative structure} can still be stronger.
+        \item Right now the section mainly says what happened; it should more explicitly tell the reader \textbf{what we learn from the failure to improve}.
+        \item Top-tier reviewers often accept negative results only when the paper extracts a strong, transferable lesson.
+    \end{itemize}
+    \item \textbf{Recommended action:}
+    \begin{itemize}
+        \item Reorganize the results discussion around three takeaways:
+        \begin{enumerate}
+            \item \textbf{No stable gain from current cross-modality KD under the tiny paired cohort;}
+            \item \textbf{the dominant failure mode is prevalence-biased positive prediction;}
+            \item \textbf{module complexity is not justified unless the paired cohort and implementation quality are both improved.}
+        \end{enumerate}
+        \item This will make the paper read less like an unsuccessful method paper and more like a carefully designed empirical study.
+    \end{itemize}
+\end{itemize}
+
+\subsection*{7. Limitations}
+\begin{itemize}
+    \item \textbf{Already improved:}
+    \begin{itemize}
+        \item The manuscript already acknowledges the main limitations clearly:
+        \begin{itemize}
+            \item tiny paired cohort,
+            \item tiny validation split,
+            \item CT imbalance,
+            \item unstable MHRA behavior,
+            \item and lack of strong benchmarking validity.
+        \end{itemize}
+        \item The appendix further reinforces these limitations with concrete patient counts, per-seed instability, and confusion-pattern analysis.
+    \end{itemize}
+    \item \textbf{Still needs revision:}
+    \begin{itemize}
+        \item The limitations are currently embedded mostly inside discussion-style prose.
+        \item For top-tier style, they should be turned into a more \textbf{structured limitations-to-future-work bridge}.
+        \item Reviewers should leave the paper with the impression that the next steps are concrete and technically justified.
+    \end{itemize}
+    \item \textbf{Recommended action:}
+    \begin{itemize}
+        \item Add a dedicated paragraph or subsection that separates limitations into:
+        \begin{enumerate}
+            \item \textbf{data limitations},
+            \item \textbf{method limitations},
+            \item \textbf{evaluation limitations}.
+        \end{enumerate}
+        \item Then map each limitation to a direct future action:
+        \begin{itemize}
+            \item larger paired cohort,
+            \item stronger teacher/student backbones,
+            \item simpler and stronger KD baselines,
+            \item external evaluation,
+            \item and better-calibrated teacher-side feature transfer.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsection*{Priority Ranking of Remaining Revisions}
 \begin{enumerate}
-  \item \textbf{Clinical background.} Briefly describe the roles of chest X-ray and CT in thoracic disease screening and diagnosis (X-ray as low-cost and widely available, CT as high-resolution and more detailed).
-  \item \textbf{Gap in existing methods.} Point out that most CAD pipelines are single-modality, that multi-modal fusion requires simultaneous availability of both modalities and more complex deployment, and that there is a lack of explicit cross-modality knowledge transfer methods for chest imaging.
-  \item \textbf{Problem statement and approach.} Clearly state that this paper studies CT-to-X-ray cross-modality knowledge distillation with a teacher--student framework (JDCNet), aiming to exploit CT as a richer supervisory signal for X-ray classification.
-  \item \textbf{Contributions.} Present the three bullet points as in the previous section.
+    \item \textbf{Highest priority:} strengthen the paper's contribution framing as a reproducible and cautionary cross-modality pilot study rather than as a performance-driven new SOTA method.
+    \item \textbf{High priority:} sharpen the novelty/gap statement in the Introduction and Related Work.
+    \item \textbf{High priority:} add stronger design rationale in the Method section, especially for MHRA.
+    \item \textbf{High priority:} reorganize the Results section around transferable empirical lessons.
+    \item \textbf{Medium priority:} make the Limitations section more structured and forward-linked.
+    \item \textbf{Medium priority:} polish wording to further reduce any residual ambiguity between ``proposed validated module'' and ``currently tested hypothesis''.
 \end{enumerate}
 
-Remove or rewrite meta-level statements such as ``this revision'', ``repository'', or explicit references to targeting specific venues (e.g., ``MICCAI-style claim''). These comments should not appear in a formal submission.
-
-\subsection{Related Work}
-
-Reorganize Section~2 as:
-
+\subsection*{Bottom-Line Recommendation}
 \begin{itemize}
-  \item \textbf{2.1 Medical image classification on chest X-ray and CT.} Summarize representative CNN/Transformer-based methods for thoracic imaging.
-  \item \textbf{2.2 Transformers and attention mechanisms in medical imaging.} Briefly cover ViT, Swin Transformer, and hybrid CNN--Transformer structures in medical image analysis.
-  \item \textbf{2.3 Knowledge distillation in medical imaging.} Discuss classical KD (Hinton et al., FitNets) and medical KD applications (e.g., chest X-ray KD, distillation for gastric X-ray, hyperspectral medical images, EHR--image KD).
-  \item \textbf{2.4 Cross-modality and multi-modal learning.} Highlight works that bridge different imaging modalities or imaging with text, and explain how your setting (CT teacher, X-ray student) differs.
-\end{itemize}
-
-Keep mathematical details here minimal; detailed derivations relevant to your loss should be moved to the Method section.
-
-\subsection{Method}
-
-Rewrite Section~3 following a top-down structure:
-
-\paragraph{3.1 Problem Formulation}
-
-Define:
-\begin{itemize}
-  \item Modalities \(m \in \{\mathrm{xray}, \mathrm{ct}\}\).
-  \item Input image \(x^{(m)}\) and label \(y\).
-  \item Teacher network \(f_T\) operating on CT and student network \(f_S\) operating on X-ray.
-\end{itemize}
-Formally state the objective as learning \(f_S\) on the target modality while leveraging predictions from \(f_T\) on the source modality.
-
-\paragraph{3.2 Overall JDCNet Architecture}
-
-Using Figure~1, describe:
-\begin{itemize}
-  \item The teacher branch: backbone type, feature extraction, and output logits.
-  \item The student branch: backbone type, feature hierarchy, and classification head.
-  \item The distillation path: where teacher predictions and/or intermediate features supervise the student.
-\end{itemize}
-
-\paragraph{3.3 Deep Probe Expedition (DPE)}
-
-Explain DPE as a lightweight region-selection module:
-\begin{itemize}
-  \item Input: teacher feature map or tokens.
-  \item Operation: compute a score for each spatial location/token, and reweight or select top-k discriminative regions.
-  \item Output: a refined teacher feature representation emphasizing class-relevant regions.
-\end{itemize}
-Replace any overly complex, hard-to-interpret integral expression with the actual scoring and weighting formulation used in your implementation, and provide an intuitive explanation.
-
-\paragraph{3.4 Multi-Head Retain Area (MHRA)}
-
-Clarify how MHRA differs from standard multi-head attention:
-\begin{itemize}
-  \item Describe its inputs and outputs (e.g., teacher tokens).
-  \item Specify how it computes retain scores and suppresses background responses.
-  \item Provide a simplified equation that matches the implemented module rather than a long entropy-based derivation.
-\end{itemize}
-
-\paragraph{3.5 Distillate Feature Pyramid Network (DFPN)}
-
-Describe the student-side feature hierarchy:
-\begin{itemize}
-  \item How multi-scale features are constructed.
-  \item How knowledge from the teacher (via DPE/MHRA outputs or distillation targets) is injected into the student representation.
-\end{itemize}
-
-\paragraph{3.6 Training Objective}
-
-Explicitly define:
-\begin{itemize}
-  \item Hard label loss \(L_{\text{hard}}\): standard cross-entropy between student predictions and ground-truth labels.
-  \item Soft distillation loss \(L_{\text{soft}}\): KL divergence or cross-entropy between softened teacher and student logits at temperature \(T\).
-  \item Optional intermediate feature alignment loss \(L_{\text{inter}}\): if MHRA or other layers are supervised.
-\end{itemize}
-Then give the total loss, for example:
-\begin{equation}
-L = \alpha L_{\text{soft}} + (1 - \alpha) L_{\text{hard}} + \beta L_{\text{inter}},
-\end{equation}
-and briefly discuss the role of \(\alpha\), \(\beta\), and \(T\).
-
-\subsection{Experiments}
-
-Restructure Section~4 as follows:
-
-\paragraph{4.1 Datasets and Cohort Construction}
-
-\begin{itemize}
-  \item Describe the source public COVID-19 chest imaging collection.
-  \item Explain how you construct:
+    \item The revised manuscript is \textbf{substantially better than before} and is now much closer to a defensible submission.
+    \item However, under strict top-tier standards, it is \textbf{not yet optimal} mainly because:
     \begin{itemize}
-      \item the all-X-ray manifest,
-      \item the all-CT manifest,
-      \item the paired X-ray/CT cohort.
+        \item the novelty positioning is still not maximally sharp,
+        \item the method rationale is still somewhat under-argued,
+        \item and the experimental evidence remains too small to support a strong method-driven claim.
     \end{itemize}
-  \item Report patient counts, image counts, and positive/negative distributions (Table~1 can be kept with minor polishing).
-\end{itemize}
-
-\paragraph{4.2 Experimental Protocol}
-
-\begin{itemize}
-  \item Patient-level train/validation (and ideally test) splits, including ratios.
-  \item Preprocessing (resolution, normalization, cropping, etc.).
-  \item Training details: backbones, optimizer, learning rate, batch size, number of epochs.
-\end{itemize}
-
-\paragraph{4.3 Baselines}
-
-Clearly list all baselines:
-\begin{itemize}
-  \item Teacher-only X-ray on all-X-ray cohort.
-  \item Teacher-only CT on all-CT cohort.
-  \item Student-only X-ray on paired cohort.
-  \item Same-modality distillation on paired X-ray cohort.
-  \item (Recommended) Multi-modal joint training or simple late fusion baseline, if feasible.
-\end{itemize}
-
-\paragraph{4.4 Main Results}
-
-\begin{itemize}
-  \item Present the main metrics in a cleaned-up version of Table~2, making clear when certain metrics are not meaningful (e.g., CT-only validation split with only positives; mark such entries with ``--'' and explain in the caption or text).
-  \item In the text, emphasize:
-    \begin{itemize}
-      \item The relative improvements of cross-modality KD over student-only and same-modality KD on the paired X-ray task.
-      \item The limitations due to very small validation size and high variance, using cautious wording (proof-of-concept rather than strong claims).
-    \end{itemize}
-\end{itemize}
-
-\paragraph{4.5 Ablation Studies}
-
-\begin{itemize}
-  \item Keep essential ablations on temperature \(T\) and distillation weight \(\alpha\), but acknowledge that trends are unstable under the current small cohort.
-  \item More importantly, add module ablations:
-    \begin{itemize}
-      \item w/o DPE, w/o MHRA, w/o DFPN, to isolate the contribution of each component.
-    \end{itemize}
-\end{itemize}
-
-\paragraph{4.6 Implementation and Reproducibility}
-
-\begin{itemize}
-  \item Summarize that all manifests, scripts, and result exports are implemented as an executable pipeline.
-  \item Avoid including internal file paths in the main text; instead, refer to the code repository or supplementary materials.
-\end{itemize}
-
-\subsection{Discussion and Conclusion}
-
-\paragraph{Discussion}
-
-Use the Discussion section to:
-\begin{itemize}
-  \item Interpret the main findings in the context of small-cohort cross-modality KD for thoracic imaging.
-  \item Explicitly discuss limitations: small paired cohort, imbalanced CT validation split, placeholder backbones (if still applicable), and lack of external test sets.
-  \item Outline future work: larger and multi-center cohorts, stronger backbones (e.g., ViT), comparison with multi-modal joint training and other state-of-the-art cross-modality approaches.
-\end{itemize}
-
-\paragraph{Conclusion}
-
-Keep the Conclusion concise (one paragraph):
-\begin{itemize}
-  \item Restate the problem, proposed framework, and main empirical observation (CT-to-X-ray KD improves X-ray target performance under the current protocol).
-  \item Reiterate that the current results are preliminary and that further validation on larger cohorts is needed before any clinical claims.
+    \item Therefore, the next revision should focus less on adding decorative text and more on:
+    \begin{quote}
+        sharpening contribution logic, clarifying methodological necessity, and converting the current negative/neutral findings into a strong reproducible scientific message.
+    \end{quote}
 \end{itemize}
