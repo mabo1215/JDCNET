@@ -1,0 +1,30 @@
+{
+  "experiment_name": "student_ct_same_modality_distill",
+  "manifest_path": "data/manifest.csv",
+  "output_dir": "runs/student_ct_same_modality_distill",
+  "seed": 42,
+  "model": {
+    "name": "student",
+    "num_classes": 2,
+    "input_size": 224
+  },
+  "data": {
+    "train_split": "train",
+    "val_split": "val",
+    "train_modalities": ["ct"],
+    "val_modalities": ["ct"],
+    "batch_size": 8,
+    "num_workers": 0
+  },
+  "optimization": {
+    "epochs": 10,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001
+  },
+  "distillation": {
+    "enabled": true,
+    "temperature": 4.0,
+    "alpha": 0.6,
+    "teacher_checkpoint": "runs/teacher_ct/best.pt"
+  }
+}

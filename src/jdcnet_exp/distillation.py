@@ -10,8 +10,9 @@ def distillation_loss(
     labels: torch.Tensor,
     temperature: float,
     alpha: float,
+    class_weights: torch.Tensor | None = None,
 ) -> torch.Tensor:
-    hard_loss = F.cross_entropy(student_logits, labels)
+    hard_loss = F.cross_entropy(student_logits, labels, weight=class_weights)
     soft_loss = F.kl_div(
         F.log_softmax(student_logits / temperature, dim=1),
         F.softmax(teacher_logits / temperature, dim=1),

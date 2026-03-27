@@ -1,0 +1,34 @@
+{
+  "experiment_name": "teacher_xray_all_s42",
+  "manifest_path": "data/covid_real/covid_xray_all_manifest.csv",
+  "output_dir": "runs/covid_matrix/teacher_xray_all_s42",
+  "seed": 42,
+  "model": {
+    "name": "teacher",
+    "num_classes": 2,
+    "input_size": 128
+  },
+  "data": {
+    "train_split": "train",
+    "val_split": "val",
+    "train_modalities": [
+      "xray"
+    ],
+    "val_modalities": [
+      "xray"
+    ],
+    "batch_size": 16,
+    "num_workers": 0
+  },
+  "optimization": {
+    "epochs": 5,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001
+  },
+  "distillation": {
+    "enabled": false,
+    "temperature": 4.0,
+    "alpha": 0.6,
+    "teacher_checkpoint": ""
+  }
+}

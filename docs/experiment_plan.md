@@ -54,3 +54,7 @@ Build a reproducible experimental pipeline for cross-modality chest X-ray and CT
 - distillation loss
 - train entrypoint
 - evaluation entrypoint
+- patient-level split generator
+- ablation config generator
+- run summarization utilities
+- paper asset generation utilities
