@@ -438,7 +438,7 @@ def _draw_arrow(axis, start, end):
     axis.add_patch(arrow)
 
 
-def _draw_segment_label(axis, start, end, text, position=0.5, offset=0.22, fontsize=9.8):
+def _draw_segment_label(axis, start, end, text, position=0.5, offset=0.12, fontsize=9.8):
     dx = end[0] - start[0]
     dy = end[1] - start[1]
     length = math.hypot(dx, dy)
@@ -462,7 +462,7 @@ def _draw_segment_label(axis, start, end, text, position=0.5, offset=0.22, fonts
         rotation=angle,
         rotation_mode="anchor",
         family="DejaVu Sans",
-        bbox={"boxstyle": "round,pad=0.14", "facecolor": "white", "edgecolor": "none", "alpha": 0.92},
+        bbox={"boxstyle": "round,pad=0.08", "facecolor": "white", "edgecolor": "none", "alpha": 0.92},
     )
 
 
@@ -493,9 +493,9 @@ def _draw_elbow_arrow(axis, points, label=None, label_segment=0, label_position=
 
 
 def _plot_executable_architecture() -> None:
-    figure, axis = plt.subplots(figsize=(14.5, 6.2))
+    figure, axis = plt.subplots(figsize=(13.6, 6.0))
     figure.patch.set_facecolor("white")
-    axis.set_xlim(0, 18.4)
+    axis.set_xlim(0, 17.6)
     axis.set_ylim(0, 9)
     axis.axis("off")
 
@@ -518,7 +518,7 @@ def _plot_executable_architecture() -> None:
     _draw_box(axis, (6.25, 1.88), 1.7, 1.0, "DFPN", palette["module"])
     _draw_box(axis, (8.55, 1.5), 2.15, 1.75, "Student logits", palette["student"], fontsize=10.8)
 
-    _draw_box(axis, (15.1, 3.1), 2.6, 1.55, "Hard CE +\nSoft KL loss", palette["loss"], fontsize=10.8)
+    _draw_box(axis, (14.05, 3.1), 2.45, 1.55, "Hard CE +\nSoft KL loss", palette["loss"], fontsize=10.8)
     axis.text(
         8.0,
         8.35,
@@ -530,21 +530,21 @@ def _plot_executable_architecture() -> None:
         family="DejaVu Sans",
     )
     axis.text(
-        17.1,
-        6.7,
+        16.5,
+        6.15,
         "Teacher path\n(training only)",
         fontsize=10.5,
-        ha="left",
+        ha="right",
         va="center",
         color="#334e68",
         family="DejaVu Sans",
     )
     axis.text(
-        17.35,
-        1.75,
+        16.5,
+        1.42,
         "Student path\n(deployment: X-ray only)",
         fontsize=10.5,
-        ha="left",
+        ha="right",
         va="center",
         color="#334e68",
         family="DejaVu Sans",
@@ -561,19 +561,19 @@ def _plot_executable_architecture() -> None:
 
     _draw_elbow_arrow(
         axis,
-        [(11.65, 5.65), (11.65, 5.15), (14.75, 5.15), (14.75, 4.1), (15.1, 4.1)],
+        [(11.62, 5.65), (11.62, 5.05), (15.27, 5.05), (15.27, 4.65)],
         label="soft distillation",
         label_segment=1,
-        label_position=0.5,
-        label_offset=0.18,
+        label_position=0.42,
+        label_offset=0.10,
     )
     _draw_elbow_arrow(
         axis,
-        [(10.7, 2.42), (14.1, 2.42), (14.1, 3.55), (15.1, 3.55)],
+        [(10.7, 2.42), (15.27, 2.42), (15.27, 3.1)],
         label="hard-label supervision",
         label_segment=0,
-        label_position=0.5,
-        label_offset=0.18,
+        label_position=0.40,
+        label_offset=0.10,
     )
 
     figure.savefig(IMAGE_DIR / "jdcnet_executable_architecture.png", dpi=400, bbox_inches="tight", pad_inches=0.06)
