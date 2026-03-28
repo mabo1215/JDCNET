@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch, Rectangle
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 import pandas as pd
 
 
@@ -398,8 +399,16 @@ def _plot_paired_seed_instability(run_frame: pd.DataFrame) -> None:
     plt.close(figure)
 
 
-def _draw_box(axis, xy, width, height, text, facecolor):
-    box = Rectangle(xy, width, height, facecolor=facecolor, edgecolor="#1f2933", linewidth=1.5)
+def _draw_box(axis, xy, width, height, text, facecolor, fontsize=10.5):
+    box = FancyBboxPatch(
+        xy,
+        width,
+        height,
+        boxstyle="round,pad=0.02,rounding_size=0.12",
+        facecolor=facecolor,
+        edgecolor="#243b53",
+        linewidth=1.7,
+    )
     axis.add_patch(box)
     axis.text(
         xy[0] + width / 2,
@@ -407,63 +416,168 @@ def _draw_box(axis, xy, width, height, text, facecolor):
         text,
         ha="center",
         va="center",
-        fontsize=10,
+        fontsize=fontsize,
         color="#102a43",
         wrap=True,
+        family="DejaVu Sans",
     )
 
 
 def _draw_arrow(axis, start, end):
-    arrow = FancyArrowPatch(start, end, arrowstyle="-|>", mutation_scale=14, linewidth=1.5, color="#486581")
+    arrow = FancyArrowPatch(
+        start,
+        end,
+        arrowstyle="-|>",
+        mutation_scale=18,
+        linewidth=1.7,
+        color="#486581",
+        shrinkA=0,
+        shrinkB=0,
+        joinstyle="miter",
+    )
     axis.add_patch(arrow)
 
 
+def _draw_segment_label(axis, start, end, text, position=0.5, offset=0.22, fontsize=9.8):
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    length = math.hypot(dx, dy)
+    if length == 0:
+        return
+
+    base_x = start[0] + position * dx
+    base_y = start[1] + position * dy
+    normal_x = -dy / length
+    normal_y = dx / length
+    angle = math.degrees(math.atan2(dy, dx))
+
+    axis.text(
+        base_x + offset * normal_x,
+        base_y + offset * normal_y,
+        text,
+        fontsize=fontsize,
+        color="#486581",
+        ha="center",
+        va="center",
+        rotation=angle,
+        rotation_mode="anchor",
+        family="DejaVu Sans",
+        bbox={"boxstyle": "round,pad=0.14", "facecolor": "white", "edgecolor": "none", "alpha": 0.92},
+    )
+
+
+def _draw_elbow_arrow(axis, points, label=None, label_segment=0, label_position=0.5, label_offset=0.22):
+    if len(points) < 2:
+        return
+
+    for start, end in zip(points[:-2], points[1:-1]):
+        axis.plot(
+            [start[0], end[0]],
+            [start[1], end[1]],
+            color="#486581",
+            linewidth=1.7,
+            solid_capstyle="round",
+        )
+
+    _draw_arrow(axis, points[-2], points[-1])
+
+    if label is not None and 0 <= label_segment < len(points) - 1:
+        _draw_segment_label(
+            axis,
+            points[label_segment],
+            points[label_segment + 1],
+            label,
+            position=label_position,
+            offset=label_offset,
+        )
+
+
 def _plot_executable_architecture() -> None:
-    figure, axis = plt.subplots(figsize=(13, 5.5))
-    axis.set_xlim(0, 14)
-    axis.set_ylim(0, 8)
+    figure, axis = plt.subplots(figsize=(14.5, 6.2))
+    figure.patch.set_facecolor("white")
+    axis.set_xlim(0, 18.4)
+    axis.set_ylim(0, 9)
     axis.axis("off")
 
     palette = {
-        "input": "#d9e2ec",
-        "teacher": "#f7d6bf",
-        "student": "#d9f0d3",
-        "module": "#e8dff5",
-        "loss": "#fce38a",
+        "input": "#dbe7f3",
+        "teacher": "#f9d8bd",
+        "student": "#d9efcf",
+        "module": "#e6def6",
+        "loss": "#fde68a",
     }
 
-    _draw_box(axis, (0.6, 5.5), 1.7, 1.0, "CT input", palette["input"])
-    _draw_box(axis, (2.8, 5.2), 2.1, 1.6, "Teacher encoder\n4 conv stages", palette["teacher"])
-    _draw_box(axis, (5.4, 5.5), 1.4, 1.0, "DPE", palette["module"])
-    _draw_box(axis, (7.2, 5.5), 1.4, 1.0, "MHRA", palette["module"])
-    _draw_box(axis, (9.1, 5.2), 1.9, 1.6, "Teacher logits\nsoft targets", palette["teacher"])
+    _draw_box(axis, (0.8, 6.1), 1.9, 1.05, "CT input", palette["input"])
+    _draw_box(axis, (3.2, 5.75), 2.45, 1.75, "Teacher encoder\n4 conv stages", palette["teacher"], fontsize=10.8)
+    _draw_box(axis, (6.25, 6.13), 1.45, 1.0, "DPE", palette["module"])
+    _draw_box(axis, (8.15, 6.13), 1.65, 1.0, "MHRA", palette["module"])
+    _draw_box(axis, (10.45, 5.65), 2.35, 1.95, "Teacher logits\nsoft targets", palette["teacher"], fontsize=10.8)
 
-    _draw_box(axis, (0.6, 1.5), 1.7, 1.0, "X-ray input", palette["input"])
-    _draw_box(axis, (2.8, 1.2), 2.1, 1.6, "Student encoder\n3 conv stages", palette["student"])
-    _draw_box(axis, (5.4, 1.5), 1.6, 1.0, "DFPN", palette["module"])
-    _draw_box(axis, (7.5, 1.2), 1.9, 1.6, "Student logits", palette["student"])
+    _draw_box(axis, (0.8, 1.85), 1.9, 1.05, "X-ray input", palette["input"])
+    _draw_box(axis, (3.2, 1.5), 2.45, 1.75, "Student encoder\n3 conv stages", palette["student"], fontsize=10.8)
+    _draw_box(axis, (6.25, 1.88), 1.7, 1.0, "DFPN", palette["module"])
+    _draw_box(axis, (8.55, 1.5), 2.15, 1.75, "Student logits", palette["student"], fontsize=10.8)
 
-    _draw_box(axis, (10.8, 2.9), 2.0, 1.2, "Hard CE +\nSoft KL loss", palette["loss"])
-    axis.text(12.9, 5.9, "Teacher path\n(CT during training only)", fontsize=10, ha="right", color="#334e68")
-    axis.text(12.9, 1.9, "Student path\n(X-ray deployment path)", fontsize=10, ha="right", color="#334e68")
-    axis.text(7.0, 7.4, "Executable JDCNet scaffold used in this paper", fontsize=14, ha="center", color="#102a43")
+    _draw_box(axis, (15.1, 3.1), 2.6, 1.55, "Hard CE +\nSoft KL loss", palette["loss"], fontsize=10.8)
+    axis.text(
+        8.0,
+        8.35,
+        "JDCNet scaffold evaluated in this study",
+        fontsize=17,
+        fontweight="semibold",
+        ha="center",
+        color="#102a43",
+        family="DejaVu Sans",
+    )
+    axis.text(
+        17.1,
+        6.7,
+        "Teacher path\n(training only)",
+        fontsize=10.5,
+        ha="left",
+        va="center",
+        color="#334e68",
+        family="DejaVu Sans",
+    )
+    axis.text(
+        17.35,
+        1.75,
+        "Student path\n(deployment: X-ray only)",
+        fontsize=10.5,
+        ha="left",
+        va="center",
+        color="#334e68",
+        family="DejaVu Sans",
+    )
 
-    _draw_arrow(axis, (2.3, 6.0), (2.8, 6.0))
-    _draw_arrow(axis, (4.9, 6.0), (5.4, 6.0))
-    _draw_arrow(axis, (6.8, 6.0), (7.2, 6.0))
-    _draw_arrow(axis, (8.6, 6.0), (9.1, 6.0))
+    _draw_arrow(axis, (2.7, 6.63), (3.2, 6.63))
+    _draw_arrow(axis, (5.65, 6.63), (6.25, 6.63))
+    _draw_arrow(axis, (7.7, 6.63), (8.15, 6.63))
+    _draw_arrow(axis, (9.8, 6.63), (10.45, 6.63))
 
-    _draw_arrow(axis, (2.3, 2.0), (2.8, 2.0))
-    _draw_arrow(axis, (4.9, 2.0), (5.4, 2.0))
-    _draw_arrow(axis, (7.0, 2.0), (7.5, 2.0))
+    _draw_arrow(axis, (2.7, 2.38), (3.2, 2.38))
+    _draw_arrow(axis, (5.65, 2.38), (6.25, 2.38))
+    _draw_arrow(axis, (7.95, 2.38), (8.55, 2.38))
 
-    _draw_arrow(axis, (10.0, 5.2), (11.1, 4.1))
-    _draw_arrow(axis, (9.4, 2.0), (10.8, 3.3))
+    _draw_elbow_arrow(
+        axis,
+        [(11.65, 5.65), (11.65, 5.15), (14.75, 5.15), (14.75, 4.1), (15.1, 4.1)],
+        label="soft distillation",
+        label_segment=1,
+        label_position=0.5,
+        label_offset=0.18,
+    )
+    _draw_elbow_arrow(
+        axis,
+        [(10.7, 2.42), (14.1, 2.42), (14.1, 3.55), (15.1, 3.55)],
+        label="hard-label supervision",
+        label_segment=0,
+        label_position=0.5,
+        label_offset=0.18,
+    )
 
-    axis.text(9.8, 4.7, "distillation", fontsize=10, color="#486581", rotation=-32, ha="center")
-    axis.text(10.0, 2.6, "supervision", fontsize=10, color="#486581", rotation=24, ha="center")
-
-    figure.savefig(IMAGE_DIR / "jdcnet_executable_architecture.png", dpi=300, bbox_inches="tight")
+    figure.savefig(IMAGE_DIR / "jdcnet_executable_architecture.png", dpi=400, bbox_inches="tight", pad_inches=0.06)
+    figure.savefig(IMAGE_DIR / "jdcnet_executable_architecture.pdf", bbox_inches="tight", pad_inches=0.06)
     plt.close(figure)
 
 
