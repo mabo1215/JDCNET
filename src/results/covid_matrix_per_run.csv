@@ -28,6 +28,10 @@ student_xray_cross_modal_distill_t4_a0.9_s42,student_xray_cross_modal_distill,42
 student_xray_cross_modal_distill_t6_a0.3_s42,student_xray_cross_modal_distill,42,6.0,0.3,True,0.75,0.5,0.42857142857142855,0.75,1.0,0.0,1.0,4,Cross-modality distillation
 student_xray_cross_modal_distill_t6_a0.6_s42,student_xray_cross_modal_distill,42,6.0,0.6,True,0.75,0.5,0.42857142857142855,0.75,1.0,0.0,1.0,4,Cross-modality distillation
 student_xray_cross_modal_distill_t6_a0.9_s42,student_xray_cross_modal_distill,42,6.0,0.9,True,0.75,0.5,0.42857142857142855,0.75,1.0,0.0,1.0,4,Cross-modality distillation
+student_xray_cross_modal_plain_distill_s42,student_xray_cross_modal_plain_distill,42,,,False,0.75,0.5,0.42857142857142855,0.75,1.0,0.0,1.0,4,Plain cross-modal logit KD
+student_xray_cross_modal_plain_distill_s43,student_xray_cross_modal_plain_distill,43,,,False,0.75,0.5,0.42857142857142855,0.75,1.0,0.0,1.0,4,Plain cross-modal logit KD
+student_xray_cross_modal_plain_distill_s44,student_xray_cross_modal_plain_distill,44,,,False,1.0,1.0,1.0,1.0,1.0,1.0,1.0,4,Plain cross-modal logit KD
+student_xray_cross_modal_plain_distill_s45,student_xray_cross_modal_plain_distill,45,,,False,1.0,1.0,1.0,1.0,1.0,1.0,1.0,4,Plain cross-modal logit KD
 student_xray_same_modality_distill_s42,student_xray_same_modality_distill,42,,,False,0.75,0.5,0.42857142857142855,0.75,1.0,0.0,1.0,4,Same-modality distillation
 student_xray_same_modality_distill_s43,student_xray_same_modality_distill,43,,,False,0.75,0.5,0.42857142857142855,0.75,1.0,0.0,1.0,4,Same-modality distillation
 student_xray_same_modality_distill_s44,student_xray_same_modality_distill,44,,,False,0.75,0.5,0.42857142857142855,0.75,1.0,0.0,1.0,4,Same-modality distillation
@@ -44,6 +48,10 @@ teacher_ct_all_nomhra_s42,teacher_ct_all_nomhra,42,,,False,1.0,1.0,1.0,1.0,1.0,0
 teacher_ct_all_nomhra_s43,teacher_ct_all_nomhra,43,,,False,0.0,0.0,0.0,0.0,0.0,0.0,,12,teacher_ct_all_nomhra
 teacher_ct_all_nomhra_s44,teacher_ct_all_nomhra,44,,,False,1.0,1.0,1.0,1.0,1.0,0.0,,12,teacher_ct_all_nomhra
 teacher_ct_all_nomhra_s45,teacher_ct_all_nomhra,45,,,False,1.0,1.0,1.0,1.0,1.0,0.0,,12,teacher_ct_all_nomhra
+teacher_ct_all_plain_s42,teacher_ct_all_plain,42,,,False,1.0,1.0,1.0,1.0,1.0,0.0,,12,teacher_ct_all_plain
+teacher_ct_all_plain_s43,teacher_ct_all_plain,43,,,False,1.0,1.0,1.0,1.0,1.0,0.0,,12,teacher_ct_all_plain
+teacher_ct_all_plain_s44,teacher_ct_all_plain,44,,,False,0.9166666666666666,0.9166666666666666,0.4782608695652174,1.0,0.9166666666666666,0.0,,12,teacher_ct_all_plain
+teacher_ct_all_plain_s45,teacher_ct_all_plain,45,,,False,1.0,1.0,1.0,1.0,1.0,0.0,,12,teacher_ct_all_plain
 teacher_ct_all_s42,teacher_ct_all,42,,,False,1.0,1.0,1.0,1.0,1.0,0.0,,12,Teacher-only CT (all patients)
 teacher_ct_all_s43,teacher_ct_all,43,,,False,1.0,1.0,1.0,1.0,1.0,0.0,,12,Teacher-only CT (all patients)
 teacher_ct_all_s44,teacher_ct_all,44,,,False,1.0,1.0,1.0,1.0,1.0,0.0,,12,Teacher-only CT (all patients)

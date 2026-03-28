@@ -54,19 +54,34 @@
   - 主文更明确召回 supplementary appendix 中的 split audit、per-seed instability 和 confusion evidence
   - 结论末尾新增“未来 CT-to-X-ray transfer claim 的可信最低实验条件”总结句
 - 已进一步统一 `paper/references.bib` 中 `X-Ray / X-Rays` 等题目大小写写法。
+- 已根据 `revision_suggestions.tex` 中的最高优先级建议，新增并实际运行 `plain cross-modal logit KD` 基线：
+  - 在 `src/` 中加入 stripped-down cross-modal logit-KD 的可执行配置与训练流程
+  - 在真实数据 paired cohort 上完成 4 个 seed 的 repeated runs
+  - 自动刷新 main table、主结果图、paired confusion summary 和 failure analysis
+  - 将结果写回 `paper/main.tex` 与 `paper/appendix.tex`
+- 已将原先通过 `paper/tables/generated/*.tex` 引入的表格内容直接内联到 `paper/main.tex` 与 `paper/appendix.tex`，便于后续维护和全文搜索。
+- 已删除 `paper/tables/generated/` 中已被内联进 `paper/main.tex` / `paper/appendix.tex` 的重复表格片段，避免目录中继续保留失效副本。
+- 新增基线后的关键结果是：
+  - `plain cross-modal logit KD` 在当前 paired cohort 上达到最高平均值：`0.875 ± 0.144 accuracy`、`0.714 ± 0.330 macro-F1`
+  - 但该优势仍不稳定：4 个 seed 中有 2 个是全部判阳性、2 个是 4/4 全对
+  - 这说明“可能存在简化后的 cross-modality signal”，但还不足以支撑稳健的方法增益结论
 - 已成功重新编译最新 PDF。
 
 ### 进行中
 
-- 正在判断：当前仓库是否还能诚实地补出一个比现有 student-only / same-modality KD / module-ablation 更“剥离式”的 executable cross-modal logit-KD anchor，而不破坏当前论文作为 pilot study 的诚实定位。
+- 正在判断：在已经补上 plain cross-modal logit KD 之后，当前仓库是否还适合继续加入 `class balancing / calibration sanity check` 一类附加验证，而不会把极小验证集过度切分成伪证据。
 
 ### 下一步
 
-- 继续审查 `src/` 当前训练与蒸馏实现，确认是否真的存在可单独抽离出的 stripped-down cross-modal logit-KD baseline。
-- 如果当前仓库仍无法支撑更强 baseline，就继续收紧主文与附录的论证，使论文稳定定位为“negative-result-informed feasibility paper”，而不是“性能声明论文”。
+- 评估是否能在现有仓库上诚实加入一个最小化的 `class balancing / calibration` sanity check，用于判断 plain cross-modal baseline 的均值优势是否仍然主要受 prevalence bias 主导。
+- 如果没有更多可信实验可以补，就停止扩展实验矩阵，保持论文定位为“negative-result-informed feasibility paper”，而不是继续堆叠小样本结果。
 
 ### 本轮精确修改文件
 
+- `paper/tables/generated/*.tex`（已删除重复表格片段）
+- `src/jdcnet_exp/run_covid_matrix.py`
+- `src/jdcnet_exp/generate_submission_assets.py`
+- `src/jdcnet_exp/generate_error_analysis.py`
 - `paper/main.tex`
 - `paper/appendix.tex`
 - `paper/references.bib`
@@ -79,14 +94,6 @@
 - `paper/references.bib`
 - `paper/build.sh`
 - `paper/build.ps1`
-- `paper/tables/generated/dataset_protocol.tex`
-- `paper/tables/generated/main_results.tex`
-- `paper/tables/generated/split_audit.tex`
-- `paper/tables/generated/module_ablation.tex`
-- `paper/tables/generated/paired_seed_results.tex`
-- `paper/tables/generated/failure_cases.tex`
-- `paper/tables/generated/implementation_details.tex`
-- `paper/tables/generated/paired_confusion_summary.tex`
 - `paper/images/generated/covid_matrix_main.png`
 - `paper/images/generated/covid_matrix_ablation.png`
 - `paper/images/generated/covid_matrix_module_ablation.png`
@@ -117,6 +124,9 @@
 - `python -m jdcnet_exp.download_kaggle_datasets`
 - `python -m jdcnet_exp.generate_submission_assets`
 - `python -m jdcnet_exp.generate_error_analysis`
+- `python -m src.jdcnet_exp.run_covid_matrix`
+- `python -m src.jdcnet_exp.generate_submission_assets`
+- `python -m src.jdcnet_exp.generate_error_analysis`
 - `bash paper/build.sh`
 
 ### 已重新生成图表
@@ -127,21 +137,13 @@
 - `paper/images/generated/covid_paired_seed_instability.png`
 - `paper/images/generated/jdcnet_executable_architecture.png`
 - `paper/images/generated/paired_confusion_summary.png`
-- `paper/tables/generated/dataset_protocol.tex`
-- `paper/tables/generated/main_results.tex`
-- `paper/tables/generated/split_audit.tex`
-- `paper/tables/generated/module_ablation.tex`
-- `paper/tables/generated/paired_seed_results.tex`
-- `paper/tables/generated/failure_cases.tex`
-- `paper/tables/generated/implementation_details.tex`
-- `paper/tables/generated/paired_confusion_summary.tex`
 
 ### 当前前 10 个投稿阻塞项
 
 1. `cross-modality novelty 目前没有被稳定优于最强 paired-cohort baseline 的结果支撑`
    - 状态：`部分解决`
-   - 已做修改：已将论文重写为可复现 pilot study，并删除早先偏“方法优越”的表述。
-   - 未完全解决原因：写作可以降级表述，但不能替代真正缺失的经验性增益证据。
+   - 已做修改：已将论文重写为可复现 pilot study，并补上真正的 stripped-down plain cross-modal logit-KD 基线；该基线目前取得最高平均 paired-cohort 结果。
+   - 未完全解决原因：plain baseline 的优势仍建立在 4 张验证图像上，seed 间分裂明显，仍不足以构成稳健 novelty 证据。
 
 2. `验证协议过弱，因为 paired validation split 只有 4 张 X-ray`
    - 状态：`未解决`
@@ -189,7 +191,7 @@
 
 - `摘要改成更结果驱动、避免过度方法堆砌`
   - 状态：`已修改`
-  - 说明：本轮已继续压缩模块罗列感，把摘要进一步改成“问题-答案-意义”导向，并明确本文价值是 benchmark scaffold 与 evidence boundary，而不是性能增益。
+  - 说明：本轮已继续压缩模块罗列感，把摘要进一步改成“问题-答案-意义”导向，并把 plain cross-modal baseline 的新结果与其证据边界一并写清。
 
 - `引言补 gap paragraph，并把贡献收束为统一三层结构`
   - 状态：`已修改`
@@ -217,11 +219,15 @@
 
 - `明确每个 baseline 的比较角色`
   - 状态：`已修改`
-  - 说明：teacher-only X-ray、student-only、late fusion、same-modality KD 的比较职能都已写清。
+  - 说明：teacher-only X-ray、student-only、late fusion、same-modality KD、plain cross-modal KD 和当前 JDCNet 变体的比较职能都已写清。
 
 - `late-fusion baseline`
   - 状态：`已修改`
   - 说明：代码和论文中都已纳入，并有重复运行结果。
+
+- `加入一个 cleaner stripped-down cross-modal KD baseline`
+  - 状态：`已修改`
+  - 说明：本轮已在 `src/` 中实现并运行 `plain cross-modal logit KD`，并将结果自动写回主文、附录、主表、主图、confusion summary 与 failure analysis。
 
 - `temperature / alpha ablation`
   - 状态：`已修改`
@@ -255,17 +261,13 @@
 
 - `Results/Discussion 再进一步提升为 field-level takeaway，而不只是当前实验总结`
   - 状态：`部分修改`
-  - 原因：本轮已把三条 lessons 写得更判断驱动，但受当前 paired split 极小这一事实限制，仍不能把这些 takeaway 扩展成更普适的强结论。
+  - 原因：本轮已把三条 lessons 改写为“plain baseline 暗示可能有信号、但 full stack 未被支持”的判断式表述，但受当前 paired split 极小这一事实限制，仍不能把这些 takeaway 扩展成更普适的强结论。
 
 #### 未修改
 
 - `补充 2--3 篇更贴近 cross-modal distillation / modality transfer 的近年文献`
   - 状态：`未修改`
   - 原因：当前仓库和现有引用集中没有经过核实且可直接接入的新文献条目；为避免引入未核实或虚构引用，这一项暂不硬加。
-
-- `加入一个 cleaner stripped-down cross-modal KD baseline`
-  - 状态：`未修改`
-  - 原因：当前仓库尚未实现一个比现有 student-only / same-modality KD / module-ablation 更“剥离式”的可执行 cross-modal logit-KD anchor；在没有真实实现和结果前，不能把它写成已完成。
 
 - `把论文写成方法 superiority 论文`
   - 状态：`未修改（刻意不修改）`

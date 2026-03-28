@@ -20,6 +20,7 @@ MODEL_SPECS = [
     ("Student-only", "configs/generated_covid/student_xray_supervised_paired_s42.json", "runs/covid_matrix/student_xray_supervised_paired_s42/best.pt"),
     ("Late fusion", "configs/generated_covid/late_fusion_paired_s42.json", "runs/covid_matrix/late_fusion_paired_s42/best.pt"),
     ("Same-modality KD", "configs/generated_covid/student_xray_same_modality_distill_s42.json", "runs/covid_matrix/student_xray_same_modality_distill_s42/best.pt"),
+    ("Plain cross-modal KD", "configs/generated_covid/student_xray_cross_modal_plain_distill_s42.json", "runs/covid_matrix/student_xray_cross_modal_plain_distill_s42/best.pt"),
     ("Cross-modality KD", "configs/generated_covid/student_xray_cross_modal_distill_s42.json", "runs/covid_matrix/student_xray_cross_modal_distill_s42/best.pt"),
     ("Cross-modality KD w/o MHRA", "configs/generated_covid/student_xray_cross_modal_distill_nomhra_s42.json", "runs/covid_matrix/student_xray_cross_modal_distill_nomhra_s42/best.pt"),
 ]
@@ -62,7 +63,7 @@ def _write_failure_table(frame: pd.DataFrame) -> None:
         truth = "COVID" if int(row["label"]) == 1 else "Non-COVID"
         rows.append(
             f"{_latex_escape(row['patient_id'])} & {short_image} & {truth} & "
-            f"{row['Student-only_pred']} & {row['Late fusion_pred']} & {row['Same-modality KD_pred']} & "
+            f"{row['Student-only_pred']} & {row['Late fusion_pred']} & {row['Same-modality KD_pred']} & {row['Plain cross-modal KD_pred']} & "
             f"{row['Cross-modality KD_pred']} & {row['Cross-modality KD w/o MHRA_pred']} \\\\ \\hline"
         )
 
@@ -72,11 +73,13 @@ def _write_failure_table(frame: pd.DataFrame) -> None:
             r"\caption{Representative seed-42 predictions for the four-image paired validation split. The table is intended for qualitative error analysis only and should not be interpreted as a substitute for the repeated-run summaries in the main text.}",
             r"\label{tab:paired_failure_cases}",
             r"\centering",
-            r"\begin{tabular}{|c|l|c|c|c|c|c|c|}",
+            r"\resizebox{\textwidth}{!}{%",
+            r"\begin{tabular}{|c|l|c|c|c|c|c|c|c|}",
             r"\hline",
-            r"Patient & X-ray File & Ground Truth & Student-only & Late fusion & Same-modality KD & Cross-modality KD & KD w/o MHRA \\ \hline",
+            r"Patient & X-ray File & Ground Truth & Student-only & Late fusion & Same-modality KD & Plain cross-modal KD & Cross-modality KD & KD w/o MHRA \\ \hline",
             *rows,
             r"\end{tabular}",
+            r"}",
             r"\end{table*}",
         ]
     )

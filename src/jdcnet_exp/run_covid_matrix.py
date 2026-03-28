@@ -24,6 +24,7 @@ BASE_EXPERIMENTS = [
     "student_xray_supervised_paired",
     "late_fusion_paired",
     "student_xray_same_modality_distill",
+    "student_xray_cross_modal_plain_distill",
     "student_xray_cross_modal_distill",
 ]
 
@@ -40,6 +41,7 @@ DISPLAY_NAMES = {
     "student_xray_supervised_paired": "Student-only X-ray (paired cohort)",
     "late_fusion_paired": "Late-fusion X-ray+CT",
     "student_xray_same_modality_distill": "Same-modality distillation",
+    "student_xray_cross_modal_plain_distill": "Plain cross-modal logit KD",
     "student_xray_cross_modal_distill": "Cross-modality distillation",
     "student_xray_cross_modal_distill_nodpe": "Cross-modality distillation w/o DPE",
     "student_xray_cross_modal_distill_nomhra": "Cross-modality distillation w/o MHRA",
@@ -51,6 +53,7 @@ SHORT_NAMES = {
     "student_xray_supervised_paired": "Student only",
     "late_fusion_paired": "Late fusion",
     "student_xray_same_modality_distill": "Same-modality KD",
+    "student_xray_cross_modal_plain_distill": "Plain cross-modal KD",
     "student_xray_cross_modal_distill": "Cross-modal KD",
     "student_xray_cross_modal_distill_nodpe": "w/o DPE",
     "student_xray_cross_modal_distill_nomhra": "w/o MHRA",
@@ -567,6 +570,24 @@ def _run_seed_matrix(
                 use_mhra=False,
             ),
         ),
+        (
+            f"teacher_ct_all_plain_s{seed}",
+            _build_config(
+                experiment_name=f"teacher_ct_all_plain_s{seed}",
+                manifest_path=ct_manifest_path,
+                output_dir=f"runs/covid_matrix/teacher_ct_all_plain_s{seed}",
+                seed=seed,
+                model_name="teacher",
+                train_modalities=["ct"],
+                val_modalities=["ct"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=False,
+                use_dpe=False,
+                use_mhra=False,
+            ),
+        ),
     ]
 
     for run_name, config_payload in experiment_specs:
@@ -623,6 +644,26 @@ def _run_seed_matrix(
                 epochs=epochs,
                 distillation_enabled=True,
                 teacher_checkpoint=f"runs/covid_matrix/teacher_xray_all_s{seed}/best.pt",
+            ),
+        ),
+        (
+            f"student_xray_cross_modal_plain_distill_s{seed}",
+            _build_config(
+                experiment_name=f"student_xray_cross_modal_plain_distill_s{seed}",
+                manifest_path=paired_cross_manifest_path,
+                output_dir=f"runs/covid_matrix/student_xray_cross_modal_plain_distill_s{seed}",
+                seed=seed,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_matrix/teacher_ct_all_plain_s{seed}/best.pt",
+                use_dpe=False,
+                use_mhra=False,
+                use_dfpn=False,
             ),
         ),
         (

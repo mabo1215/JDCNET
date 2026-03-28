@@ -85,6 +85,7 @@ def _write_main_results_table(summary_frame: pd.DataFrame) -> None:
         "Student-only X-ray (paired cohort)",
         "Late-fusion X-ray+CT",
         "Same-modality distillation",
+        "Plain cross-modal logit KD",
         "Cross-modality distillation",
     ]
     rows = []
@@ -212,12 +213,14 @@ def _write_paired_seed_table(run_frame: pd.DataFrame) -> None:
         "student_xray_supervised_paired",
         "late_fusion_paired",
         "student_xray_same_modality_distill",
+        "student_xray_cross_modal_plain_distill",
         "student_xray_cross_modal_distill",
     ]
     display_map = {
         "student_xray_supervised_paired": "Student-only",
         "late_fusion_paired": "Late fusion",
         "student_xray_same_modality_distill": "Same-modality KD",
+        "student_xray_cross_modal_plain_distill": "Plain cross-modal KD",
         "student_xray_cross_modal_distill": "Cross-modality KD",
     }
     frame = run_frame[(run_frame["is_ablation"] == False) & (run_frame["experiment_group"].isin(paired_groups))].copy()
@@ -252,6 +255,7 @@ def _build_paired_confusion_summary() -> pd.DataFrame:
         "student_xray_supervised_paired": "Student-only",
         "late_fusion_paired": "Late fusion",
         "student_xray_same_modality_distill": "Same-modality KD",
+        "student_xray_cross_modal_plain_distill": "Plain cross-modal KD",
         "student_xray_cross_modal_distill": "Cross-modality KD",
         "student_xray_cross_modal_distill_nomhra": "Cross-modal KD w/o MHRA",
     }
@@ -341,12 +345,14 @@ def _plot_paired_seed_instability(run_frame: pd.DataFrame) -> None:
         "student_xray_supervised_paired",
         "late_fusion_paired",
         "student_xray_same_modality_distill",
+        "student_xray_cross_modal_plain_distill",
         "student_xray_cross_modal_distill",
     ]
     display_map = {
         "student_xray_supervised_paired": "Student-only",
         "late_fusion_paired": "Late fusion",
         "student_xray_same_modality_distill": "Same-modality KD",
+        "student_xray_cross_modal_plain_distill": "Plain cross-modal KD",
         "student_xray_cross_modal_distill": "Cross-modality KD",
     }
     frame = run_frame[(run_frame["is_ablation"] == False) & (run_frame["experiment_group"].isin(paired_groups))].copy()
@@ -358,6 +364,7 @@ def _plot_paired_seed_instability(run_frame: pd.DataFrame) -> None:
         "Student-only": "#355070",
         "Late fusion": "#6d597a",
         "Same-modality KD": "#2a9d8f",
+        "Plain cross-modal KD": "#f4a261",
         "Cross-modality KD": "#e76f51",
     }
 
@@ -498,6 +505,7 @@ def _plot_main_results(summary_frame: pd.DataFrame, run_frame: pd.DataFrame) -> 
         "student_xray_supervised_paired",
         "late_fusion_paired",
         "student_xray_same_modality_distill",
+        "student_xray_cross_modal_plain_distill",
         "student_xray_cross_modal_distill",
     ]
     short_names = {
@@ -505,6 +513,7 @@ def _plot_main_results(summary_frame: pd.DataFrame, run_frame: pd.DataFrame) -> 
         "student_xray_supervised_paired": "Student-only",
         "late_fusion_paired": "Late fusion",
         "student_xray_same_modality_distill": "Same-modality KD",
+        "student_xray_cross_modal_plain_distill": "Plain cross-modal KD",
         "student_xray_cross_modal_distill": "Cross-modality KD",
     }
     colors = {
@@ -512,6 +521,7 @@ def _plot_main_results(summary_frame: pd.DataFrame, run_frame: pd.DataFrame) -> 
         "student_xray_supervised_paired": "#2a9d8f",
         "late_fusion_paired": "#6d597a",
         "student_xray_same_modality_distill": "#577590",
+        "student_xray_cross_modal_plain_distill": "#f4a261",
         "student_xray_cross_modal_distill": "#e76f51",
     }
     plot_frame = summary_frame[summary_frame["experiment_group"].isin(plot_order)].copy()
