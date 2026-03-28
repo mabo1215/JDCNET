@@ -1,5 +1,25 @@
 # 进度日志
 
+## 2026-03-29
+
+### 已全部修改
+
+- 已在 `paper/main.tex` 中统一本轮 problem formulation，明确当前论文研究的是 `patient-level paired`、`training-only CT supervision`、`deployment-time X-ray-only`、`binary COVID-19 vs non-COVID` 的 evidence-bounded pilot study。
+- 修改说明：重写了摘要、贡献点、`Problem Formulation` 与实验部分开头，并新增主文 `problem formulation and claim boundary` 总表，避免读者把本文误读成广义 multimodal benchmark 或已验证的新架构论文。
+
+- 已将 fixed split 在主文中明确降级为 feasibility screen，并把 repeated same-case resampling 提升为 primary evidence。
+- 修改说明：重命名了相关实验小节与图表表述，新增主文 resampling summary table，并把 fixed-split 与 resampled evidence 的角色分工写清楚。
+
+- 已同步收紧 `paper/appendix.tex` 与主文的证据层级表述，并重新编译最新 PDF。
+- 修改说明：附录中补充了 fixed split / resampling 的证据分层说明，重新生成并验证 `paper/build/main.pdf` 与 `paper/build/appendix.pdf`。
+
+### 未修改或部分修改
+
+- 本轮没有新增新的实验运行或新的图像资产。
+- 修改说明：本轮优先处理 problem formulation 与主文证据层级统一，并把现有 resampling 结果和图表提升为更清晰的主文证据结构。
+- 未全部修改原因：当前仓库内已有的 repeated-run、resampling、imbalance-control 与 progressive-complexity 结果已经足以支撑这一轮叙事收口，继续加跑新实验前应先完成这一轮问题定义统一。
+- 后续准备如何修改：如果当前 `docs/revision_suggestions.tex` 下一轮仍要求补强实验，将优先在现有 patient-level resampling 框架上补更强 baseline 或更清晰的主文图表，而不是继续扩写 fixed-split 结果。
+
 ## 2026-03-28
 
 ### 已完成
