@@ -123,6 +123,7 @@ def _build_config(
     use_mhra: bool = True,
     use_dfpn: bool = True,
     paired_input: bool = False,
+    use_weighted_sampler: bool = False,
 ) -> dict[str, object]:
     return {
         "experiment_name": experiment_name,
@@ -146,6 +147,7 @@ def _build_config(
             "batch_size": batch_size,
             "num_workers": 0,
             "paired_image_column": "teacher_image_path",
+            "use_weighted_sampler": use_weighted_sampler,
         },
         "optimization": {
             "epochs": epochs,

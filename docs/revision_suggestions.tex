@@ -1,379 +1,372 @@
-\section*{按顶刊/顶会标准的逐节修改清单（实验增强重点版）}
+\section*{按顶刊/顶会标准的逐节修改清单（实验增强与数据方案重点版）}
 
-\subsection*{总体实验判断}
+\subsection*{总体实验评估}
 \begin{itemize}
-    \item 当前稿件在写作层面已经相当成熟，但实验层面的核心问题仍然是：\textbf{现有实验矩阵足以证明“当前不能宣称 gain”，却还不足以回答“为什么不能”以及“下一步最小可决定实验是什么”。}
-    \item 结合主文与附录，当前实验已经明确暴露出三项事实：
+    \item 当前版本的实验部分已经比前几版显著增强，尤其是新增了 \textbf{stripped-down plain cross-modal logit-KD baseline}。这一点非常重要，因为它首次把“cross-modality supervision 本身”与“额外模块复杂度”区分开来。
+    \item 但从顶刊/顶会标准看，实验部分仍存在三个关键缺口：
     \begin{enumerate}
-        \item paired validation split 仅有 4 张图像，导致结果对单张样本极其敏感；
-        \item late fusion、same-modality KD、cross-modality KD 在 seed-aggregated confusion 上都表现出将全部验证样本预测为 positive 的倾向；
-        \item 当前 MHRA 未被验证，且在 module ablation 中，去掉 MHRA 反而得到略高均值。
+        \item \textbf{机制隔离不足：} 目前已经知道 plain cross-modal KD 的均值最高，但还不知道它为什么有时有效、有时完全退化。
+        \item \textbf{数据证据不足：} 当前 paired validation split 仅有 4 张图，导致任一模型的表现都可能被单张图主导。
+        \item \textbf{外部支持不足：} 当前尚无更大 patient-level paired cohort，也缺少系统化的外部 sanity-check 或规模敏感性实验。
     \end{enumerate}
-    \item 因此，实验部分的下一步不应再以“更多微型 ablation”为主，而应转向 \textbf{瓶颈定位实验（bottleneck-isolation experiments）}、\textbf{最小决定性实验（minimum decisive experiments）} 和 \textbf{证据门槛实验（evidence-threshold experiments）}。
+    \item 因此，下一轮实验不应再以更多微型 temperature/$\alpha$ ablation 为主，而应集中在：
+    \begin{quote}
+        \textbf{(i) 机制隔离实验，(ii) 数据规模实验，(iii) 类别不平衡与阈值行为实验，(iv) 更大数据支撑或外部验证实验。}
+    \end{quote}
 \end{itemize}
 
 \subsection*{1. Abstract}
 \begin{itemize}
-    \item \textbf{实验相关优点}
+    \item \textbf{当前优点}
     \begin{itemize}
-        \item 摘要已经正确说明：student-only baseline 最强，late fusion 与 cross-modality KD 未显示稳定增益，MHRA 也未被验证。
+        \item 摘要现在已经准确指出 plain cross-modal logit-KD control 的平均结果最高，但仍不稳定。
     \end{itemize}
-    \item \textbf{实验相关仍需增强的点}
+    \item \textbf{实验方面仍需增强}
     \begin{itemize}
-        \item 当前摘要仍未点出“\textbf{缺失的关键实验类型}”。
-        \item 顶刊风格下，摘要不一定要列出未来所有实验，但应明确让读者知道：当前结论之所以是 evidence-bounded，是因为\textbf{最小 cross-modal baseline 尚未被充分隔离验证，paired cohort 也尚未达到可解释规模。}
+        \item 当前摘要还没有显式指出：\textbf{本研究下一步最关键的实验缺口不再是添加 baseline，而是扩大 paired evidence 并验证 plain control 的可重复性。}
     \end{itemize}
     \item \textbf{建议}
     \begin{itemize}
-        \item 在摘要结尾加入一句关于实验边界的话，例如：
+        \item 在摘要最后一句前增加半句，点明：
         \begin{quote}
-            当前结果的解释力受限于极小 paired validation support 和缺少 stripped-down cross-modal control 的实验边界，因此本文更接近 benchmark scaffold 而非最终方法结论。
+            当前新增的 plain baseline 虽提高了解释性，但由于 paired validation support 极小，下一步关键在于更大 paired cohort 与更强 control experiments，而非更多局部调参。
         \end{quote}
     \end{itemize}
 \end{itemize}
 
 \subsection*{2. Introduction}
 \begin{itemize}
-    \item \textbf{实验相关仍需增强的点}
+    \item \textbf{实验方面仍需增强}
     \begin{itemize}
-        \item 引言已说明该研究设定有意义，但还可以更进一步指出：\textbf{本问题之所以长期容易被误判，是因为缺少一套标准化实验矩阵来区分 data scarcity、modality gap、baseline insufficiency 和 module over-parameterization。}
+        \item 引言已经讲清楚了 evidential boundary 的必要性，但还可以进一步指出：
+        \begin{quote}
+            CT-to-X-ray transfer 之所以容易被误判，不只是因为缺 baseline，而是因为通常缺少能够区分 data scarcity、class imbalance、modality gap 和 module complexity 的标准实验矩阵。
+        \end{quote}
     \end{itemize}
     \item \textbf{建议}
     \begin{itemize}
-        \item 在引言末尾增加一句，把实验目标定义为：
+        \item 在引言末尾补一句，明确本文之后最小决定性实验的目标是：
         \begin{quote}
-            本文不仅评估一个 cross-modality distillation 实例，也尝试定义一个最小实验框架，用于判断 observed gains 到底来自 cross-modality supervision、architecture complexity，还是仅仅来自样本偏差与不稳定验证支持。
+            将 observed gain 分解为 cross-modality supervision 本身、teacher regularization、类别偏置和模块复杂度四种可能来源。
         \end{quote}
     \end{itemize}
 \end{itemize}
 
 \subsection*{3. Methodology}
 \begin{itemize}
-    \item \textbf{实验相关仍需增强的点}
+    \item \textbf{实验方面仍需增强}
     \begin{itemize}
-        \item 当前方法部分已经通过 hypothesis-driven 叙述减轻了“模块堆叠”问题，但还可以更进一步为实验设计服务。
-        \item 具体来说，Method 应该更明确地告诉读者：\textbf{哪些模块对应哪些可检验假设，哪些实验是为验证这些假设而设计的。}
+        \item 当前方法部分已经清楚说明 DPE/MHRA/DFPN 是 hypothesis-driven，但还可以进一步和后续实验一一对应。
     \end{itemize}
-    \item \textbf{建议}
+    \item \textbf{建议新增一个小段：}
+    \begin{quote}
+        \textbf{Testable hypotheses and experimental controls}
+    \end{quote}
     \begin{itemize}
-        \item 在 3.3 或 3.4 后加入一个小段落，命名为：
-        \begin{quote}
-            \textbf{Testable hypotheses and corresponding controls}
-        \end{quote}
-        \item 明确列出：
+        \item 建议把方法对应到以下可检验假设：
         \begin{enumerate}
-            \item H1: CT supervision can help X-ray deployment beyond student-only training；
-            \item H2: the benefit, if any, is not reducible to same-modality KD alone；
-            \item H3: the benefit, if any, is not reducible to inference-time late fusion；
-            \item H4: DPE/MHRA/DFPN improve transfer beyond stripped-down cross-modal logit KD；
-            \item H5: observed gains are not artifacts of class imbalance or tiny validation support.
+            \item H1: plain CT-to-X-ray logit transfer can outperform student-only training;
+            \item H2: any such gain is not reducible to same-modality KD;
+            \item H3: any such gain is not reducible to inference-time late fusion;
+            \item H4: DPE/MHRA/DFPN improve upon plain cross-modal logit KD;
+            \item H5: observed gains remain after controlling for imbalance and tiny validation effects.
         \end{enumerate}
-        \item 这样后续实验节就能围绕假设验证展开，而不是看起来像若干散乱对比。
+        \item 这样后续实验就不是“多跑几个表”，而是“逐个验证科学假设”。
     \end{itemize}
 \end{itemize}
 
-\subsection*{4. Experiments: 当前最缺的实验类型}
+\subsection*{4. Experiments：当前最缺的实验}
 \begin{itemize}
-    \item \textbf{当前最缺失的不是更多超参数 ablation，而是以下五类实验：}
+    \item \textbf{基于当前版本，实验上最缺的不是更多 baseline，而是以下六类实验：}
     \begin{enumerate}
-        \item \textbf{最小跨模态基线实验（Minimal cross-modal baseline experiment）}
-        \item \textbf{同病例五路对照实验（Same-case five-way comparison）}
-        \item \textbf{数据规模敏感性实验（Paired-cohort scaling experiment）}
-        \item \textbf{类别不平衡/阈值稳定性实验（Imbalance and threshold-behavior experiment）}
-        \item \textbf{模块必要性递进实验（Progressive module-necessity experiment）}
+        \item \textbf{plain cross-modal KD 的机制解释实验;}
+        \item \textbf{类别不平衡与阈值行为实验;}
+        \item \textbf{paired cohort 规模敏感性实验;}
+        \item \textbf{progressive module-complexity experiment;}
+        \item \textbf{更大 patient-level paired cohort 构建实验;}
+        \item \textbf{外部单模态 sanity-check / transfer robustness experiment.}
     \end{enumerate}
 \end{itemize}
 
-\subsection*{4.1 最小跨模态基线实验（当前最重要）}
+\subsection*{4.1 机制解释实验：plain cross-modal KD 为什么有时有效？}
 \begin{itemize}
-    \item \textbf{为什么缺}
+    \item \textbf{为什么需要}
     \begin{itemize}
-        \item 当前主文已承认：缺少一个 stripped-down cross-modal logit-KD baseline，而现有 student-only / same-modality KD / ablation 只能构成“近似替代”，无法完全回答“到底是 cross-modality supervision 本身无效，还是当前模块栈掩盖了它的可能收益”。:contentReference[oaicite:2]{index=2}
+        \item 当前主文表明 plain cross-modal logit KD 的平均结果最高，但附录也显示它在四次 seed 中分裂为两次全阳性、两次全对。也就是说，它不是“稳健优于”，而是“在极小 split 上偶尔看起来优于”。这要求进一步解释其来源。 
     \end{itemize}
-
     \item \textbf{应该怎么设计}
     \begin{itemize}
-        \item 保留完全相同的数据划分、teacher/student backbone、训练轮数、优化器、temperature 和 $\alpha$；
-        \item 去掉 DPE、MHRA、DFPN，仅保留：
+        \item 在相同 paired cohort 上，保留 plain cross-modal KD，不改变架构，只增加以下三个分析控制：
         \begin{enumerate}
-            \item CT teacher logits；
-            \item X-ray student logits；
-            \item hard CE + soft KL。
+            \item teacher logit confidence distribution analysis；
+            \item student pre-/post-distillation logit calibration analysis；
+            \item case-level teacher-student agreement analysis。
         \end{enumerate}
-        \item 即构造一个真正的 \textbf{plain cross-modal logit KD} baseline。
+        \item 对每个 seed 记录每个验证病例的 teacher probability、student probability、final prediction。
     \end{itemize}
-
-    \item \textbf{应该报告什么}
+    \item \textbf{实施方式}
     \begin{itemize}
-        \item 与以下四个系统在完全相同病例上做 repeated-run 对比：
-        \begin{enumerate}
-            \item student-only X-ray；
-            \item same-modality KD；
-            \item plain cross-modal logit KD；
-            \item current JDCNet；
-            \item late fusion。
-        \end{enumerate}
-        \item 指标至少包括：Accuracy、Macro-F1、Balanced Accuracy、Specificity、Recall。
-        \item 不建议再把 ROC-AUC 作为 headline 指标，因为在当前四图验证集上它解释性很弱。
-    \end{itemize}
-
-    \item \textbf{如何实施}
-    \begin{itemize}
-        \item 在当前仓库中新增一个最小配置开关，例如：
+        \item 在现有 repeated-run pipeline 中新增 per-case probability export；
+        \item 每个 seed 输出一份 csv，字段建议包括：
         \begin{quote}
-            \texttt{--crossmodal\_mode plain\_logit\_kd}
+            \texttt{patient\_id, image\_id, ground\_truth, teacher\_prob, student\_prob, distilled\_student\_prob, pred}
         \end{quote}
-        \item 保证除了模块关闭外，其它训练条件不变。
-        \item 所有实验必须与现有 repeated-run pipeline 共用同一套 manifest 与 seed，避免隐性数据漂移。
+        \item 然后对比“全阳性 seed”和“全对 seed”到底差在哪一例、哪一类 logit 行为上。
     \end{itemize}
-
-    \item \textbf{这个实验回答什么}
+    \item \textbf{回答什么问题}
     \begin{itemize}
-        \item 若 plain cross-modal logit KD 仍不优于 student-only，则说明当前瓶颈大概率在 \textbf{data scarcity / modality gap}；
-        \item 若 plain cross-modal logit KD 优于 current JDCNet，则说明当前问题更可能在 \textbf{module over-parameterization or unstable feature manipulation}；
-        \item 若 plain cross-modal logit KD 与 same-modality KD 接近，则说明跨模态教师信号未明显超出 teacher regularization 本身。
+        \item 这能回答 plain cross-modal KD 的均值优势到底来自：
+        \begin{itemize}
+            \item 真正稳定的 teacher signal；
+            \item 某个 lone negative case 的偶然阈值翻转；
+            \item 或仅仅是 logit 偏移。
+        \end{itemize}
     \end{itemize}
 \end{itemize}
 
-\subsection*{4.2 同病例五路对照实验（Minimum decisive experiment）}
+\subsection*{4.2 类别不平衡与阈值行为实验（当前非常关键）}
 \begin{itemize}
-    \item \textbf{为什么缺}
+    \item \textbf{为什么需要}
     \begin{itemize}
-        \item 你现在虽然在主文与附录中已经提出了 five-way comparison 的概念，但它还没有真正落地为一节完整实验设计。
+        \item 附录的 seed-aggregated confusion summaries 已经清楚显示 prevalence-biased positive prediction 仍是主模式：late fusion、same-modality KD、full cross-modality KD 全部是 0 specificity，plain cross-modal KD 虽更强，但 specificity 也只有 0.5。说明当前系统高度受类别分布与阈值行为影响。:contentReference[oaicite:4]{index=4}
     \end{itemize}
-
     \item \textbf{应该怎么设计}
     \begin{itemize}
-        \item 使用同一 patient-level paired cohort、同一训练/验证病例；
-        \item 五个系统固定为：
+        \item 至少增加两组对照：
         \begin{enumerate}
-            \item student-only X-ray；
-            \item inference-time late fusion；
-            \item same-modality KD；
-            \item stripped-down cross-modal logit KD；
+            \item \textbf{class-balanced training:} 使用 class-balanced sampler 或 loss weighting；
+            \item \textbf{threshold-calibrated inference:} 用 train split 内部 calibration fold 学一个阈值，而不是固定 0.5。
+        \end{enumerate}
+        \item 比较对象至少包括：
+        \begin{enumerate}
+            \item student-only；
+            \item plain cross-modal KD；
             \item current JDCNet。
         \end{enumerate}
-        \item 每个系统都做完全相同的 repeated-run seeds。
     \end{itemize}
-
+    \item \textbf{需要哪些数据}
+    \begin{itemize}
+        \item 当前 paired cohort 就可以先做；
+        \item 但若要让这个实验更可信，需要更多负类病例，尤其 paired validation 中需要不止 1 个 negative case。
+    \end{itemize}
     \item \textbf{应该报告什么}
     \begin{itemize}
-        \item 除均值和标准差外，还应报告：
-        \begin{itemize}
-            \item per-seed case-level prediction table；
-            \item seed-aggregated confusion summaries；
-            \item 若样本量增大，可增加 bootstrap CI。
-        \end{itemize}
-        \item 图表上建议保留你现在的 repeated-run bar + per-seed points 风格，因为它很适合展示 instability。
-    \end{itemize}
-
-    \item \textbf{这个实验回答什么}
-    \begin{itemize}
-        \item 它能最直接地区分：
-        \begin{itemize}
-            \item CT supervision 本身是否有价值；
-            \item 价值是否只在 inference-time fusion 下出现；
-            \item 模块栈是否真的优于 stripped-down baseline。
-        \end{itemize}
+        \item Specificity、Recall、Balanced Accuracy 必须成为 headline metrics；
+        \item confusion matrices 和 positive prediction rate 必须并排展示；
+        \item 若 possible，可补 reliability diagram 或 score histogram。
     \end{itemize}
 \end{itemize}
 
-\subsection*{4.3 数据规模敏感性实验（Paired-cohort scaling experiment）}
+\subsection*{4.3 Paired cohort 规模敏感性实验（必须补）}
 \begin{itemize}
-    \item \textbf{为什么缺}
+    \item \textbf{为什么需要}
     \begin{itemize}
-        \item 目前论文已经证明 tiny paired cohort 是瓶颈，但还没有实验量化“\textbf{到底多大才开始出现稳定性改善}”。
+        \item 当前论文已经证明 tiny paired cohort 是中心证据瓶颈，但还没有量化“paired support 需要大到什么程度，plain cross-modal KD 的现象才会开始稳定”。
     \end{itemize}
-
     \item \textbf{应该怎么设计}
     \begin{itemize}
-        \item 如果数据允许，把 paired cohort 按 patient 数量做多档构造，例如：
+        \item 若当前可配对样本还能扩充，则做 patient-level paired subset scaling：
         \begin{enumerate}
             \item 25\% paired patients；
             \item 50\% paired patients；
             \item 75\% paired patients；
             \item 100\% paired patients。
         \end{enumerate}
-        \item 若原始 paired cases 不够，可以换成更宽松的 temporal matching，但必须单独报告匹配规则变化。
+        \item 若同一 repository 内病例不够，则应把此实验明确列为下一轮数据扩展后必须执行。
     \end{itemize}
-
-    \item \textbf{应该报告什么}
+    \item \textbf{实施方式}
     \begin{itemize}
-        \item 各档 paired size 下五个系统的 mean/std；
-        \item instability 曲线，例如 Macro-F1 std vs paired size；
-        \item Specificity 与 Balanced Accuracy 随 paired size 的变化。
+        \item 每个规模档位保持：
+        \begin{itemize}
+            \item patient-level split；
+            \item same repeated-run seeds；
+            \item same five-way comparison。
+        \end{itemize}
+        \item 记录 mean/std 与 per-seed spread。
     \end{itemize}
-
-    \item \textbf{这个实验回答什么}
+    \item \textbf{回答什么问题}
     \begin{itemize}
-        \item 它能回答：
+        \item 该实验直接回答：
         \begin{quote}
-            当前 failure 到底是结构性 modality gap，还是因为 paired support 还没有达到最小有效规模。
+            当前 failure 到底是“方向本身弱”，还是“paired evidence 还未达到最小有效规模”。
         \end{quote}
-        \item 这是顶刊评审非常在意的问题，因为它决定这项研究是“方向不成立”，还是“方向成立但证据未到位”。
     \end{itemize}
 \end{itemize}
 
-\subsection*{4.4 类别不平衡与阈值稳定性实验}
+\subsection*{4.4 Progressive module-complexity experiment}
 \begin{itemize}
-    \item \textbf{为什么缺}
+    \item \textbf{为什么需要}
     \begin{itemize}
-        \item 当前附录已经非常强地表明存在 prevalence-biased positive prediction：late fusion、same-modality KD、cross-modality KD 在 seed-aggregated confusion 下都把验证图像全部判为 positive。:contentReference[oaicite:4]{index=4}
-        \item 但还没有实验性地回答：这种现象是来自训练集不平衡、logit calibration 失衡、还是 teacher signal 本身偏置。
+        \item 现在已经知道 full JDCNet 不如 plain cross-modal KD，但还不知道复杂度是从哪一步开始变得不值得。
     \end{itemize}
-
     \item \textbf{应该怎么设计}
     \begin{itemize}
-        \item 至少增加两类 control：
-        \begin{enumerate}
-            \item \textbf{class-balanced training control}：对训练集使用 class-balanced sampler 或 loss weighting；
-            \item \textbf{threshold calibration control}：验证集上不固定 0.5 阈值，而报告基于训练折或小验证折校准后的阈值表现。
-        \end{enumerate}
-        \item 若担心 validation 太小，可用 training split 内部再做 calibration fold，不能直接用 test-like validation 反复调阈值。
-    \end{itemize}
-
-    \item \textbf{应该报告什么}
-    \begin{itemize}
-        \item Specificity、Recall、Balanced Accuracy 必须成为这一实验的主指标；
-        \item confusion matrix 必须与默认设置并排报告；
-        \item 最好增加 prediction score histogram 或 positive-rate statistics。
-    \end{itemize}
-
-    \item \textbf{这个实验回答什么}
-    \begin{itemize}
-        \item 如果 class balancing/calibration 后 cross-modal KD 仍无优势，则说明问题更接近 \textbf{true transfer failure}；
-        \item 如果 balancing/calibration 后才出现 improvement，则说明此前的 negative result 很大程度来自 \textbf{imbalance-dominated decision behavior}。
-    \end{itemize}
-\end{itemize}
-
-\subsection*{4.5 模块必要性递进实验（比当前 ablation 更强）}
-\begin{itemize}
-    \item \textbf{为什么缺}
-    \begin{itemize}
-        \item 你现在已经有 w/o DPE、w/o MHRA、w/o DFPN 的 ablation，但这类“单模块移除”还不够回答模块栈到底哪里开始变得不必要。
-    \end{itemize}
-
-    \item \textbf{应该怎么设计}
-    \begin{itemize}
-        \item 按递进复杂度做实验，而不是只做 leave-one-out：
+        \item 不再只做 leave-one-out，而改做递进复杂度实验：
         \begin{enumerate}
             \item plain cross-modal logit KD；
             \item + DPE；
             \item + DPE + DFPN；
             \item + DPE + MHRA；
-            \item + DPE + MHRA + DFPN（即 current JDCNet）。
+            \item + DPE + MHRA + DFPN。
         \end{enumerate}
-        \item 这比当前 ablation 更能回答“复杂度是何时开始引入的、是否值得”。
     \end{itemize}
-
-    \item \textbf{应该报告什么}
+    \item \textbf{实施方式}
     \begin{itemize}
-        \item 除 mean/std 外，建议报告参数量、训练时间、每阶段性能变化；
-        \item 若可能，增加 one-paragraph analysis：复杂度增加是否换来任何稳定性改善。
+        \item 通过 config 开关逐步打开模块；
+        \item 所有其它训练条件保持不变；
+        \item 输出参数量、训练时间、指标均值和方差。
     \end{itemize}
-
-    \item \textbf{这个实验回答什么}
+    \item \textbf{回答什么问题}
     \begin{itemize}
-        \item 它能把当前“MHRA 似乎没用”提升为更系统的结论：
+        \item 这能回答：
         \begin{quote}
-            到底是某个模块无效，还是整个 feature-level complexity 在当前证据条件下都不值得。
+            到底是某个模块有问题，还是当前证据条件下 feature-level complexity 整体都不值得。
         \end{quote}
     \end{itemize}
 \end{itemize}
 
-\subsection*{4.6 外部可迁移性实验（可选，但顶刊很加分）}
+\subsection*{4.5 更大 patient-level paired cohort：需要什么数据、从哪里获取}
 \begin{itemize}
-    \item \textbf{为什么缺}
+    \item \textbf{真正理想的数据需求}
     \begin{itemize}
-        \item 当前主文已说明 Kaggle 下载的数据不是 same-patient chest X-ray/CT benchmark，因此没纳入主结果，这是合理的。:contentReference[oaicite:5]{index=5}
-        \item 但从顶刊角度，如果能做一个弱形式 external sanity check，会更强。
+        \item 最关键的数据仍然是：
+        \begin{enumerate}
+            \item 同一患者；
+            \item 同时或近时间窗内有 CT 和 CXR；
+            \item 标签可统一；
+            \item patient-level metadata 可做严格去泄漏切分；
+            \item 负类数量不能过少。
+        \end{enumerate}
     \end{itemize}
 
+    \item \textbf{当前你用的数据}
+    \begin{itemize}
+        \item COVID-19 Image Data Collection 官方仓库明确说明它包含 chest X-ray 和 CT 图像，但作者也明确提醒不要把它当作 competition benchmark 或临床验证替代物。它适合做你现在这种 pilot pairing，但不适合支撑强 conclusion。 :contentReference[oaicite:5]{index=5}
+    \end{itemize}
+
+    \item \textbf{建议扩展的公开数据源}
+    \begin{itemize}
+        \item \textbf{BIMCV-COVID19+（官方 / OSF）}：官方介绍明确说明同时包含 chest X-ray (CR, DX) 与 CT，并附带报告及部分临床元数据。这是你最值得优先检查的公开扩展源之一。:contentReference[oaicite:6]{index=6}
+        \item \textbf{CC-CCII}：这是公开的大规模 COVID CT 资源，适合增强 teacher-side CT 训练或做 CT-only pretraining / robustness analysis，但它本身不是 paired CT+CXR benchmark。:contentReference[oaicite:7]{index=7}
+        \item \textbf{Kaggle CXR 数据}：如 COVID-19 Radiography Database，可用于 student-side 更稳健的 CXR 预训练或外部 sanity check，但不能替代 paired benchmark。:contentReference[oaicite:8]{index=8}
+        \item \textbf{Kaggle COVIDx CT}：可用于 teacher-side CT 预训练或 out-of-domain CT robustness，不可当 paired data。:contentReference[oaicite:9]{index=9}
+    \end{itemize}
+
+    \item \textbf{数据使用策略建议}
+    \begin{itemize}
+        \item 优先级应为：
+        \begin{enumerate}
+            \item 先找能提供 \textbf{patient-level paired CT+CXR} 的公开数据；
+            \item 如果找不到足够大的 paired 数据，再退而求其次：
+            \begin{itemize}
+                \item 用大 CT 数据做 teacher pretraining；
+                \item 用大 CXR 数据做 student pretraining；
+                \item 最终仍在 paired subset 上做 decisive comparison。
+            \end{itemize}
+        \end{enumerate}
+        \item 绝不能把“分别来自大 CT 数据和大 CXR 数据”的结果写成 patient-level cross-modality transfer 已被验证。
+    \end{itemize}
+\end{itemize}
+
+\subsection*{4.6 Kaggle 和其他公开资源能做什么，不能做什么}
+\begin{itemize}
+    \item \textbf{能做什么}
+    \begin{itemize}
+        \item Kaggle 上的 COVID CXR 数据可用于：
+        \begin{itemize}
+            \item student backbone 预训练；
+            \item 外部 CXR-only sanity check；
+            \item 类别平衡实验；
+            \item label calibration analysis。
+        \end{itemize}
+        \item Kaggle 或其他公开 CT 数据可用于：
+        \begin{itemize}
+            \item teacher backbone 预训练；
+            \item CT feature robustness 检查；
+            \item teacher confidence behavior study。
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{不能做什么}
+    \begin{itemize}
+        \item 它们通常不能直接回答：
+        \begin{quote}
+            同一患者条件下，CT supervision 是否真实提升了 X-ray deployment。
+        \end{quote}
+        \item 原因是大部分 Kaggle 数据并非 patient-level paired CT+CXR benchmark。
+    \end{itemize}
+
+    \item \textbf{论文中应如何写}
+    \begin{itemize}
+        \item 建议明确区分：
+        \begin{itemize}
+            \item \textbf{paired benchmark data}；
+            \item \textbf{teacher pretraining data}；
+            \item \textbf{student pretraining data}；
+            \item \textbf{external sanity-check data}。
+        \end{itemize}
+        \item 这种区分会让实验逻辑更干净，也更不容易被审稿人质疑“数据角色混淆”。
+    \end{itemize}
+\end{itemize}
+
+\subsection*{4.7 外部单模态 sanity-check experiment}
+\begin{itemize}
+    \item \textbf{为什么需要}
+    \begin{itemize}
+        \item 当前没有 external cohort。虽然这不能通过 Kaggle 直接补成 paired benchmark，但可以先补一个弱形式的 external validation。
+    \end{itemize}
     \item \textbf{应该怎么设计}
     \begin{itemize}
-        \item 不把 external cohort 当 paired benchmark；
-        \item 仅把在 paired cohort 上训练好的 student-only 与 cross-modal variant 拿去外部 X-ray 数据上做 out-of-cohort inference sanity check；
-        \item 不做强 claim，只看两者是否有一致退化。
+        \item 用 paired cohort 上训练得到的：
+        \begin{enumerate}
+            \item student-only model；
+            \item plain cross-modal KD student；
+            \item current JDCNet student
+        \end{enumerate}
+        \item 在独立的 CXR-only 数据集上做 external sanity check。
     \end{itemize}
-
-    \item \textbf{应该报告什么}
+    \item \textbf{数据来源}
     \begin{itemize}
-        \item 只需报告 Accuracy、Macro-F1、Balanced Accuracy；
-        \item 必须明确写明：这不是配对跨模态验证，只是迁移稳定性 sanity check。
+        \item 可优先考虑 Kaggle 的 COVID-19 Radiography Database 或 curated CXR COVID collections；这些数据是公开可获取、使用方便的外部 CXR 资源。:contentReference[oaicite:10]{index=10}
     \end{itemize}
-
-    \item \textbf{这个实验回答什么}
+    \item \textbf{应如何表述}
     \begin{itemize}
-        \item 它能让你更有底气说明：当前负结果并非完全局限于单一 split artifact。
+        \item 必须明确写：
+        \begin{quote}
+            这不是 paired cross-modality validation，只是对 student deployment path 的 out-of-cohort sanity check。
+        \end{quote}
     \end{itemize}
 \end{itemize}
 
-\subsection*{5. Results 部分应新增的实验叙事}
+\subsection*{5. Results 部分建议新增的实验叙事}
 \begin{itemize}
-    \item 结果部分不应只写“跑了哪些实验”，而应明确按以下层次组织：
+    \item 建议把实验结果重写为以下问题驱动结构：
     \begin{enumerate}
-        \item \textbf{Can CT supervision help at all?} $\rightarrow$ student-only vs plain cross-modal KD；
-        \item \textbf{Is any benefit modality-specific or just teacher regularization?} $\rightarrow$ same-modality KD vs cross-modal KD；
-        \item \textbf{Is complexity justified?} $\rightarrow$ plain cross-modal KD vs current JDCNet vs progressive module addition；
-        \item \textbf{Are observed behaviors dominated by data imbalance?} $\rightarrow$ class-balanced / calibrated controls；
-        \item \textbf{Does the conclusion change as paired evidence increases?} $\rightarrow$ scaling experiment。
+        \item \textbf{Can plain CT supervision help at all?}
+        \item \textbf{Is the observed signal stable across seeds?}
+        \item \textbf{Is the signal stronger than same-modality teacher regularization?}
+        \item \textbf{Does additional transfer machinery improve or degrade that signal?}
+        \item \textbf{Does the conclusion survive imbalance controls?}
+        \item \textbf{Does the conclusion become clearer as paired evidence grows?}
     \end{enumerate}
-    \item 只有这样，实验节才不只是“结果表集合”，而是真正回答科学问题。
+    \item 这样实验节就会更像顶刊论文，而不是“表格的顺序介绍”。
 \end{itemize}
 
-\subsection*{6. 实施层面建议（非常具体）}
-\begin{itemize}
-    \item \textbf{实验执行顺序建议}
-    \begin{enumerate}
-        \item 先做 \textbf{plain cross-modal logit KD baseline}；
-        \item 再做 \textbf{same-case five-way comparison}；
-        \item 再做 \textbf{class-balanced / threshold-calibrated controls}；
-        \item 再做 \textbf{progressive module-necessity experiment}；
-        \item 最后做 \textbf{paired-cohort scaling experiment}。
-    \end{enumerate}
-
-    \item \textbf{优先级理由}
-    \begin{itemize}
-        \item 第 1 和第 2 项是最小决定性实验；
-        \item 第 3 项回答 prevalence bias；
-        \item 第 4 项回答 complexity 是否值得；
-        \item 第 5 项回答数据规模是否是主瓶颈。
-    \end{itemize}
-
-    \item \textbf{代码实施建议}
-    \begin{itemize}
-        \item 所有新实验必须复用现有 manifest generation 和 repeated-run pipeline；
-        \item 所有新配置建议通过 config flag 实现，不要复制一套新训练脚本；
-        \item 每新增一种实验模式，都输出：
-        \begin{itemize}
-            \item per-seed csv；
-            \item repeated-run summary csv；
-            \item confusion summary；
-            \item figure export。
-        \end{itemize}
-        \item 避免手工后处理，保证可复验。
-    \end{itemize}
-\end{itemize}
-
-\subsection*{7. 按优先级排序的实验补强任务}
+\subsection*{6. 实施顺序建议（务实版本）}
 \begin{enumerate}
-    \item \textbf{最高优先级：}补上 stripped-down plain cross-modal logit-KD baseline。
-    \item \textbf{最高优先级：}在同一 paired cases 上完成 five-way repeated-run comparison。
-    \item \textbf{高优先级：}加入 imbalance-control 和 threshold-behavior experiment。
-    \item \textbf{高优先级：}把现有 leave-one-out ablation 升级成 progressive module-complexity experiment。
-    \item \textbf{中优先级：}做 paired-cohort scaling experiment。
-    \item \textbf{可选增强：}做 external X-ray sanity-check experiment。
+    \item 先做 \textbf{class-balanced / threshold-calibrated plain cross-modal KD}；
+    \item 再做 \textbf{progressive module-complexity experiment}；
+    \item 再做 \textbf{external CXR-only sanity check}；
+    \item 并行寻找或构建 \textbf{更大 patient-level paired CT+CXR cohort}；
+    \item 一旦 paired 数据规模足够，再做 \textbf{same-case five-way decisive comparison}。
 \end{enumerate}
 
-\subsection*{8. 最终实验判断}
+\subsection*{7. 最终实验判断}
 \begin{itemize}
-    \item 当前稿件已经非常成功地证明了：\textbf{在现有 tiny paired cohort 下，强 claim 不成立。}
-    \item 但若要从“谨慎负结果论文”进一步升级到“顶刊/顶会更强说服力论文”，最关键的不是再润色文字，而是补上：
+    \item 当前论文已经成功从“full JDCNet 没有 gain”推进到“\textbf{plain cross-modal KD 可能存在有意义信号，但证据仍远不足以支持强 claim}”。
+    \item 下一轮顶刊级实验的核心，不是继续优化当前 full module stack，而是：
     \begin{quote}
-        能够隔离 cross-modality supervision 本身、teacher regularization、本征类别偏差、以及模块复杂度四者关系的最小决定性实验矩阵。
+        \textbf{先确认 plain cross-modal supervision 到底是不是一个真实、可复验、能在更大 paired cohort 上保留下来的信号。}
     \end{quote}
-    \item 一旦这些实验补齐，你的论文就不仅能说“当前不能宣称 gain”，还可以更强地说：
-    \begin{quote}
-        我们已经知道 gain 为什么还不能被宣称，以及未来什么样的实验才有资格支持它。
-    \end{quote}
+    \item 一旦这个问题被回答，后续再讨论 DPE/MHRA/DFPN 是否值得，才有真正的科学顺序。
 \end{itemize}

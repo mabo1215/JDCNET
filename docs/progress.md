@@ -65,26 +65,40 @@
   - `plain cross-modal logit KD` 在当前 paired cohort 上达到最高平均值：`0.875 ± 0.144 accuracy`、`0.714 ± 0.330 macro-F1`
   - 但该优势仍不稳定：4 个 seed 中有 2 个是全部判阳性、2 个是 4/4 全对
   - 这说明“可能存在简化后的 cross-modality signal”，但还不足以支撑稳健的方法增益结论
+- 已新增并运行 `class balancing / threshold behavior` 控制实验：
+  - 在 `src/jdcnet_exp/data.py` 中加入 `weighted sampler` 开关
+  - 在 `src/jdcnet_exp/run_covid_controls.py` 中完成 student-only、plain cross-modal KD、full JDCNet 三组控制实验与阈值扫描
+  - 新结果显示：更强的 sampler-level rebalance 主要帮助的是 `student-only`，而不是 cross-modality 变体
+  - `student-only` 的 mean balanced accuracy 从 `0.625` 提升到 `0.750`，但 `plain cross-modal KD` 被拉回到 `0.625`
+  - `full JDCNet` 即使加入 balanced sampler 也仍停留在 `0.500` mean balanced accuracy
+- 已新增并运行 `progressive module-complexity` 实验：
+  - 递进链路为 `plain -> +DPE -> +DPE+DFPN -> +DPE+MHRA -> full`
+  - 结果没有出现“复杂度越高越好”的趋势
+  - 最强均值仍然是 `plain logit KD`；加入 DPE、DFPN、MHRA 后，平均指标反而逐步回落
+- 已将新的 imbalance-sensitive controls 与 progressive-complexity 结果写回 `paper/main.tex` 和 `paper/appendix.tex`。
 - 已成功重新编译最新 PDF。
 
 ### 进行中
 
-- 正在判断：在已经补上 plain cross-modal logit KD 之后，当前仓库是否还适合继续加入 `class balancing / calibration sanity check` 一类附加验证，而不会把极小验证集过度切分成伪证据。
+- 正在判断：是否还能从当前已下载的 Kaggle 资源中诚实补一个 `external CXR-only sanity check`。
+  - 当前已下载的 `brain_tumor_ct_mri` 与本文任务不匹配；
+  - `covidxct` 只能作为 CT 侧辅助资源，不是 paired CT+CXR benchmark；
+  - `covid_19_ieee_collection` 与当前本地源存在重叠风险，不能直接当成独立 external cohort。
 
 ### 下一步
 
-- 评估是否能在现有仓库上诚实加入一个最小化的 `class balancing / calibration` sanity check，用于判断 plain cross-modal baseline 的均值优势是否仍然主要受 prevalence bias 主导。
-- 如果没有更多可信实验可以补，就停止扩展实验矩阵，保持论文定位为“negative-result-informed feasibility paper”，而不是继续堆叠小样本结果。
+- 如果找不到真正独立且任务匹配的 external CXR cohort，就停止追加“伪外部验证”，维持当前的 negative-result-informed feasibility paper 定位。
+- 并行继续寻找更大的 patient-level paired CT+CXR 公开数据；在数据条件真正满足前，不再把更多微型调参写成主要贡献。
 
 ### 本轮精确修改文件
 
-- `paper/tables/generated/*.tex`（已删除重复表格片段）
+- `src/jdcnet_exp/config.py`
+- `src/jdcnet_exp/data.py`
 - `src/jdcnet_exp/run_covid_matrix.py`
-- `src/jdcnet_exp/generate_submission_assets.py`
-- `src/jdcnet_exp/generate_error_analysis.py`
+- `src/jdcnet_exp/run_covid_controls.py`
+- `src/jdcnet_exp/run_covid_progressive.py`
 - `paper/main.tex`
 - `paper/appendix.tex`
-- `paper/references.bib`
 - `docs/progress.md`
 
 ### 目前累计修改文件
@@ -100,11 +114,16 @@
 - `paper/images/generated/covid_paired_seed_instability.png`
 - `paper/images/generated/jdcnet_executable_architecture.png`
 - `paper/images/generated/paired_confusion_summary.png`
+- `paper/images/generated/covid_control_sanity.png`
+- `paper/images/generated/covid_threshold_sensitivity.png`
+- `paper/images/generated/covid_progressive_complexity.png`
 - `src/jdcnet_exp/models.py`
 - `src/jdcnet_exp/data.py`
 - `src/jdcnet_exp/train.py`
 - `src/jdcnet_exp/evaluate.py`
 - `src/jdcnet_exp/run_covid_matrix.py`
+- `src/jdcnet_exp/run_covid_controls.py`
+- `src/jdcnet_exp/run_covid_progressive.py`
 - `src/jdcnet_exp/download_kaggle_datasets.py`
 - `src/jdcnet_exp/generate_submission_assets.py`
 - `src/jdcnet_exp/generate_error_analysis.py`
@@ -115,8 +134,18 @@
 - `src/results/kaggle_download_report.json`
 - `src/results/submission_assets_report.json`
 - `src/results/failure_analysis_report.json`
+- `src/results/covid_control_sanity_summary.csv`
+- `src/results/covid_control_val_probabilities.csv`
+- `src/results/covid_threshold_sweep.csv`
+- `src/results/covid_control_report.json`
+- `src/results/covid_progressive_complexity.csv`
+- `src/results/covid_progressive_report.json`
 - `paper/results/paired_failure_analysis.csv`
 - `paper/results/paired_confusion_summary.csv`
+- `paper/results/covid_control_sanity_summary.csv`
+- `paper/results/covid_control_val_probabilities.csv`
+- `paper/results/covid_threshold_sweep.csv`
+- `paper/results/covid_progressive_complexity.csv`
 
 ### 已运行实验与命令
 
@@ -125,8 +154,11 @@
 - `python -m jdcnet_exp.generate_submission_assets`
 - `python -m jdcnet_exp.generate_error_analysis`
 - `python -m src.jdcnet_exp.run_covid_matrix`
+- `python -m src.jdcnet_exp.run_covid_controls`
+- `python -m src.jdcnet_exp.run_covid_progressive`
 - `python -m src.jdcnet_exp.generate_submission_assets`
 - `python -m src.jdcnet_exp.generate_error_analysis`
+- `python -m compileall src/jdcnet_exp`
 - `bash paper/build.sh`
 
 ### 已重新生成图表
@@ -137,13 +169,16 @@
 - `paper/images/generated/covid_paired_seed_instability.png`
 - `paper/images/generated/jdcnet_executable_architecture.png`
 - `paper/images/generated/paired_confusion_summary.png`
+- `paper/images/generated/covid_control_sanity.png`
+- `paper/images/generated/covid_threshold_sensitivity.png`
+- `paper/images/generated/covid_progressive_complexity.png`
 
 ### 当前前 10 个投稿阻塞项
 
 1. `cross-modality novelty 目前没有被稳定优于最强 paired-cohort baseline 的结果支撑`
    - 状态：`部分解决`
-   - 已做修改：已将论文重写为可复现 pilot study，并补上真正的 stripped-down plain cross-modal logit-KD 基线；该基线目前取得最高平均 paired-cohort 结果。
-   - 未完全解决原因：plain baseline 的优势仍建立在 4 张验证图像上，seed 间分裂明显，仍不足以构成稳健 novelty 证据。
+   - 已做修改：已将论文重写为可复现 pilot study，并补上真正的 stripped-down plain cross-modal logit-KD 基线；该基线目前取得最高平均 paired-cohort 结果；随后又补了 imbalance-sensitive controls 和 progressive complexity，进一步验证它不是简单被 full stack 稳定超越。
+   - 未完全解决原因：plain baseline 的优势仍建立在 4 张验证图像上，seed 间分裂明显，且一旦加入更强的 sampler-level rebalance 就会回落，仍不足以构成稳健 novelty 证据。
 
 2. `验证协议过弱，因为 paired validation split 只有 4 张 X-ray`
    - 状态：`未解决`
@@ -152,8 +187,8 @@
 
 3. `MHRA 被写作创新点，但当前并没有被正向验证`
    - 状态：`部分解决`
-   - 已做修改：已加入可执行模块消融，并将 MHRA 改写为 provisional / hypothesis-driven 组件。
-   - 未解决原因：当前消融结果反而显示去掉 MHRA 的平均结果略好。
+   - 已做修改：已加入可执行模块消融，并将 MHRA 改写为 provisional / hypothesis-driven 组件；这轮又补了 progressive complexity experiment，显示加入 MHRA 后平均结果继续回落。
+   - 未解决原因：当前 leave-one-out 与 progressive complexity 两条证据都没有正向支持 MHRA。
 
 4. `主文表格最初是手工硬编码，不利于可复现`
    - 状态：`已解决`
@@ -229,6 +264,10 @@
   - 状态：`已修改`
   - 说明：本轮已在 `src/` 中实现并运行 `plain cross-modal logit KD`，并将结果自动写回主文、附录、主表、主图、confusion summary 与 failure analysis。
 
+- `类别不平衡与阈值行为实验`
+  - 状态：`已修改`
+  - 说明：已新增 `balanced sampler` 控制实验与 threshold sweep；结果显示更强的 imbalance control 主要帮助 `student-only`，并没有把 full JDCNet 救成更可信的 cross-modality gain。
+
 - `temperature / alpha ablation`
   - 状态：`已修改`
   - 说明：已执行并写入主文，结论是当前 split 下几乎平坦，主要受数据稀缺主导。
@@ -236,6 +275,10 @@
 - `module ablations (w/o DPE / MHRA / DFPN)`
   - 状态：`已修改`
   - 说明：代码、图表、主文和附录都已接入。
+
+- `progressive module-complexity experiment`
+  - 状态：`已修改`
+  - 说明：已补齐 `plain -> +DPE -> +DPE+DFPN -> +DPE+MHRA -> full` 的递进复杂度实验；结果没有出现复杂度单调增益，最强均值仍是 plain control。
 
 - `Results 围绕 transferable lessons 重写`
   - 状态：`已修改`
@@ -264,6 +307,14 @@
   - 原因：本轮已把三条 lessons 改写为“plain baseline 暗示可能有信号、但 full stack 未被支持”的判断式表述，但受当前 paired split 极小这一事实限制，仍不能把这些 takeaway 扩展成更普适的强结论。
 
 #### 未修改
+
+- `更大 patient-level paired cohort 构建实验`
+  - 状态：`未修改`
+  - 原因：当前本地与已下载 Kaggle 数据中没有可直接扩展成更大、严格 patient-level paired CT+CXR benchmark 的干净公开资源；这一步受真实数据供给限制，不是当前仓库内可直接补齐的。
+
+- `external CXR-only sanity-check experiment`
+  - 状态：`未修改`
+  - 原因：当前已下载 Kaggle 资源里，`brain_tumor_ct_mri` 与本文任务不匹配，`covidxct` 是 CT-only，`covid_19_ieee_collection` 与当前数据源存在重叠风险，暂时没有足够干净的独立 external CXR cohort 可诚实接入。
 
 - `补充 2--3 篇更贴近 cross-modal distillation / modality transfer 的近年文献`
   - 状态：`未修改`

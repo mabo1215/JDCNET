@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from PIL import Image, ImageFile
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 from torchvision import transforms
 
 from .config import ExperimentConfig
@@ -114,12 +115,26 @@ def create_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader
         include_paired_image=include_paired_image,
     )
 
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=config.data.batch_size,
-        shuffle=True,
-        num_workers=config.data.num_workers,
-    )
+    train_loader_kwargs = {
+        "batch_size": config.data.batch_size,
+        "num_workers": config.data.num_workers,
+    }
+    if config.data.use_weighted_sampler:
+        label_counts = train_manifest["label"].value_counts().to_dict()
+        sample_weights = train_manifest["label"].map(
+            lambda label: 1.0 / max(label_counts.get(int(label), 1), 1)
+        )
+        sampler = WeightedRandomSampler(
+            weights=np.asarray(sample_weights, dtype=np.float64).copy(),
+            num_samples=len(sample_weights),
+            replacement=True,
+        )
+        train_loader_kwargs["sampler"] = sampler
+        train_loader_kwargs["shuffle"] = False
+    else:
+        train_loader_kwargs["shuffle"] = True
+
+    train_loader = DataLoader(train_dataset, **train_loader_kwargs)
     val_loader = DataLoader(
         val_dataset,
         batch_size=config.data.batch_size,

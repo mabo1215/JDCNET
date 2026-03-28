@@ -25,6 +25,7 @@ class DataConfig:
     batch_size: int
     num_workers: int
     paired_image_column: str = "teacher_image_path"
+    use_weighted_sampler: bool = False
 
 
 @dataclass
