@@ -125,11 +125,21 @@ class TeacherCNN(nn.Module):
         self.mhra = MHRABlock(256) if use_mhra else nn.Identity()
         self.classifier = nn.Linear(256, num_classes)
 
+    def forward_with_features(self, x: torch.Tensor) -> dict[str, torch.Tensor | list[torch.Tensor]]:
+        stage_features = self.encoder(x)
+        refined_feature = self.mhra(self.dpe(stage_features[-1]))
+        embedding = F.adaptive_avg_pool2d(refined_feature, (1, 1)).flatten(1)
+        logits = self.classifier(embedding)
+        return {
+            "logits": logits,
+            "stage_features": stage_features,
+            "deepest_feature": stage_features[-1],
+            "refined_feature": refined_feature,
+            "embedding": embedding,
+        }
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        features = self.encoder(x)
-        deepest = self.mhra(self.dpe(features[-1]))
-        embedding = F.adaptive_avg_pool2d(deepest, (1, 1)).flatten(1)
-        return self.classifier(embedding)
+        return self.forward_with_features(x)["logits"]
 
 
 class StudentCNN(nn.Module):
@@ -140,13 +150,23 @@ class StudentCNN(nn.Module):
         self.dfpn = DFPNBlock([32, 64, 128], out_channels=128) if use_dfpn else None
         self.classifier = nn.Linear(128, num_classes)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward_with_features(self, x: torch.Tensor) -> dict[str, torch.Tensor | list[torch.Tensor]]:
         features = self.encoder(x)
+        deepest_feature = features[-1]
         if self.use_dfpn and self.dfpn is not None:
             embedding = self.dfpn(features)
         else:
-            embedding = F.adaptive_avg_pool2d(features[-1], (1, 1)).flatten(1)
-        return self.classifier(embedding)
+            embedding = F.adaptive_avg_pool2d(deepest_feature, (1, 1)).flatten(1)
+        logits = self.classifier(embedding)
+        return {
+            "logits": logits,
+            "stage_features": features,
+            "deepest_feature": deepest_feature,
+            "embedding": embedding,
+        }
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.forward_with_features(x)["logits"]
 
 
 class LateFusionCNN(nn.Module):

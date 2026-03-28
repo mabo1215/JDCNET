@@ -13,6 +13,7 @@ This directory contains the reproducible experiment scaffold for revising JDCNET
 - ablation config generation
 - paired-input late-fusion baseline support
 - configurable DPE / MHRA / DFPN module switches
+- patient-level Monte Carlo resampling with same-case mechanism controls
 - run aggregation and paper-asset export
 - Kaggle dataset download utility for auxiliary CT / MRI and COVID imaging datasets
 
@@ -70,6 +71,12 @@ Run the full real-data experiment matrix and export updated assets into `paper/`
 
 ```powershell
 python -m jdcnet_exp.run_covid_matrix
+```
+
+Run the paired-cohort patient-level resampling study with attention-transfer and feature-hint mechanism controls:
+
+```powershell
+python -m jdcnet_exp.run_covid_resampling
 ```
 
 Download curated Kaggle datasets into `src/data/kaggle/`:

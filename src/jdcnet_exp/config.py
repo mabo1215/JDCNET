@@ -41,6 +41,9 @@ class DistillationConfig:
     temperature: float
     alpha: float
     teacher_checkpoint: str
+    feature_hint_weight: float = 0.0
+    attention_transfer_weight: float = 0.0
+    feature_hint_dim: int = 128
 
 
 @dataclass

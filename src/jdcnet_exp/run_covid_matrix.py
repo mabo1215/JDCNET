@@ -119,6 +119,9 @@ def _build_config(
     teacher_checkpoint: str = "",
     temperature: float = 4.0,
     alpha: float = 0.6,
+    feature_hint_weight: float = 0.0,
+    attention_transfer_weight: float = 0.0,
+    feature_hint_dim: int = 128,
     use_dpe: bool = True,
     use_mhra: bool = True,
     use_dfpn: bool = True,
@@ -159,6 +162,9 @@ def _build_config(
             "temperature": temperature,
             "alpha": alpha,
             "teacher_checkpoint": teacher_checkpoint,
+            "feature_hint_weight": feature_hint_weight,
+            "attention_transfer_weight": attention_transfer_weight,
+            "feature_hint_dim": feature_hint_dim,
         },
     }
 
@@ -240,10 +246,16 @@ def _aggregate_mean_std(frame: pd.DataFrame, experiment_groups: list[str]) -> pd
         "precision",
         "recall",
         "specificity",
+        "mcc",
+        "pr_auc",
+        "brier",
         "roc_auc",
         "val_samples",
     ]
     filtered = frame[(frame["is_ablation"] == False) & (frame["experiment_group"].isin(experiment_groups))].copy()
+    for metric_column in metric_columns:
+        if metric_column not in filtered.columns:
+            filtered[metric_column] = pd.NA
     aggregated = (
         filtered.groupby(["experiment_group", "display_name"])[metric_columns]
         .agg(["mean", "std"])

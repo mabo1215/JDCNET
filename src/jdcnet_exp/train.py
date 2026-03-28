@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from .artifacts import save_confusion_matrix, save_learning_curves, write_history_csv, write_json
 from .config import ExperimentConfig, load_config
 from .data import create_dataloaders, load_filtered_manifests
-from .distillation import distillation_loss
+from .distillation import attention_transfer_loss, distillation_loss, feature_hint_loss
 from .metrics import compute_metrics
 from .models import build_model
 
@@ -39,13 +39,26 @@ def _forward_model(
     model: nn.Module,
     images: torch.Tensor,
     paired_images: torch.Tensor | None,
-) -> torch.Tensor:
+    ) -> torch.Tensor:
     if paired_images is not None:
         try:
             return model(images, paired_images)
         except TypeError:
             return model(images)
     return model(images)
+
+
+def _forward_model_outputs(
+    model: nn.Module,
+    images: torch.Tensor,
+    paired_images: torch.Tensor | None,
+) -> dict[str, object]:
+    if hasattr(model, "forward_with_features"):
+        try:
+            return model.forward_with_features(images, paired_images)
+        except TypeError:
+            return model.forward_with_features(images)
+    return {"logits": _forward_model(model, images, paired_images)}
 
 
 def _compute_class_weights(train_manifest, num_classes: int, device: torch.device) -> torch.Tensor:
@@ -89,6 +102,8 @@ def run_training(config: ExperimentConfig) -> None:
 
     model = build_model(config.model).to(device)
     teacher_model = None
+    student_hint_adapter = None
+    teacher_hint_adapter = None
     if config.distillation.enabled:
         teacher_model = build_model(
             config.model.__class__(
@@ -105,12 +120,20 @@ def run_training(config: ExperimentConfig) -> None:
         if not teacher_checkpoint.exists():
             raise FileNotFoundError(
                 f"Teacher checkpoint not found: {teacher_checkpoint}"
-            )
+        )
         teacher_model.load_state_dict(torch.load(teacher_checkpoint, map_location=device))
         teacher_model.eval()
+        if config.distillation.feature_hint_weight > 0.0:
+            student_hint_adapter = nn.Linear(128, config.distillation.feature_hint_dim, bias=False).to(device)
+            teacher_hint_adapter = nn.Linear(256, config.distillation.feature_hint_dim, bias=False).to(device)
+
+    optimization_parameters: list[nn.Parameter] = list(model.parameters())
+    if student_hint_adapter is not None and teacher_hint_adapter is not None:
+        optimization_parameters.extend(student_hint_adapter.parameters())
+        optimization_parameters.extend(teacher_hint_adapter.parameters())
 
     optimizer = optim.AdamW(
-        model.parameters(),
+        optimization_parameters,
         lr=config.optimization.learning_rate,
         weight_decay=config.optimization.weight_decay,
     )
@@ -130,12 +153,14 @@ def run_training(config: ExperimentConfig) -> None:
             labels = labels.to(device)
 
             optimizer.zero_grad()
-            student_logits = _forward_model(model, images, teacher_images)
+            student_outputs = _forward_model_outputs(model, images, teacher_images)
+            student_logits = student_outputs["logits"]
 
             if config.distillation.enabled and teacher_model is not None:
                 with torch.no_grad():
                     teacher_inputs = teacher_images if teacher_images is not None else images
-                    teacher_logits = teacher_model(teacher_inputs)
+                    teacher_outputs = _forward_model_outputs(teacher_model, teacher_inputs, None)
+                teacher_logits = teacher_outputs["logits"]
                 loss = distillation_loss(
                     student_logits=student_logits,
                     teacher_logits=teacher_logits,
@@ -144,6 +169,22 @@ def run_training(config: ExperimentConfig) -> None:
                     alpha=config.distillation.alpha,
                     class_weights=class_weights,
                 )
+                if config.distillation.attention_transfer_weight > 0.0:
+                    loss = loss + config.distillation.attention_transfer_weight * attention_transfer_loss(
+                        student_feature=student_outputs["deepest_feature"],
+                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                    )
+                if (
+                    config.distillation.feature_hint_weight > 0.0
+                    and student_hint_adapter is not None
+                    and teacher_hint_adapter is not None
+                ):
+                    loss = loss + config.distillation.feature_hint_weight * feature_hint_loss(
+                        student_feature=student_outputs["deepest_feature"],
+                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                        student_adapter=student_hint_adapter,
+                        teacher_adapter=teacher_hint_adapter,
+                    )
             else:
                 loss = nn.functional.cross_entropy(student_logits, labels, weight=class_weights)
 
