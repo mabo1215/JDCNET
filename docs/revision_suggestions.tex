@@ -1,436 +1,142 @@
 \section*{Overall Evaluation}
 
-本文讨论了一个有现实部署意义的问题：是否可以将 CT 作为训练期监督信号，用于提升仅依赖 X-ray 推理的胸部影像分类模型。论文的优点在于：问题定义较清楚，反复强调 deployment realism；代码与实验流程强调可复现；并且作者没有过度包装结果，而是较诚实地呈现了当前 full JDCNet 不如 stripped-down plain cross-modal logit KD baseline 的现象。这一点在当前很多医学影像论文中并不常见，属于本文较有价值的部分。附录中对 patient-level split audit、per-seed instability、threshold sensitivity、imbalance-sensitive controls 和 progressive module complexity 的补充也增强了论文的透明度。 
+当前稿件相较于上一轮已经完成了最关键的方向修正：problem formulation 已统一，claim boundary 已明显收紧，fixed split 与 repeated same-case resampling 的证据层级已经区分清楚，negative/fragile finding 也被诚实写出。主文和附录现在基本形成了一个较为一致的叙事：这不是一篇已经验证了新架构优越性的论文，而是一篇 \textbf{evidence-bounded reproducible pilot study}。
 
-但是，若按照顶刊/顶会标准，本文目前仍存在若干决定性问题，使其尚不足以支撑强录用结论。核心问题不是“写得不够完整”，而是“证据强度明显不足，实验设计尚未达到可支撑方法性结论的最低门槛”。最严重的问题包括：
+从当前 `paper/main.tex`、`paper/appendix.tex` 与已编译 PDF 来看，稿件最重大的结构性问题已经不再是“定义不清”或“过度宣称”，而是剩下三类更细但依然重要的收口工作：
 
 \begin{enumerate}
-    \item 配对 cohort 的验证集只有 4 张图像（3 positive, 1 negative），导致所有 paired-cohort 结论几乎都建立在极端脆弱的统计基础上。
-    \item 目前方法贡献与实验结论之间存在明显错位：论文提出了 DPE、MHRA、DFPN 三个模块，但实验结果恰恰显示 plain cross-modal logit KD 更强，且 progressive complexity 趋势非单调，说明方法创新并未被验证。
-    \item 所有主结论几乎都只能成立为“pilot observation”或“negative finding under tiny data regime”，而不能成立为“validated method contribution”。
-    \item 相关工作综述和基线设计还不够强，缺乏与更合理、更现代的 cross-modal / multimodal distillation baseline 的系统对比。
-    \item 当前稿件在叙事上已经较为保守，但仍有进一步“降主张、升证据、重构贡献表述”的必要，否则容易给审稿人留下“问题重要但证据远远不够”的印象。
+    \item \textbf{方法篇幅仍略重，和当前 pilot-paper 定位相比还有一点 architecture-heavy。}
+    \item \textbf{主文对 evaluation support counts 的可见性还可以继续增强，让 reviewer 扫图表时也不容易误判证据规模。}
+    \item \textbf{Related Work 和 scholarly positioning 还有继续补强空间，尤其是 privileged modality / cross-modal supervision transfer / small-cohort evidence robustness 三条线。}
 \end{enumerate}
 
-因此，我对本文当前阶段的总体判断是：
+因此，当前稿件的判断更适合写成：
 
 \[
-\boxed{\text{Current recommendation: Major Revision / Reject-and-Resubmit level}}
+\boxed{\text{Current recommendation: still major revision for a method-style submission,}}
+\]
+\[
+\boxed{\text{but already much closer to a credible pilot-study / reproducibility paper.}}
 \]
 
-如果作者希望将本文提升到更接近顶刊/顶会标准，必须把“方法提出型论文”改造成“证据边界清晰、实验逻辑闭环、结论严格收缩的 reproducible pilot study”，或者补上足够强的新实验以真正验证方法本身。
-
-\section*{Major Strengths}
+\section*{Major Strengths of the Current Draft}
 
 \begin{enumerate}
-    \item \textbf{问题本身具有现实意义。} 训练时使用 CT、测试时仅使用 X-ray，这一 deployment setting 确实区别于传统 inference-time multimodal fusion，也区别于同模态压缩式 KD。
-    \item \textbf{论文在结果解释上相对诚实。} 主文明确承认 plain logit KD 比 full JDCNet 更强，附录也没有掩盖 tiny validation split 带来的不稳定性。
-    \item \textbf{可复现性意识较强。} 主文与附录都反复强调 executable pipeline、patient-level split、repeated-run summaries、自动导出图表等，这对于方法复查是加分项。
-    \item \textbf{附录内容有价值。} 尤其是 per-seed instability、seed-aggregated confusion patterns、threshold behavior、progressive complexity 实验，能够帮助审稿人判断当前结论的可信边界。
+    \item \textbf{问题定义终于稳定。} 当前主文已经基本杜绝了把本文误读成“test-time multimodal fusion”或“validated new architecture paper”的风险。
+    \item \textbf{证据层级明显改善。} fixed split 现在只是 feasibility screen，而 repeated same-case resampling 才是 primary evidence，这一点是正确方向。
+    \item \textbf{负结果写得足够诚实。} 稿件现在愿意明确承认 plain control、same-modality KD、late fusion 在某些指标上比 full JDCNet 更强，这比硬包成正结果更有学术可信度。
+    \item \textbf{附录已经有实质价值。} split audit、per-seed instability、threshold behavior、progressive complexity、error analysis 等补充材料，确实在帮助界定“哪些话能写、哪些话不能写”。
 \end{enumerate}
 
-\section*{Major Weaknesses}
+\section*{Priority 1: Rebalance Method Emphasis Against Evidence Emphasis}
 
-\subsection*{1. The evidence scale is far below top-tier standard}
-
-这是本文最大的硬伤。主文第 4.1 节已经明确说明 paired X-ray target validation set 只有 4 张图像；附录进一步给出该 split 中仅有 1 个 negative case。这样的验证规模不足以支持任何方法优劣排序、模块有效性判断或稳定的 cross-modal transfer claim。
-
-在这种设定下：
-\begin{itemize}
-    \item accuracy/macro-F1/balanced accuracy 的单次波动都可能仅仅来自 1 张样本；
-    \item per-seed mean/std 不能真正替代独立样本数量；
-    \item confusion aggregation across seeds 也不能构成新的独立统计证据；
-    \item threshold sweep 在同一 4-image split 上重复使用，并不能证明 calibration robustness。
-\end{itemize}
-
-因此，当前实验最多支持：
-\begin{quote}
-“在一个极小、强不平衡、patient-level paired cohort 上，plain cross-modal logit KD 可能表现出一定潜在信号，但该信号极不稳定，且不足以证明 full JDCNet 的有效性。”
-\end{quote}
-
-它并不支持：
-\begin{quote}
-“JDCNet is an effective CT-to-X-ray distillation architecture.”
-\end{quote}
-
-\subsection*{2. The proposed modules are not empirically validated}
-
-论文方法部分提出 DPE、MHRA、DFPN 三个模块，并赋予其明确设计动机。但实验部分和附录中的结果恰恰显示：
-
-\begin{itemize}
-    \item full cross-modality distillation 持续停留在 \(0.750/0.429\) 水平；
-    \item w/o MHRA 反而优于 baseline full stack；
-    \item progressive complexity experiment 显示随着模块增加，指标并不提升，甚至退化；
-    \item plain logit KD 始终是更强的平均结果。
-\end{itemize}
-
-这意味着本文当前不是“validated architecture paper”，而更像是“a careful negative result showing that added module complexity is not yet justified under current evidence scale”。
-
-如果作者仍按“提出 DPE/MHRA/DFPN 的新架构”来包装贡献，那么贡献与证据将严重不匹配，容易被顶会/顶刊审稿人直接否决。
-
-\subsection*{3. Baseline set is still not sufficiently strong}
-
-虽然作者已经补入了 plain cross-modal logit KD、same-modality KD、late fusion 等基线，这比很多初稿要好得多，但从顶刊标准看仍不够：
-
-\begin{enumerate}
-    \item 缺乏更强的 student backbone / teacher backbone 对照，无法判断“plain KD 更优”是否只是 lightweight scaffold 的偶然产物。
-    \item 缺乏 feature-level distillation baseline，例如 attention transfer、hint loss、intermediate alignment、contrastive cross-modal alignment 等更常见的 KD / transfer 设计。
-    \item 缺乏更合理的 multimodal teacher pretraining 或 representation-transfer baseline，无法说明 plain logit KD 已经是最合适的简化基线。
-    \item teacher-only CT 因 validation all-positive 而失去可解释性，实际上不能形成有效比较基线。
-\end{enumerate}
-
-换言之，当前 baseline 集合足以支持“this pilot study is carefully controlled within a small executable scaffold”，但不足以支持“the proposed design has been competitively benchmarked”。
-
-\subsection*{4. The paper oscillates between method paper and benchmark/pilot paper}
-
-本文目前最突出的问题之一是定位不够彻底。稿件一方面写了详细方法、模块公式、设计动机，另一方面又在实验和讨论中反复强调：
-
-\begin{itemize}
-    \item evidence remains too small,
-    \item not a definitive benchmark,
-    \item not a clinically validated comparison,
-    \item current full stack is not robust,
-    \item minimum next experiment is still missing.
-\end{itemize}
-
-这使得论文处于一种尴尬状态：
-\begin{itemize}
-    \item 作为\textbf{方法论文}，证据不够；
-    \item 作为\textbf{benchmark / pilot / reproducibility paper}，方法篇幅又偏重，且新 benchmark 规模本身又过小。
-\end{itemize}
-
-顶级 venue 通常会追问：
-\begin{quote}
-“到底这篇论文的 primary contribution 是新方法，还是严格界定证据边界的 pilot benchmark scaffold？”
-\end{quote}
-
-当前稿件答案还不够单一明确。建议强力收缩到后者。
-
-\subsection*{5. Related work is too light for a top-tier paper}
-
-当前 Related Work 主要覆盖了 chest X-ray/CT classification、Transformer、medical KD、multimodal learning，但对以下方向覆盖不足：
-
-\begin{enumerate}
-    \item cross-modal distillation beyond medical imaging；
-    \item training-only privileged modality / learning using privileged information；
-    \item representation alignment across heterogeneous modalities；
-    \item medical multimodal transfer where one modality is absent at test time；
-    \item negative-result / reproducibility / evidence-bounded evaluation literature（若稿件转型为 pilot study，这一块更重要）。
-\end{enumerate}
-
-当前综述还更像“背景铺垫”，不够像“明确建立本文在现有研究谱系中的学术位置”。
-
-\section*{Section-by-Section Review and Revision Suggestions}
-
-\subsection*{Abstract}
-
-\textbf{问题：}
-摘要目前写得相对诚实，但仍然过于“结果驱动”，而没有充分强调这是一个 \textbf{evidence-bounded pilot study}。顶刊审稿人会首先看摘要，如果摘要没有立即传达“本文的主要贡献不是验证新 SOTA，而是建立一个严格、可复查、边界清晰的 pilot protocol”，则会产生预期错位。
-
-\textbf{建议替换方向：}
-\begin{verbatim}
-This paper studies CT-to-X-ray transfer as a deployment-realistic
-training-only supervision problem and presents JDCNet primarily as
-an executable pilot scaffold rather than as a validated superior
-architecture. Under the current lightweight implementation and an
-extremely small paired validation cohort, a stripped-down plain
-cross-modal logit-KD baseline outperforms the full module-augmented
-variant on mean paired-cohort metrics, while all conclusions remain
-fragile due to severe sample scarcity and prevalence bias. The main
-contribution is therefore a reproducible evaluation protocol and an
-explicit evidence-boundary analysis for CT-to-X-ray distillation,
-not a definitive performance claim.
-\end{verbatim}
-
-\subsection*{Introduction}
-
-\textbf{问题：}
-Introduction 已经较好地区分了 deployment realism、same-modality KD 和 multimodal fusion，但仍需进一步压缩“方法成功”的语气，并强化“为什么 negative or fragile results 依然有论文价值”。
+\textbf{当前问题：}
+Section 3 虽然已经加入了 hypothesis-driven framing，但从篇幅体感上看，DPE/MHRA/DFPN 的方法展开仍略重。对于一篇已经明确转向 pilot study 的稿件，过多的模块级公式和局部设计动机，仍会让 reviewer 下意识地用“新方法论文”的标准来读这篇文章。
 
 \textbf{建议：}
 \begin{enumerate}
-    \item 在 1.1 Motivation 末尾增加一段，明确指出医学影像论文中常见的问题是 tiny-cohort 下过度解释 marginal gains，而本文的目标恰恰是建立一个防止过度解释的 protocol。
-    \item 在 1.2 Contributions 中把“module contribution”降级，把“evidence-bounded reproducible pilot benchmark scaffold”升为第一贡献。
-    \item 建议将 contributions 改写为：
+    \item 继续压缩主文中 3.2--3.9 的 architecture-forward 叙事，尤其是那些对当前 claim boundary 没有新增信息量的重复性表述。
+    \item 若版面吃紧，优先把较低信号的模块细节或公式说明移到 appendix，而不是压缩 evidence-boundary discussion。
+    \item 主文方法部分应保留“可复现所必需的定义”，但不要再给人一种“本文主要贡献是提出并验证了一整套新模块”的视觉印象。
 \end{enumerate}
 
-\begin{verbatim}
-\begin{itemize}
-    \item We formulate deployment-realistic CT-to-X-ray transfer as a
-    patient-level training-only supervision problem.
-    \item We provide an executable and fully auditable pilot-study scaffold
-    with manifest generation, repeated-run summaries, and appendix-level
-    evidence tracing.
-    \item We show that under the current evidence scale, a plain cross-modal
-    logit-KD control is stronger than the proposed full stack on average,
-    and we identify the minimum experimental conditions required for any
-    future credible CT-to-X-ray transfer claim.
-\end{itemize}
-\end{verbatim}
+\section*{Priority 2: Make Evaluation Support Counts Impossible to Miss}
 
-\subsection*{Related Work}
+\textbf{当前问题：}
+正文已经写出 fixed split 只有 4 张验证图像、resampling 每次只有 1 个 negative validation patient，但这些关键信息仍主要散落在正文段落里。对只扫图表和 caption 的 reviewer 来说，证据规模仍有被低估或误读的风险。
 
-\textbf{问题：}
-综述不够深，不足以说服顶刊审稿人“本文知道自己在整个学术图谱中的准确位置”。
-
-\textbf{建议新增子节：}
+\textbf{建议：}
 \begin{enumerate}
-    \item \textbf{Privileged-information learning / training-only auxiliary modality}
-    \item \textbf{Cross-modal knowledge distillation and representation transfer}
-    \item \textbf{Evidence robustness in small medical-imaging cohorts}
+    \item 在主文中增加一个更紧凑的 evaluation-regime summary，可用小表、注释框或更强的 caption 文字来完成。
+    \item 明确把以下信息并排可见地写出来：evaluation regime、patient counts、image counts、positive/negative support、以及该 regime 在论文中的角色（reference / feasibility / primary evidence）。
+    \item 若不想再加新表，至少应继续强化固定 split 主表和 resampling 主表 caption 中的 support-count 提示。
 \end{enumerate}
 
-\textbf{需要补充的讨论重点：}
+\section*{Priority 3: Strengthen Scholarly Positioning and References}
+
+\textbf{当前问题：}
+Related Work 已经比之前清楚得多，但若按目标期刊标准，仍可以再补 2--4 篇更强、更“定锚”的文献，使本文的学术位置更稳，而不只是“现在比上一轮更合理”。
+
+\textbf{建议重点：}
+\begin{enumerate}
+    \item privileged modality / learning using privileged information 在医学影像或相邻领域中的后续发展；
+    \item cross-modal supervision transfer / representation transfer 的更强 canonical work；
+    \item small-cohort medical imaging evaluation、reproducibility、evidence inflation 相关文献。
+\end{enumerate}
+
+\textbf{写法上还应继续强调：}
 \begin{itemize}
-    \item 为什么 test-time unavailable modality settings 比传统 multimodal fusion 更难；
-    \item 为什么 logit KD、feature KD、relation KD、contrastive alignment 各自适合或不适合当前场景；
-    \item 为什么本文当前只实现 lightweight logit-distillation scaffold，而没有贸然引入更复杂特征对齐损失；
-    \item 现有医学影像小样本论文中最常见的 evidence inflation 问题。
+    \item 本文\textbf{没有}做全面的 feature-alignment design-space search；
+    \item 本文\textbf{没有}给出 clinical-grade external validation；
+    \item 本文\textbf{没有}验证“test-time multimodal system”，而是在研究 training-only auxiliary modality。
 \end{itemize}
+
+\section*{Priority 4: Keep Headline Tables Maximally Interpretable}
+
+\textbf{当前问题：}
+主文 headline table 已经比之前更稳，但未来再收口时仍要防止“不可同案比较的参考行”和“paired same-case evidence”在视觉上过于接近。
+
+\textbf{建议：}
+\begin{enumerate}
+    \item 保持所有 non-same-case comparable rows 都明确标记为 \texttt{reference}。
+    \item 如果版面需要继续瘦身，可优先考虑把最容易引起误读的 CT-only reference row 移到 appendix，仅在主文保留 paired-cohort 的核心比较。
+    \item 所有 headline figures/tables 都应优先服务于“证据边界清晰”，而不是“结果看起来更满”。
+\end{enumerate}
+
+\section*{Priority 5: If Another Experiment Is Run, Only Run One That Changes the Evidence Scale}
+
+\textbf{当前问题：}
+在现有逻辑下，再做 fixed-split micro-ablation、更多 threshold slicing、或更多同一小 cohort 上的局部小改动，已经很难继续增加真正的 evidential strength。
+
+\textbf{下一步真正值得做的实验只剩两类：}
+\begin{enumerate}
+    \item 更大的 patient-level paired cohort；
+    \item 在\textbf{同样的 repeated same-case resampling protocol} 下补一个更强的 generic feature-alignment baseline。
+\end{enumerate}
+
+\textbf{不建议：}
+\begin{enumerate}
+    \item 再用当前 4-image fixed split 做更多主结论；
+    \item 把更多微型调参包装成“实验补强”；
+    \item 在没有真正任务匹配和独立性的情况下，硬写一个伪 external validation。
+\end{enumerate}
+
+\section*{Section-by-Section Notes}
+
+\subsection*{Title / Abstract / Introduction}
+
+当前整体已经达标，继续修改时应以“压缩和收口”为主，而不是再扩写。摘要中只要继续避免任何会让人读成 validated architecture 的措辞即可。
 
 \subsection*{Methodology}
 
-\textbf{问题：}
-方法章节目前写得清晰，但篇幅和力度偏向“architecture paper”，而实验并没有验证这些模块。公式本身没有问题，问题在于方法叙事和实验支持不匹配。
-
-\textbf{建议：}
-\begin{enumerate}
-    \item 保留公式，但在 3.2--3.9 前后更明确声明：这些模块是 \textbf{testable design hypotheses}，而非已验证的必要组件。
-    \item 减少对 DPE/MHRA/DFPN 的“功能性强断言”，改成“expected role”或“hypothesized utility”。
-    \item 加入一个“Implementation-faithful vs conceptual method”澄清段，防止审稿人误以为你在 claim 一套成熟 feature-distillation framework。
-\end{enumerate}
-
-\textbf{建议可加入一句：}
-\begin{verbatim}
-The present formulation should be read as a hypothesis-driven
-executable scaffold for CT-to-X-ray transfer, not as evidence that
-each proposed module is already necessary or beneficial under the
-current data regime.
-\end{verbatim}
+继续做减法。主文中的方法应服务于 reproducibility 和 hypothesis traceability，而不是继续强化模块感。
 
 \subsection*{Experiments}
 
-\textbf{这是当前最需要大改的部分。}
+实验逻辑已经比之前清楚很多；下一步最值得做的是让 support counts 和 regime roles 在视觉上更显性，而不是继续横向扩充小实验。
 
-\subsubsection*{A. Experimental design weaknesses}
+\subsection*{Discussion / Conclusion}
 
-\textbf{主要问题：}
-\begin{enumerate}
-    \item paired validation split 只有 4 张图，无法支持方法排序；
-    \item repeated seeds 不能弥补独立样本数量不足；
-    \item 没有 external cohort；
-    \item 没有真正可解释的 CT-only validation；
-    \item 现有 ablation 多数是“在不可判别 regime 中做微扰”。
-\end{enumerate}
-
-\textbf{必须补充的实验建议：}
-
-\paragraph{(1) Cross-validation or repeated patient-level resampling}
-当前单一 80/20 split 证据过弱。建议至少增加：
-\begin{itemize}
-    \item repeated patient-level Monte Carlo splits，或
-    \item patient-level K-fold cross-validation（若 cohort 允许）
-\end{itemize}
-来替代单一 4-image validation split。
-
-\textbf{注意：}
-即便 paired cohort 极小，也应尽可能通过 repeated patient-level resampling 来减少“单 split 偶然性”。顶刊审稿人会比你更在意这一点。
-
-\paragraph{(2) Stronger class-imbalance evaluation}
-不仅要报告 accuracy / macro-F1 / balanced accuracy，还应系统补充：
-\begin{itemize}
-    \item specificity / sensitivity with confidence intervals,
-    \item MCC,
-    \item PR-AUC,
-    \item calibration error（若样本允许）,
-    \item decision-threshold-free ranking metrics with caveat discussion.
-\end{itemize}
-
-即使由于样本太小无法稳定估计，也应明确说明“无法稳定估计”本身就是证据不足的一部分，而不是简单回避。
-
-\paragraph{(3) Confidence intervals / exact uncertainty reporting}
-仅报告 mean $\pm$ std across 4 seeds 不够。建议增加：
-\begin{itemize}
-    \item bootstrap confidence intervals over patients（若可行）；
-    \item exact per-case outcome tables in main paper or compact appendix summary；
-    \item McNemar-style paired comparison（若样本允许；若不允许则明确说明不可判别）。
-\end{itemize}
-
-\paragraph{(4) Stronger baselines}
-至少应增加以下其中若干项：
-\begin{itemize}
-    \item teacher-student with stronger backbone,
-    \item feature KD baseline,
-    \item attention transfer baseline,
-    \item representation alignment baseline,
-    \item simple privileged-modality concatenation during training only,
-    \item frozen CT teacher representation transfer vs trainable teacher.
-\end{itemize}
-
-否则审稿人很容易说：你证明的只是“当前 full stack 不如 plain logit KD”，不是“plain logit KD 在该问题上足够强或方法方向正确”。
-
-\paragraph{(5) Same-case evaluation fairness}
-论文中已经意识到 same-case comparison 很重要，但建议在实验表述上更进一步，明确所有 paired-cohort comparisons 都必须基于完全相同的 patient cases、完全相同的 split protocol、完全相同的 label balance accounting。
-
-\paragraph{(6) Data-source expansion}
-如果作者希望把论文从“pilot negative finding”提升到“method paper”，必须扩大 paired cohort。可考虑：
-\begin{itemize}
-    \item 从 Kaggle 或公开医学影像平台继续搜集 chest CT / chest X-ray patient-linked 数据；
-    \item 与公开 COVID/chest imaging 数据中含 patient identifier 或 temporal linkage 的子集进一步配对；
-    \item 若无法获得真正 same-patient paired data，则至少构建更大规模、弱配对但时间/病种匹配更严格的 auxiliary transfer setting，并明确其局限。
-\end{itemize}
-
-\textbf{关键点：} 不是简单“多找点数据”，而是要围绕 deployment claim 组织数据：同病人、同病程邻近、可解释的正负类分布、patient-level partition。
-
-\subsubsection*{B. How to redesign the experiment matrix}
-
-建议把实验矩阵重构为三层：
-
-\begin{verbatim}
-Tier 1: Feasibility controls
-- Student-only X-ray
-- Plain cross-modal logit KD
-- Same-modality KD
-- Late fusion
-
-Tier 2: Mechanism controls
-- + feature KD
-- + attention transfer
-- + intermediate representation alignment
-- frozen vs trainable teacher
-
-Tier 3: Proposed module tests
-- + DPE
-- + MHRA
-- + DFPN
-- progressive complexity
-\end{verbatim}
-
-这样逻辑会更强：先验证“有没有 transfer signal”，再验证“signal 来自哪种 transfer mechanism”，最后才验证“你的模块是否值得引入”。
-
-\subsubsection*{C. What experiments are currently missing most critically}
-
-从顶刊标准看，当前最缺的不是更多 heatmap，而是以下三类实验：
-
-\begin{enumerate}
-    \item \textbf{Resampled patient-level evaluation}：证明当前观察不是单一 split artifact。
-    \item \textbf{Stronger KD baseline family}：证明你的 full stack 的确是在合理竞争环境下被评估。
-    \item \textbf{Larger paired cohort or external held-out cohort}：否则所有方法结论都只能停留在 fragile pilot stage。
-\end{enumerate}
-
-\subsection*{Results and Discussion}
-
-\textbf{优点：}
-目前 discussion 比较诚实，没有强行把 negative result 说成正面创新。
-
-\textbf{仍需修改：}
-\begin{enumerate}
-    \item 更明确地区分“what is observed”与“what is justified”。
-    \item 进一步减少任何可能被理解成“方法有效”的措辞。
-    \item 把“plain logit KD is stronger”写成“under the current tiny paired regime, the stripped-down control is the only configuration showing a tentative mean advantage, but even that advantage is unstable.”
-\end{enumerate}
-
-\textbf{建议增加一段：}
-\begin{verbatim}
-A top-tier interpretation of the current evidence is not that the
-proposed architecture has been validated, but that the present
-paired-data regime is sufficient to falsify overly strong architectural
-claims while remaining insufficient to confirm a robust transfer gain.
-\end{verbatim}
-
-\subsection*{Conclusion}
-
-\textbf{问题：}
-Conclusion 目前仍稍显“方法论文式总结”。
-
-\textbf{建议：}
-结论应明确改成三层结构：
-\begin{enumerate}
-    \item 我们建立了一个 deployment-realistic、可复现的 pilot scaffold；
-    \item 在当前 tiny paired cohort 下，plain KD 比 full stack 更有希望，但依然不稳定；
-    \item 本文最重要的贡献是定义了 future credible CT-to-X-ray transfer claims 的最低证据门槛。
-\end{enumerate}
-
-\section*{Comments on Figures and Tables}
-
-\subsection*{Figure 1}
-
-优点是结构清楚，也与实现一致。问题在于图示看起来像成熟完整架构，而实验并未验证模块收益。建议在 caption 中进一步强调：
-
-\begin{verbatim}
-Figure 1 illustrates the executable scaffold tested in this study,
-not a fully validated module stack.
-\end{verbatim}
-
-\subsection*{Table 2 and paired-cohort plots}
-
-这些图表本身信息透明，但建议把 “4-image validation split” 的风险直接写入主图 caption，而不是主要留在正文和附录中。顶刊审稿人经常只扫图表和 caption。
-
-\subsection*{Ablation figures}
-
-当前 Fig.3/Fig.4 的主要价值其实不是“模块有效”，而是“当前 regime 对模块差异不敏感或呈不稳定退化”。建议在 caption 里进一步降主张，避免给人一种作者仍想从这些图里证明方法优越性的感觉。
-
-\section*{Writing and Positioning Revisions}
-
-\textbf{建议整体修改策略：}
-将全文从“new architecture with supporting experiments”改为：
-
-\begin{quote}
-“an executable, evidence-bounded pilot study of deployment-realistic
-CT-to-X-ray transfer, with negative and fragile findings made explicit.”
-\end{quote}
-
-这是当前稿件最有希望被认可的定位。
-
-\textbf{建议统一替换的高频表达：}
-\begin{itemize}
-    \item 将 “improves” 改为 “shows a tentative mean advantage under the current split”
-    \item 将 “demonstrates” 改为 “suggests under the current pilot regime”
-    \item 将 “effective” 改为 “not yet validated but worth future testing”
-    \item 将 “outperforms” 改为 “achieves the highest mean among current compared settings”
-\end{itemize}
-
-\section*{What Is Needed for a Stronger Resubmission}
-
-若希望显著提升稿件质量，建议至少完成以下事项中的大部分：
-
-\begin{enumerate}
-    \item 增加 repeated patient-level resampling 或 K-fold patient-level evaluation；
-    \item 扩大 paired cohort，至少让 validation 不再只有 4 张图；
-    \item 引入更强、更系统的 KD / transfer baselines；
-    \item 报告更完整的不确定性与 imbalance-sensitive 指标；
-    \item 将全文定位彻底转向 evidence-bounded pilot study；
-    \item 减少对 DPE/MHRA/DFPN 的 validated-architecture 叙事；
-    \item 在 Related Work 中补足 privileged modality、cross-modal KD、small-cohort evidence robustness 三类文献。
-\end{enumerate}
-
-\section*{Final Recommendation}
-
-\textbf{Current decision: Reject / Major Revision}
-
-\textbf{Reason:}
-问题设置有意义，论文透明度也不错，但当前证据规模远不足以支持顶刊/顶会级别的方法性结论。若作者将论文重新定位为严格的 reproducible pilot study，并补充更强的 patient-level resampling、paired-cohort expansion 和 baseline family，对后续重投会更有帮助。
+当前方向正确。后续只需继续把“哪些假设被支持、哪些没有被支持”说得更利落、更 field-facing。
 
 \section*{Cursor Instruction for the Next Revision}
 
 \begin{verbatim}
-1. Rewrite the title, abstract, introduction, and conclusion so that the
-paper is framed primarily as an evidence-bounded reproducible pilot
-study, not as a validated superior architecture.
+1. Continue shrinking architecture-heavy wording in Section 3 so the
+   paper reads first as an evidence-bounded pilot study, not as a
+   validated new-method paper.
 
-2. In the contributions, elevate the executable protocol and minimum
-evidential standard, and downgrade the module-level architectural claim.
+2. Make evaluation support counts more visible in the main paper,
+   especially for the fixed split and the repeated-resampling regime.
 
-3. Expand the related work to include privileged-modality learning,
-cross-modal distillation, and evidence robustness under tiny medical
-cohorts.
+3. Strengthen related-work positioning with 2--4 more canonical references
+   on privileged modality, cross-modal transfer, and small-cohort
+   evidence robustness.
 
-4. Reorganize the experiment section into feasibility controls,
-mechanism controls, and proposed-module tests.
+4. Keep headline tables maximally interpretable; if something is only a
+   reference row, label it as such or move it out of the headline table.
 
-5. Add stronger evaluation: repeated patient-level resampling or
-cross-validation, stronger KD baselines, uncertainty estimates, and
-imbalance-sensitive metrics.
-
-6. Revise all wording so that no sentence overstates the current evidence.
+5. Do not run another experiment unless it materially changes evidence
+   scale; otherwise keep improving the manuscript rather than slicing the
+   same tiny split more finely.
 \end{verbatim}
