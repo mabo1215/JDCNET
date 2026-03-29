@@ -15,6 +15,7 @@
 - 已重新编译并验证最新 PDF；修改说明：`paper/build/main.pdf` 与 `paper/build/appendix.pdf` 当前都可成功生成，没有新的未定义引用，只剩少量排版级 underfull box 和已知的 MiKTeX/`caption` 提示。
 - 已完成论文图片目录从 `images/` 到 `figs/` 的引用切换；修改说明：`paper/main.tex` 与 `paper/appendix.tex` 中所有 `\includegraphics{images/generated/...}` 已统一改为 `\includegraphics{figs/generated/...}`，并确认 `paper/` 下不再残留旧路径引用。
 - 已修复 Windows 下的独立论文构建脚本；修改说明：`paper/build.bat` 已改为使用 `pdflatex + bibtex + pdflatex` 独立构建 `main` 与 `appendix`，产物输出到 `paper/build/`，并在成功后自动复制 `main.pdf` 与 `appendix.pdf` 回 `paper/` 根目录。
+- 已完成当前 revision cycle 中面向 MICCAI 的主文收口；修改说明：`paper/main.tex` 已进一步压缩 Section 3 的 architecture-heavy 叙事、强化 fixed split 与 resampling 的 evidential role/support-count 可见性，并在 `paper/references.bib` 中补入 privileged information、modality hallucination 与 medical-imaging evaluation robustness 的定锚引用后重新编译通过。
 
 ## 未修改或部分修改
 

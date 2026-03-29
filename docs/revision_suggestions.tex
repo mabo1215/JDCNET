@@ -1,142 +1,97 @@
 \section*{Overall Evaluation}
 
-当前稿件相较于上一轮已经完成了最关键的方向修正：problem formulation 已统一，claim boundary 已明显收紧，fixed split 与 repeated same-case resampling 的证据层级已经区分清楚，negative/fragile finding 也被诚实写出。主文和附录现在基本形成了一个较为一致的叙事：这不是一篇已经验证了新架构优越性的论文，而是一篇 \textbf{evidence-bounded reproducible pilot study}。
+The manuscript now reads as a coherent, evidence-bounded pilot study rather than as an over-claimed new-method paper. The strongest improvements from the previous cycle are now in place: the problem formulation is stable, the fixed split and repeated same-case resampling are clearly separated by evidential role, the method section is less architecture-heavy, and the main paper now signals support counts and regime roles much more explicitly. The current draft is therefore materially closer to a credible MICCAI-style pilot or reproducibility submission than it was one revision round ago.
 
-从当前 `paper/main.tex`、`paper/appendix.tex` 与已编译 PDF 来看，稿件最重大的结构性问题已经不再是“定义不清”或“过度宣称”，而是剩下三类更细但依然重要的收口工作：
-
-\begin{enumerate}
-    \item \textbf{方法篇幅仍略重，和当前 pilot-paper 定位相比还有一点 architecture-heavy。}
-    \item \textbf{主文对 evaluation support counts 的可见性还可以继续增强，让 reviewer 扫图表时也不容易误判证据规模。}
-    \item \textbf{Related Work 和 scholarly positioning 还有继续补强空间，尤其是 privileged modality / cross-modal supervision transfer / small-cohort evidence robustness 三条线。}
-\end{enumerate}
-
-因此，当前稿件的判断更适合写成：
+At this stage, the remaining issues are no longer about scientific overclaim in the core experimental logic. They are about \textbf{final positioning discipline}. The draft still presents itself a little too much like a named-method paper in a few high-visibility places, and one headline results table still gives slightly too much visual weight to a reference-only CT row that is not genuinely comparable to the paired-cohort evidence. In addition, the first related-work subsection can still be upgraded from ``COVID-specific prior work'' to ``broader thoracic imaging context'' with one or two stronger anchor references.
 
 \[
-\boxed{\text{Current recommendation: still major revision for a method-style submission,}}
-\]
-\[
-\boxed{\text{but already much closer to a credible pilot-study / reproducibility paper.}}
+\boxed{\text{Current recommendation: moderate revision, with no new experiment needed.}}
 \]
 
 \section*{Major Strengths of the Current Draft}
 
 \begin{enumerate}
-    \item \textbf{问题定义终于稳定。} 当前主文已经基本杜绝了把本文误读成“test-time multimodal fusion”或“validated new architecture paper”的风险。
-    \item \textbf{证据层级明显改善。} fixed split 现在只是 feasibility screen，而 repeated same-case resampling 才是 primary evidence，这一点是正确方向。
-    \item \textbf{负结果写得足够诚实。} 稿件现在愿意明确承认 plain control、same-modality KD、late fusion 在某些指标上比 full JDCNet 更强，这比硬包成正结果更有学术可信度。
-    \item \textbf{附录已经有实质价值。} split audit、per-seed instability、threshold behavior、progressive complexity、error analysis 等补充材料，确实在帮助界定“哪些话能写、哪些话不能写”。
+    \item \textbf{The evidential hierarchy is now credible.} The paper no longer treats the four-image paired split as if it were a definitive benchmark result. The fixed split is framed as feasibility-only, and repeated same-case resampling is treated as the primary evidence.
+    \item \textbf{The manuscript now communicates failure modes honestly.} The plain cross-modal logit-KD control, same-modality KD, late fusion, and the full JDCNet scaffold are all discussed in a way that matches the observed instability instead of masking it.
+    \item \textbf{The method section is much better aligned with the actual claim boundary.} Section 3 now explains what is tested without over-selling DPE, MHRA, and DFPN as already-validated contributions.
+    \item \textbf{Support counts are now substantially harder to miss.} The evaluation-regime summary and the revised captions reduce the risk that a reviewer skimming tables and figures will overestimate the strength of the paired-cohort evidence.
 \end{enumerate}
 
-\section*{Priority 1: Rebalance Method Emphasis Against Evidence Emphasis}
+\section*{Priority 1: De-emphasize Named-Method Branding in the Highest-Visibility Locations}
 
-\textbf{当前问题：}
-Section 3 虽然已经加入了 hypothesis-driven framing，但从篇幅体感上看，DPE/MHRA/DFPN 的方法展开仍略重。对于一篇已经明确转向 pilot study 的稿件，过多的模块级公式和局部设计动机，仍会让 reviewer 下意识地用“新方法论文”的标准来读这篇文章。
+\textbf{Current issue:}
 
-\textbf{建议：}
+Although the body of the paper now reads like a pilot study, the title and a few other highly visible locations still foreground the named system ``JDCNet'' more strongly than the actual evidential contribution. This creates a subtle mismatch: the paper's strongest claim is not that JDCNet is a validated architecture, but that the manuscript provides a reproducible and evidence-bounded study of CT-to-X-ray transfer under tiny paired cohorts.
+
+\textbf{Revision action:}
 \begin{enumerate}
-    \item 继续压缩主文中 3.2--3.9 的 architecture-forward 叙事，尤其是那些对当前 claim boundary 没有新增信息量的重复性表述。
-    \item 若版面吃紧，优先把较低信号的模块细节或公式说明移到 appendix，而不是压缩 evidence-boundary discussion。
-    \item 主文方法部分应保留“可复现所必需的定义”，但不要再给人一种“本文主要贡献是提出并验证了一整套新模块”的视觉印象。
+    \item Consider retitling the paper so that the task and evidential framing appear before the method name, or remove the method name from the title entirely.
+    \item Apply the same positioning rule to the appendix title, PDF metadata, and first method-facing sentence of the abstract.
+    \item Keep ``JDCNet'' as the name of the executable scaffold inside the manuscript, but avoid letting the title make the paper read like a classic new-architecture submission.
 \end{enumerate}
 
-\section*{Priority 2: Make Evaluation Support Counts Impossible to Miss}
+\section*{Priority 2: Demote the CT-Only Reference Out of the Headline Fixed-Split Table}
 
-\textbf{当前问题：}
-正文已经写出 fixed split 只有 4 张验证图像、resampling 每次只有 1 个 negative validation patient，但这些关键信息仍主要散落在正文段落里。对只扫图表和 caption 的 reviewer 来说，证据规模仍有被低估或误读的风险。
+\textbf{Current issue:}
 
-\textbf{建议：}
+The fixed-split table is much more interpretable than before, but the CT-only row is still a reference-only result with no negative validation patient and no meaningful same-case comparability. Even with improved labeling, it still competes visually with the paired-cohort rows in the main results table.
+
+\textbf{Revision action:}
 \begin{enumerate}
-    \item 在主文中增加一个更紧凑的 evaluation-regime summary，可用小表、注释框或更强的 caption 文字来完成。
-    \item 明确把以下信息并排可见地写出来：evaluation regime、patient counts、image counts、positive/negative support、以及该 regime 在论文中的角色（reference / feasibility / primary evidence）。
-    \item 若不想再加新表，至少应继续强化固定 split 主表和 resampling 主表 caption 中的 support-count 提示。
+    \item Move the CT-only reference row out of the headline fixed-split table and into the appendix, or into a short textual note immediately below the table.
+    \item Keep the all-X-ray reference row in the main table if desired, because it remains the most interpretable large-cohort anchor.
+    \item Adjust the corresponding paragraph in the fixed-split subsection so that the main text discusses only rows that materially support the paper's argument.
 \end{enumerate}
 
-\section*{Priority 3: Strengthen Scholarly Positioning and References}
+\section*{Priority 3: Strengthen the First Related-Work Subsection with Broader Thoracic Imaging Anchors}
 
-\textbf{当前问题：}
-Related Work 已经比之前清楚得多，但若按目标期刊标准，仍可以再补 2--4 篇更强、更“定锚”的文献，使本文的学术位置更稳，而不只是“现在比上一轮更合理”。
+\textbf{Current issue:}
 
-\textbf{建议重点：}
+The privileged-information, supervision-transfer, and evidence-robustness lines are now much better anchored. The weakest part of Related Work is instead the opening subsection on chest X-ray and CT classification, which still leans heavily on a narrow set of COVID-specific model papers. For a MICCAI-facing reader, that subsection would benefit from one or two broader thoracic-imaging anchors, such as a respected survey or a widely recognized chest X-ray benchmark paper.
+
+\textbf{Revision action:}
 \begin{enumerate}
-    \item privileged modality / learning using privileged information 在医学影像或相邻领域中的后续发展；
-    \item cross-modal supervision transfer / representation transfer 的更强 canonical work；
-    \item small-cohort medical imaging evaluation、reproducibility、evidence inflation 相关文献。
+    \item Add one stronger chest X-ray anchor and, if space permits, one broader thoracic or medical-imaging survey anchor.
+    \item Use those citations to make the opening related-work subsection less dataset-specific and less tied to early-pandemic model literature.
+    \item Do not expand the whole literature section again; this is a targeted anchoring fix, not a call for another broad literature pass.
 \end{enumerate}
 
-\textbf{写法上还应继续强调：}
-\begin{itemize}
-    \item 本文\textbf{没有}做全面的 feature-alignment design-space search；
-    \item 本文\textbf{没有}给出 clinical-grade external validation；
-    \item 本文\textbf{没有}验证“test-time multimodal system”，而是在研究 training-only auxiliary modality。
-\end{itemize}
+\section*{Priority 4: Trim the Fixed-Split Narrative Slightly Now That the Tables Carry More of the Load}
 
-\section*{Priority 4: Keep Headline Tables Maximally Interpretable}
+\textbf{Current issue:}
 
-\textbf{当前问题：}
-主文 headline table 已经比之前更稳，但未来再收口时仍要防止“不可同案比较的参考行”和“paired same-case evidence”在视觉上过于接近。
+The main paper now has a solid evidential legend and stronger captions. Because of that, the fixed-split narrative can probably be shortened by a few sentences without losing interpretability. The goal is not to remove the cautionary explanation, but to let the table, figure, and resampling section carry more of the explanatory burden.
 
-\textbf{建议：}
+\textbf{Revision action:}
 \begin{enumerate}
-    \item 保持所有 non-same-case comparable rows 都明确标记为 \texttt{reference}。
-    \item 如果版面需要继续瘦身，可优先考虑把最容易引起误读的 CT-only reference row 移到 appendix，仅在主文保留 paired-cohort 的核心比较。
-    \item 所有 headline figures/tables 都应优先服务于“证据边界清晰”，而不是“结果看起来更满”。
+    \item Remove one or two sentences from the fixed-split subsection that restate points already explicit in the revised table caption and figure caption.
+    \item Preserve the sentence that explains why the plain baseline is still unstable and why the CT-only row is not a valid headline comparator.
 \end{enumerate}
 
-\section*{Priority 5: If Another Experiment Is Run, Only Run One That Changes the Evidence Scale}
+\section*{Non-Priority Guidance}
 
-\textbf{当前问题：}
-在现有逻辑下，再做 fixed-split micro-ablation、更多 threshold slicing、或更多同一小 cohort 上的局部小改动，已经很难继续增加真正的 evidential strength。
-
-\textbf{下一步真正值得做的实验只剩两类：}
 \begin{enumerate}
-    \item 更大的 patient-level paired cohort；
-    \item 在\textbf{同样的 repeated same-case resampling protocol} 下补一个更强的 generic feature-alignment baseline。
+    \item Do not add another experiment unless it changes evidence scale.
+    \item Do not re-expand Section 3.
+    \item Do not broaden the claim beyond ``training-only CT supervision for X-ray deployment under tiny patient-level paired cohorts''.
 \end{enumerate}
-
-\textbf{不建议：}
-\begin{enumerate}
-    \item 再用当前 4-image fixed split 做更多主结论；
-    \item 把更多微型调参包装成“实验补强”；
-    \item 在没有真正任务匹配和独立性的情况下，硬写一个伪 external validation。
-\end{enumerate}
-
-\section*{Section-by-Section Notes}
-
-\subsection*{Title / Abstract / Introduction}
-
-当前整体已经达标，继续修改时应以“压缩和收口”为主，而不是再扩写。摘要中只要继续避免任何会让人读成 validated architecture 的措辞即可。
-
-\subsection*{Methodology}
-
-继续做减法。主文中的方法应服务于 reproducibility 和 hypothesis traceability，而不是继续强化模块感。
-
-\subsection*{Experiments}
-
-实验逻辑已经比之前清楚很多；下一步最值得做的是让 support counts 和 regime roles 在视觉上更显性，而不是继续横向扩充小实验。
-
-\subsection*{Discussion / Conclusion}
-
-当前方向正确。后续只需继续把“哪些假设被支持、哪些没有被支持”说得更利落、更 field-facing。
 
 \section*{Cursor Instruction for the Next Revision}
 
 \begin{verbatim}
-1. Continue shrinking architecture-heavy wording in Section 3 so the
-   paper reads first as an evidence-bounded pilot study, not as a
-   validated new-method paper.
+1. Reduce method-branding pressure in the title and other
+   highest-visibility locations so the paper presents first as a
+   pilot study of CT-to-X-ray transfer, not as a named-method paper.
 
-2. Make evaluation support counts more visible in the main paper,
-   especially for the fixed split and the repeated-resampling regime.
+2. Move or demote the CT-only reference result so the headline
+   fixed-split table is visually centered on the evidence that is
+   actually relevant to the main claim.
 
-3. Strengthen related-work positioning with 2--4 more canonical references
-   on privileged modality, cross-modal transfer, and small-cohort
-   evidence robustness.
+3. Strengthen the opening related-work subsection with one or
+   two broader thoracic-imaging anchors, without reopening a
+   large literature pass.
 
-4. Keep headline tables maximally interpretable; if something is only a
-   reference row, label it as such or move it out of the headline table.
-
-5. Do not run another experiment unless it materially changes evidence
-   scale; otherwise keep improving the manuscript rather than slicing the
-   same tiny split more finely.
+4. Trim the fixed-split narrative slightly now that the revised
+   table/figure captions and evaluation-regime summary already
+   carry more of the evidential explanation.
 \end{verbatim}

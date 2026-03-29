@@ -18,7 +18,7 @@ Codex 规则链，具有模板运行所需的基础目录。
 
 ## 目标会议和期刊
 
-目标会议和期刊：<请在这里填写目标会议或目标期刊名称>
+目标会议：<International Conference on Medical Image Computing and Computer-Assisted Intervention(MICCAI)>
 
 - 规则会读取这一行，作为评审标准、scope 检查、格式调整、投稿要求核对和论文修改的目标依据
 - 如果你后续修改这一行，后续评审与修改应自动按新的目标会议或期刊执行
