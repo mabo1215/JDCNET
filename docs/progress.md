@@ -5,6 +5,7 @@
 - 已重新开始独立评审，并将 `docs/revision_suggestions.tex` 完全重写为新的 English-only 评审建议。
 - 已建立可复现实验流水线并接入本地数据；修改说明：`src/` 已覆盖 manifest 生成、teacher/student 训练、蒸馏、评估、论文图表导出，并接入 `D:\source\covid-chestxray-dataset` 与仓库内现有结果资产。
 - 已完成当前仓库中的核心实验矩阵；修改说明：已经跑通并写回论文的结果包括 student-only、late fusion、same-modality KD、plain cross-modal logit KD、full JDCNet、模块消融、imbalance controls、threshold sweep、progressive complexity 与 repeated patient-level resampling。
+- 已根据最新 `docs/revision_suggestions.tex` 继续迭代：收紧固定拆分段落、确认主文高可见位置的 pilot framing、并保持主表仅聚焦同案例配对证据。
 - 已将主文统一收口为 evidence-bounded pilot study；修改说明：`paper/main.tex` 已统一 problem formulation，明确当前研究的是 `patient-level paired`、`training-only CT supervision`、`deployment-time X-ray-only`、`binary COVID-19 vs non-COVID` 的问题，并新增主文问题边界总表。
 - 已把 fixed split 与 repeated resampling 的证据层级分清；修改说明：fixed split 在主文中已明确降级为 feasibility screen，repeated same-case resampling 已提升为 primary evidence，并在主文加入对应 summary table、主图和 `hypothesis -> evidence status` 总表。
 - 已把主文中的 evaluation regime 与 support counts 做到 reviewer 可见；修改说明：主文已新增 `evaluation regimes used in the paper` 总表，显式写出 reference / feasibility / primary evidence 的角色、patient/image support 和主要局限，并同步强化 fixed-split / resampling 的表格与图 caption。
