@@ -1,84 +1,50 @@
 \section*{Overall Evaluation}
 
-This paper is most credible as a reproducible pilot study rather than as a new-method submission. The current draft already has many of the right structural elements: patient-level paired evidence, a fixed-split feasibility screen, repeated same-case resampling, and explicit evidence-role tables. The remaining work is therefore final positioning, not new science.
+The manuscript is best positioned as a MICCAI-style reproducible pilot study, not as a standard architecture paper. The paper has a strong deployment-focused problem definition and a defensible evidence hierarchy, but its current main text still needs tighter framing, clearer headline tables, and stronger external validation cautions.
 
 \section*{Major Strengths}
 
 \begin{enumerate}
-    \item Clear problem focus on training-only CT supervision for X-ray deployment under tiny patient-level paired cohorts.
-    \item Strong evaluation hierarchy with fixed-split feasibility screening and repeated patient-level resampling as the primary evidence layer.
-    \item Good use of evidence-role captions and support counts that make the limitations of the paired cohort visible.
-    \item A reproducibility-minded appendix that documents split audits, per-seed instability, imbalance checks, and ablation diagnostics.
+    \item Clear deployment-oriented formulation: training-only CT supervision for X-ray inference on patient-level paired COVID-19 versus non-COVID classification.
+    \item Explicit evidence structure: feasibility-only fixed split, primary repeated same-case resampling, and explicit support counts for each evaluation regime.
+    \item Reproducibility-minded appendix material that includes split audits, per-seed instability, imbalance checks, and module diagnostics.
+    \item Conservative treatment of the CT-only teacher result as a data-availability reference rather than a headline paired comparison.
 \end{enumerate}
 
-\section*{Priority 1: Reinforce Pilot Framing in High-Visibility Locations}
+\section*{Major Weaknesses}
 
-\textbf{Current issue:}
-
-The paper already reads much more like a pilot study than a method paper, but a few top-line locations still leave room for a reader to interpret it as an architecture validation submission.
-
-\textbf{Revision action:}
 \begin{enumerate}
-    \item Emphasize the evidence protocol and deployment-oriented task in the title and abstract, and avoid phrasing that elevates JDCNet into the main claimed contribution.
-    \item In the first method-facing sentence of the abstract and the opening of Section~3, present JDCNet as an executable scaffold for testing hypotheses rather than as a validated design.
-    \item Move lower-priority mechanism details (DPE/MHRA/DFPN) further toward the appendix if needed, so the main text stays centered on the evaluation design.
+    \item The main text still occasionally implies that JDCNet is a validated architecture instead of an executable hypothesis-testing scaffold.
+    \item The headline fixed-split table is too prominent and risks overstating the tiny four-image result.
+    \item Related work is currently too COVID-centric and should be anchored with canonical thoracic imaging benchmarks.
+    \item Section~3 contains too many lower-confidence module details; the main text should stay focused on evaluation design and evidence boundaries.
 \end{enumerate}
 
-\section*{Priority 2: Keep the Main Headline Table Focused on Same-Case Paired Evidence}
+\section*{Priority Revision Actions}
 
-\textbf{Current issue:}
-
-A CT-only reference row in the main paper risks competing visually with the paired-cohort evidence, even when it is properly labeled as a non-comparable baseline.
-
-\textbf{Revision action:}
 \begin{enumerate}
-    \item Remove the CT-only reference row from the main headline fixed-split table.
-    \item If needed, report the CT-only result only in the appendix or in a short note immediately below the table, explicitly labeling it as a data-availability reference.
-    \item Keep the main text discussion focused on rows that materially support the paired-cohort argument.
-\end{enumerate}
-
-\section*{Priority 3: Anchor the Opening Related Work in Broader Thoracic Imaging}
-
-\textbf{Current issue:}
-
-The first related-work subsection is still slightly narrow, with too much emphasis on COVID-specific model papers and not enough on canonical chest X-ray benchmarks or general thoracic imaging evaluation standards.
-
-\textbf{Revision action:}
-\begin{enumerate}
-    \item Add one broader chest X-ray benchmark/dataset anchor such as NIH ChestX-ray14, MIMIC-CXR, or another well-cited thoracic imaging benchmark.
-    \item Optionally add one more high-level medical imaging survey or evaluation-standard citation.
-    \item Use these references to frame the opening subsection as general chest imaging context rather than COVID-only prior work.
-\end{enumerate}
-
-\section*{Priority 4: Trim Redundant Fixed-Split Text}
-
-\textbf{Current issue:}
-
-The fixed-split narrative now contains the right caution, but it still repeats points that are already explicit in the revised table caption and figure caption.
-
-\textbf{Revision action:}
-\begin{enumerate}
-    \item Remove one or two sentences that restate the same caution about the four-image paired split, the all-positive tendency, and one-negative validation case.
-    \item Preserve the essential sentence that explains why the fixed split is a feasibility screen and not a definitive ranking.
-    \item Keep the reader focused on the repeated-resampling table as the primary evidence layer.
+    \item Reframe the title, abstract, and opening of Section~3 to present the study as an evidence-bounded pilot protocol rather than a new CT-to-X-ray architecture.
+    \item Keep JDCNet as an executable scaffold in the main text and move lower-confidence mechanism details (DPE/MHRA/DFPN) to the appendix unless they are essential to the cross-modality comparison.
+    \item Remove the CT-only teacher row from the main headline fixed-split table. If needed, report CT-only results only in the appendix or in a short note as a non-comparable data-availability reference.
+    \item Add a broader thoracic imaging anchor to Related Work, such as NIH ChestX-ray14/CheXNet or MIMIC-CXR, and use it to frame the opening subsection in general chest imaging evaluation terms.
+    \item Trim redundant fixed-split narrative wording so the table caption and figure caption carry the caution that the four-image split is a feasibility screen, not a definitive ranking.
+    \item Strengthen the main text statement that the repeated same-case resampling table is the primary evidence layer and that the fixed split is retained only as a pilot check.
+    \item Add an explicit limitation paragraph stating that the current paired cohort lacks external independent validation, has only one negative paired validation patient per resample, and therefore cannot support robust clinical generalization claims.
 \end{enumerate}
 
 \section*{Non-Priority Guidance}
 
 \begin{enumerate}
-    \item Do not add another experiment unless it materially increases the same-case evidence scale (more paired patients or an independent paired cohort).
-    \item Do not broaden the claim beyond ``training-only CT supervision for X-ray deployment under tiny patient-level paired cohorts.''
-    \item Do not re-expand the method description in Section~3; keep the main text lean and shift lower-confidence details to the appendix.
+    \item Do not add a new experiment unless it materially increases the same-case paired evidence scale or introduces a truly independent paired cohort.
+    \item Do not broaden the claim beyond the narrow problem statement: training-only CT supervision for X-ray deployment under tiny patient-level paired cohorts.
+    \item Do not re-expand the method description in Section~3; keep the main text lean and move extra architectural detail to the appendix.
 \end{enumerate}
 
 \section*{Cursor Instruction for the Next Revision}
 
 \begin{verbatim}
-1. Make the paper read first as a reproducible pilot evidence study, not as a classic new-architecture submission.
-
-2. Keep the main headline table strictly focused on same-case paired evidence; move any CT-only reference to the appendix or a separate note.
-
-3. Add one broader chest imaging benchmark/dataset anchor to the first related-work subsection.
-
-4. Trim the fixed-split narrative so the tables and captions carry the cautionary evidence.
+1. Reframe the paper as a reproducible pilot evidence study, not as a standard new-architecture submission.
+2. Move CT-only reference data out of the main paired-cohort headline table.
+3. Anchor Related Work with a broader thoracic imaging benchmark such as ChestX-ray14/CheXNet or MIMIC-CXR.
+4. Trim fixed-split text redundancy and let the evidence captions carry the caution.
 \end{verbatim}
