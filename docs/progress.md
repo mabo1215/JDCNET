@@ -22,12 +22,13 @@
 - 已补强主文的 scholarly positioning 文献锚点；修改说明：`paper/ref.bib` 新增 CheXpert、MIMIC-CXR、hidden stratification、Transfusion 与 cross-hospital generalization 五个定锚文献，并已写入 `paper/main.tex` 的 thoracic benchmark、medical transfer 与 evidence-robustness 叙述。
 - 已继续压缩 Introduction 的定位句并补入 1 篇关键 shortcut/domain-shift 文献；修改说明：`paper/main.tex` 现将引言收紧为更接近 MICCAI submission voice 的问题界定，并在 `paper/ref.bib` 中补入 chest-radiograph shortcut 证据以支撑对 tiny paired gains 的谨慎解读。
 - 已继续压缩 Abstract 与 Conclusion 的开头句；修改说明：`paper/main.tex` 现将摘要与结论开头统一改写为与 Introduction 一致的 deployment-oriented pilot-study 口径，减少泛化式铺垫并更快收口到 training-only CT supervision for X-ray deployment 的问题定义。
-- 已将参考文献文件统一重命名为 `paper/ref.bib`；修改说明：`paper/main.tex`、`paper/appendix.tex`、仓库规则说明与 `.codex/config.toml` 现已全部切换到新路径，避免后续构建和 agent 配置继续引用旧的 `paper/references.bib`。
+- 已进一步降低 Method 小节密度并修正 paper 级规则文件一致性；修改说明：`paper/main.tex` 已把原独立的 interpretive-scope 小节并回 pilot scaffold 段落，`paper/AGENTS.md` 也已同步改成 `paper/ref.bib` 路径。
+- 已将参考文献文件统一重命名为 `paper/ref.bib`；修改说明：`paper/main.tex`、`paper/appendix.tex`、仓库规则说明、`agents/` 模板规则树与 `.codex/config.toml` 现已全部切换到新路径，避免后续构建和 agent 配置继续引用旧的 `paper/references.bib`。
 
 ## 未修改或部分修改
 
 - 更大 patient-level paired cohort 与真正独立的 external validation 仍未完成；修改说明：主文和附录已经把这部分写成限制与 minimum next experiment；未修改原因：当前仓库内没有更大且任务匹配的 same-patient CT+CXR 数据，现有外部资源也不足以诚实支撑独立外部验证；后续准备如何修改：优先继续寻找更大的 patient-level paired 数据，若找不到就维持 pilot-study 定位而不伪造外部验证。
 - 更强的 generic feature-alignment baseline 仍未补跑；修改说明：主文与附录现已明确说明 attention transfer 与 feature hint 已覆盖当前最低成本的通用 alignment 控制，而更强 representation-alignment family 需要在同一 repeated same-case resampling protocol 下配合更大 patient support 才有解释价值；未修改原因：当前 tiny paired regime 下继续扩展 baseline family 更可能增加方法空间而非证据强度；后续准备如何修改：只有在拿到更大 paired cohort 或更可解释的负例支持后，才补一个更强且更通用的 feature-alignment baseline。
-- Method 部分相对当前 pilot-paper 定位仍略偏 architecture-heavy；修改说明：这轮已经进一步把主文中的模块实现定义后移到 appendix，并将主文收紧为 hypothesis-control 叙事；未全部修改原因：Section 3 仍需后续继续评估是否还能再删减一层小节密度；后续准备如何修改：下一轮继续检查 3.1--3.5 是否还能合并表述，尽量只保留问题定义、损失函数和可检验假设。
+- Method 部分相对当前 pilot-paper 定位仍略偏 architecture-heavy；修改说明：这轮已经把主文中的模块实现定义后移到 appendix，并进一步合并了 interpretive-scope 小节，使 Section 3 更接近问题定义、假设与损失函数为主的叙事；未全部修改原因：若还要继续压缩，下一步将主要是句级删减而不再是结构级调整；后续准备如何修改：下一轮只在不影响可读性的前提下继续删去少量解释性重复句。
 - Related Work 和 scholarly positioning 仍可再补强；修改说明：当前主文已补入 CheXpert、MIMIC-CXR、hidden stratification、Transfusion、cross-hospital generalization 与 chest-radiograph shortcut 六个更强定锚点，并继续保留 privileged modality、cross-modal transfer 和 evidence robustness 三条线；未全部修改原因：canonical references 仍可视篇幅再补 0--1 篇最关键的 medical transfer 或 evaluation 文献；后续准备如何修改：按新写入的 `docs/revision_suggestions.tex` 继续择优补强，不再做低价值的堆砌式加引。
 - 本轮没有新增新的实验运行或新的图像资产；修改说明：这一轮的重点是继续统一 problem formulation、Introduction 定位句与主文证据结构，让表格、图和正文对同一证据边界给出一致表达；未全部修改原因：在没有改变 evidence scale 或 baseline strength 的前提下，再加固定 split 微型实验的收益很低；后续准备如何修改：只有当新增实验能显著改变 evidence scale 或 baseline strength 时才继续跑，否则优先继续收紧论文写法和主文图表表达。
