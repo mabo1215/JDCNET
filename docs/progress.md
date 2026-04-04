@@ -21,6 +21,7 @@
 - 已继续压缩主文 Method 叙事并把低信号模块定义后移；修改说明：`paper/main.tex` 现仅保留 pilot scaffold、interpretive scope 与 hypothesis-control mapping，DPE/MHRA/DFPN 的具体机制定义与 generic feature-alignment baseline 的取舍说明已转移到 `paper/appendix.tex`。
 - 已补强主文的 scholarly positioning 文献锚点；修改说明：`paper/ref.bib` 新增 CheXpert、MIMIC-CXR、hidden stratification、Transfusion 与 cross-hospital generalization 五个定锚文献，并已写入 `paper/main.tex` 的 thoracic benchmark、medical transfer 与 evidence-robustness 叙述。
 - 已继续压缩 Introduction 的定位句并补入 1 篇关键 shortcut/domain-shift 文献；修改说明：`paper/main.tex` 现将引言收紧为更接近 MICCAI submission voice 的问题界定，并在 `paper/ref.bib` 中补入 chest-radiograph shortcut 证据以支撑对 tiny paired gains 的谨慎解读。
+- 已继续压缩 Abstract 与 Conclusion 的开头句；修改说明：`paper/main.tex` 现将摘要与结论开头统一改写为与 Introduction 一致的 deployment-oriented pilot-study 口径，减少泛化式铺垫并更快收口到 training-only CT supervision for X-ray deployment 的问题定义。
 - 已将参考文献文件统一重命名为 `paper/ref.bib`；修改说明：`paper/main.tex`、`paper/appendix.tex`、仓库规则说明与 `.codex/config.toml` 现已全部切换到新路径，避免后续构建和 agent 配置继续引用旧的 `paper/references.bib`。
 
 ## 未修改或部分修改
