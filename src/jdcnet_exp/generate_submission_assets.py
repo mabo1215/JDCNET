@@ -492,88 +492,204 @@ def _draw_elbow_arrow(axis, points, label=None, label_segment=0, label_position=
         )
 
 
+def _draw_optional_box(axis, xy, width, height, text, fontsize=10.5):
+    box = FancyBboxPatch(
+        xy,
+        width,
+        height,
+        boxstyle="round,pad=0.03,rounding_size=0.12",
+        facecolor="#e6def6",
+        edgecolor="#7c6bb0",
+        linewidth=1.9,
+        linestyle=(0, (4, 2)),
+        zorder=2,
+    )
+    axis.add_patch(box)
+    axis.text(
+        xy[0] + width / 2,
+        xy[1] + height / 2,
+        text,
+        ha="center",
+        va="center",
+        fontsize=fontsize,
+        color="#4a3580",
+        family="DejaVu Sans",
+        zorder=3,
+    )
+
+
+def _draw_thin_arrow(axis, start, end, color="#486581", lw=1.4, ls=(0, (4, 2))):
+    arrow = FancyArrowPatch(
+        start,
+        end,
+        arrowstyle="-|>",
+        mutation_scale=14,
+        linewidth=lw,
+        color=color,
+        linestyle=ls,
+        shrinkA=0,
+        shrinkB=0,
+        zorder=4,
+    )
+    axis.add_patch(arrow)
+
+
+def _draw_thin_elbow(axis, points, color="#486581", lw=1.4, ls=(0, (4, 2))):
+    for start, end in zip(points[:-2], points[1:-1]):
+        axis.plot(
+            [start[0], end[0]],
+            [start[1], end[1]],
+            color=color,
+            linewidth=lw,
+            linestyle=ls,
+            solid_capstyle="round",
+            zorder=4,
+        )
+    _draw_thin_arrow(axis, points[-2], points[-1], color=color, lw=lw, ls=ls)
+
+
 def _plot_executable_architecture() -> None:
-    figure, axis = plt.subplots(figsize=(13.6, 6.0))
+    figure, axis = plt.subplots(figsize=(15.0, 7.2))
     figure.patch.set_facecolor("white")
-    axis.set_xlim(0, 17.6)
-    axis.set_ylim(0, 9)
+    axis.set_xlim(0, 19.5)
+    axis.set_ylim(0, 9.5)
     axis.axis("off")
 
-    palette = {
-        "input": "#dbe7f3",
-        "teacher": "#f9d8bd",
-        "student": "#d9efcf",
-        "module": "#e6def6",
-        "loss": "#fde68a",
-    }
+    C_INPUT = "#dbe7f3"
+    C_TEACHER = "#f9d8bd"
+    C_STUDENT = "#d9efcf"
+    C_LOSS = "#fde68a"
 
-    _draw_box(axis, (0.8, 6.1), 1.9, 1.05, "CT input", palette["input"])
-    _draw_box(axis, (3.2, 5.75), 2.45, 1.75, "Teacher encoder\n4 conv stages", palette["teacher"], fontsize=10.8)
-    _draw_box(axis, (6.25, 6.13), 1.45, 1.0, "DPE", palette["module"])
-    _draw_box(axis, (8.15, 6.13), 1.65, 1.0, "MHRA", palette["module"])
-    _draw_box(axis, (10.45, 5.65), 2.35, 1.95, "Teacher logits\nsoft targets", palette["teacher"], fontsize=10.8)
-
-    _draw_box(axis, (0.8, 1.85), 1.9, 1.05, "X-ray input", palette["input"])
-    _draw_box(axis, (3.2, 1.5), 2.45, 1.75, "Student encoder\n3 conv stages", palette["student"], fontsize=10.8)
-    _draw_box(axis, (6.25, 1.88), 1.7, 1.0, "DFPN", palette["module"])
-    _draw_box(axis, (8.55, 1.5), 2.15, 1.75, "Student logits", palette["student"], fontsize=10.8)
-
-    _draw_box(axis, (14.05, 3.1), 2.45, 1.55, "Hard CE +\nSoft KL loss", palette["loss"], fontsize=10.8)
+    # ── BACKGROUND ZONES ──────────────────────────────────────────────────
+    train_bg = FancyBboxPatch(
+        (0.28, 4.95), 16.2, 4.1,
+        boxstyle="round,pad=0.05",
+        facecolor="#fffcf6", edgecolor="#d4a830",
+        linewidth=1.2, linestyle=(0, (6, 3)), alpha=0.85, zorder=0,
+    )
+    axis.add_patch(train_bg)
     axis.text(
-        8.0,
-        8.35,
+        0.52, 8.82, "Training phase only",
+        fontsize=9.0, color="#9a7215", fontstyle="italic", va="top", zorder=1,
+    )
+
+    deploy_bg = FancyBboxPatch(
+        (0.28, 0.55), 12.7, 4.15,
+        boxstyle="round,pad=0.05",
+        facecolor="#f5fbf5", edgecolor="#6ab87a",
+        linewidth=1.2, linestyle=(0, (6, 3)), alpha=0.85, zorder=0,
+    )
+    axis.add_patch(deploy_bg)
+    axis.text(
+        0.52, 4.45, "Deployment path  (X-ray only)",
+        fontsize=9.0, color="#3a7d44", fontstyle="italic", va="top", zorder=1,
+    )
+
+    # ── TEACHER PATH  (row centre y ≈ 6.55) ───────────────────────────────
+    _draw_box(axis, (0.60, 6.0), 1.85, 1.1, "CT\ninput", C_INPUT, fontsize=10.0)
+    _draw_box(
+        axis, (2.85, 5.65), 2.75, 1.8,
+        "Teacher encoder\n4 conv stages\n(32→64→128→256 ch)", C_TEACHER, fontsize=9.4,
+    )
+    _draw_optional_box(axis, (6.2, 6.0), 1.45, 1.1, "DPE", fontsize=10.5)
+    _draw_optional_box(axis, (8.1, 6.0), 1.6, 1.1, "MHRA", fontsize=10.5)
+    _draw_box(
+        axis, (10.2, 5.65), 2.5, 1.8,
+        "Teacher\nfeatures &\nsoft targets", C_TEACHER, fontsize=10.0,
+    )
+
+    _draw_arrow(axis, (2.45, 6.55), (2.85, 6.55))
+    _draw_arrow(axis, (5.60, 6.55), (6.20, 6.55))
+    _draw_arrow(axis, (7.65, 6.55), (8.10, 6.55))
+    _draw_arrow(axis, (9.70, 6.55), (10.2, 6.55))
+
+    # ── STUDENT PATH  (row centre y ≈ 2.30) ───────────────────────────────
+    _draw_box(axis, (0.60, 1.75), 1.85, 1.1, "X-ray\ninput", C_INPUT, fontsize=10.0)
+    _draw_box(
+        axis, (2.85, 1.45), 2.75, 1.7,
+        "Student encoder\n3 conv stages\n(32→64→128 ch)", C_STUDENT, fontsize=9.4,
+    )
+    _draw_optional_box(axis, (6.2, 1.75), 1.6, 1.1, "DFPN", fontsize=10.5)
+    _draw_box(
+        axis, (8.4, 1.45), 2.5, 1.7,
+        "Student\nembedding &\nlogits", C_STUDENT, fontsize=10.0,
+    )
+
+    _draw_arrow(axis, (2.45, 2.30), (2.85, 2.30))
+    _draw_arrow(axis, (5.60, 2.30), (6.20, 2.30))
+    _draw_arrow(axis, (7.80, 2.30), (8.40, 2.30))
+
+    # ── LOSS BOXES ────────────────────────────────────────────────────────
+    _draw_box(axis, (13.4, 6.3), 2.15, 0.95, "Soft KL loss\n(T = τ)", C_LOSS, fontsize=9.5)
+    _draw_box(axis, (13.4, 5.0), 2.15, 0.95, "Attn. transfer\nloss", C_LOSS, fontsize=9.5)
+    _draw_box(axis, (13.4, 1.75), 2.15, 0.95, "Hard CE loss", C_LOSS, fontsize=9.5)
+    _draw_box(
+        axis, (16.5, 3.5), 2.3, 2.2,
+        "Total\ntraining loss\nL", C_LOSS, fontsize=10.5,
+    )
+
+    # ── DISTILLATION CONNECTIONS ──────────────────────────────────────────
+    # Teacher logits → Soft KL  (solid)
+    _draw_elbow_arrow(
+        axis,
+        [(12.70, 6.55), (13.05, 6.55), (13.40, 6.775)],
+        label="soft targets",
+        label_segment=0, label_position=0.38, label_offset=0.16,
+    )
+
+    # Student logits → Soft KL  (dashed, elbow up)
+    _draw_thin_elbow(
+        axis,
+        [(10.90, 2.50), (11.95, 2.50), (11.95, 6.775), (13.40, 6.775)],
+        color="#486581", lw=1.45,
+    )
+    axis.text(
+        12.20, 4.90, "student\nlogits",
+        fontsize=8.5, color="#486581", ha="center", va="center", zorder=5,
+        bbox={"boxstyle": "round,pad=0.12", "facecolor": "white", "edgecolor": "none", "alpha": 0.92},
+    )
+
+    # Teacher refined features → AT loss  (solid, elbow down)
+    _draw_elbow_arrow(
+        axis,
+        [(11.45, 5.65), (11.45, 5.475), (13.40, 5.475)],
+        label="attn. maps",
+        label_segment=1, label_position=0.52, label_offset=0.16,
+    )
+
+    # Student deepest feature → AT loss  (dashed, elbow up)
+    _draw_thin_elbow(
+        axis,
+        [(10.90, 2.10), (12.15, 2.10), (12.15, 5.475), (13.40, 5.475)],
+        color="#486581", lw=1.45,
+    )
+
+    # Student logits → Hard CE  (solid)
+    _draw_elbow_arrow(
+        axis,
+        [(10.90, 2.30), (13.40, 2.225)],
+        label="hard labels  y",
+        label_segment=0, label_position=0.45, label_offset=0.16,
+    )
+
+    # Loss components → Total loss
+    _draw_elbow_arrow(axis, [(15.55, 6.775), (15.90, 6.775), (15.90, 5.70), (16.50, 5.70)])
+    _draw_elbow_arrow(axis, [(15.55, 5.475), (15.90, 5.475), (15.90, 5.20), (16.50, 5.20)])
+    _draw_elbow_arrow(axis, [(15.55, 2.225), (15.90, 2.225), (15.90, 4.50), (16.50, 4.50)])
+
+    # ── TITLE ─────────────────────────────────────────────────────────────
+    axis.text(
+        9.5, 9.20,
         "JDCNet scaffold evaluated in this study",
-        fontsize=17,
-        fontweight="semibold",
-        ha="center",
-        color="#102a43",
-        family="DejaVu Sans",
+        fontsize=16.5, fontweight="semibold", ha="center", color="#102a43",
+        family="DejaVu Sans", zorder=5,
     )
+
+    # ── LEGEND NOTE ───────────────────────────────────────────────────────
     axis.text(
-        16.5,
-        6.15,
-        "Teacher path\n(training only)",
-        fontsize=10.5,
-        ha="right",
-        va="center",
-        color="#334e68",
-        family="DejaVu Sans",
-    )
-    axis.text(
-        16.5,
-        1.42,
-        "Student path\n(deployment: X-ray only)",
-        fontsize=10.5,
-        ha="right",
-        va="center",
-        color="#334e68",
-        family="DejaVu Sans",
-    )
-
-    _draw_arrow(axis, (2.7, 6.63), (3.2, 6.63))
-    _draw_arrow(axis, (5.65, 6.63), (6.25, 6.63))
-    _draw_arrow(axis, (7.7, 6.63), (8.15, 6.63))
-    _draw_arrow(axis, (9.8, 6.63), (10.45, 6.63))
-
-    _draw_arrow(axis, (2.7, 2.38), (3.2, 2.38))
-    _draw_arrow(axis, (5.65, 2.38), (6.25, 2.38))
-    _draw_arrow(axis, (7.95, 2.38), (8.55, 2.38))
-
-    _draw_elbow_arrow(
-        axis,
-        [(11.62, 5.65), (11.62, 5.05), (15.27, 5.05), (15.27, 4.65)],
-        label="soft distillation",
-        label_segment=1,
-        label_position=0.42,
-        label_offset=0.10,
-    )
-    _draw_elbow_arrow(
-        axis,
-        [(10.7, 2.42), (15.27, 2.42), (15.27, 3.1)],
-        label="hard-label supervision",
-        label_segment=0,
-        label_position=0.40,
-        label_offset=0.10,
+        0.52, 0.12,
+        "─ ─   Optional module (value empirically tested; DPE on teacher, MHRA on teacher, DFPN on student)",
+        fontsize=8.6, color="#4a3580", va="bottom", zorder=5, family="DejaVu Sans",
     )
 
     figure.savefig(IMAGE_DIR / "jdcnet_executable_architecture.png", dpi=400, bbox_inches="tight", pad_inches=0.06)
