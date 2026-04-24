@@ -53,5 +53,81 @@
 	- 需要你提供/决策：
 	1. 是否已有新的 same-patient CT+CXR 数据源可以接入当前仓库？
 	2. 是否已有可用于真正独立 external validation 的 cohort 路径、链接或访问方式？
-	- A: 当前没有新的 same-patient CT+CXR 数据源可接入当前仓库，也没有可用于真正独立 external validation 的 cohort 路径、链接或访问方式。因此本轮不继续推进新的实验扩展，只维持现有 pilot-study 证据边界与限制表述。
+	- **A（2026-04-24 更新）：已通过 Kaggle API 确认以下可用数据源，推翻了之前"无新数据"的结论。**
+
+### 已确认可用的 same-patient CT+CXR 数据源
+
+#### 1. BIMCV-COVID19+（首选，规模最大）
+
+- **Kaggle 路径**：`rafiko1/bimcv-covid19-a-0` 至 `rafiko1/bimcv-covid19-d-0`（共 10 个分包）
+- **License**：CC0-1.0（完全开放，无需申请）
+- **文件结构已验证**：同一患者（如 `sub-S03059`）在不同 session 下同时有 CXR（`_cr.png`，KONICA MINOLTA 胸片）和 CT（`_ct.nii`，3D 体积），遵循 BIDS 格式
+  - CXR sessions：E06153、E06449、E06498、E06720
+  - CT session：E06807
+- **估计规模**（基于论文 Vayá et al., arXiv:2006.01174）：COVID-19 阳性患者 ~1,311 人，其中约 **500–900 人同时有 CT+CXR**，对比当前仓库仅 **19 个配对患者**，潜在增量 **25–50×**
+- **总下载量**：10 个分包合计约 430 GB，最小分包 `d-0` 约 11 GB
+- **最直接接入方式**：Kaggle API（已配置 key `KGAT_736ec...`），可直接 `kaggle datasets download rafiko1/bimcv-covid19-a-0`
+
+#### 2. BIMCV 阴性对照（补充 non-COVID CXR）
+
+- **Kaggle 路径**：`rafiko1/bimcv-neg-pa-cr`（约 10 GB，CC0）
+- **内容**：COVID-19 PCR 阴性患者的 PA 位 CXR（仅有 CXR，无 CT）
+- **局限**：不含 CT，无法作为 same-patient CT+CXR 配对的 non-COVID 训练数据
+
+#### 3. 其他已排查来源（不满足 same-patient 要求）
+
+| 数据集 | Kaggle ID | 模态 | 结论 |
+|--------|-----------|------|------|
+| RICORD | `raddar/ricord-covid19-xray-positive-tests` | CXR only | 不满足 |
+| COVIDx CXR-4 | `andyczhao/covidx-cxr2` | CXR only | 不满足 |
+| COVIDx CT | `hgunraj/covidxct` | CT only | 不满足 |
+| ieee8023（当前）| 本地 `D:\source\covid-chestxray-dataset` | CT+CXR（19对） | 当前数据源 |
+
+### Non-COVID CT+CXR 配对的缺口
+
+- BIMCV 阴性队列仅有 CXR，无 CT → non-COVID 训练仍缺乏同质的 CT+CXR 配对
+- 现有 non-COVID 配对仅 4 对（均来自 ieee8023）
+- **建议路径**：优先用 BIMCV COVID+ 扩大阳性配对规模，同时将 BIMCV 阴性 CXR 与 non-COVID CT（如 TCIA、NLST 子集）跨源配对——需评估是否满足同一患者约束
+
+### 推进状态（2026-04-24 决策已确认，接入脚本已完成）
+
+**作者决策（2026-04-24）：**
+1. 存储策略：**仅下载有 CT+CXR 配对的患者子集**（不下载全量 430 GB）
+2. Non-COVID 策略：**跨源配对**（BIMCV 阴性 CXR + 独立 non-COVID CT 来源）
+3. 后续：接入 BIMCV 后重新运行 same-case resampling protocol 并更新论文 support count 表述
+
+**已完成：**
+- `src/jdcnet_exp/prepare_bimcv_dataset.py`：BIDS 解析 + CT 中间轴向切片提取 + manifest 生成，端到端测试通过
+- `src/requirements.txt`：新增 `nibabel>=5.0`, `kaggle>=1.6`
+
+**已完成（2026-04-24）：**
+- `src/jdcnet_exp/download_bimcv_paired.py`：CLI 枚举全部分包 → 识别 same-patient 配对 → 选最大 CT 文件 → 选择性下载
+  - dry-run 验证 d-0：12 个配对患者，CT 体积 110–723 MB，CXR 1–21 张，报告写入 `src/results/bimcv_download_report.json`
+- `src/jdcnet_exp/prepare_bimcv_dataset.py`：BIDS 解析 + CT 肺窗切片提取 + manifest 生成，端到端测试通过
+
+**完整接入工作流（可立即执行）：**
+```bash
+# Step 1: 选择性下载（仅 same-patient 配对，估计 10–50 GB 而非 430 GB）
+python -m jdcnet_exp.download_bimcv_paired \
+    --output-dir D:\source\bimcv_paired
+
+# Step 2: 构建合并 manifest（BIMCV + 现有 ieee8023）
+python -m jdcnet_exp.prepare_bimcv_dataset \
+    --bimcv-root D:\source\bimcv_paired \
+    --output-dir src/data/bimcv \
+    --slice-dir D:\source\bimcv_paired\ct_slices \
+    --merge-with src/data/covid_real/covid_paired_xray_target_manifest.csv
+
+# Step 3: 重新运行 same-case resampling（使用 bimcv_merged_paired_manifest.csv）
+python -m jdcnet_exp.run_covid_resampling \
+    --manifest src/data/bimcv/bimcv_merged_paired_manifest.csv
+
+# Step 4: 更新论文主表 support count
+python -m jdcnet_exp.generate_paper_assets
+```
+
+**待决策（non-COVID 跨源配对，作者已选"跨源"策略但尚未实施）：**
+- BIMCV 阴性 CXR（`rafiko1/bimcv-neg-pa-cr`）作为 non-COVID 学生输入
+- non-COVID CT 来源尚未确定（TCIA 或其他 non-COVID CT 数据集，不要求同患者）
+- 若跨源对照与 pilot-study 的 same-patient 定语冲突，需在论文中明确区分"COVID+ 配对为同患者，non-COVID 对照为同类别跨源"
 
