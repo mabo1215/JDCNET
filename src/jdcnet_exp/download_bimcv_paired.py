@@ -29,10 +29,21 @@ import subprocess
 import zipfile
 from pathlib import Path
 
+from kaggle.api.kaggle_api_extended import KaggleApi
+
 
 ROOT = Path(__file__).resolve().parents[2]
 
 KAGGLE_BIN = "kaggle"
+_API: KaggleApi | None = None
+
+
+def _get_api() -> KaggleApi:
+    global _API
+    if _API is None:
+        _API = KaggleApi()
+        _API.authenticate()
+    return _API
 
 BIMCV_PARTS = [
     "rafiko1/bimcv-covid19-a-0",
@@ -62,35 +73,22 @@ def _is_cxr(name: str) -> bool:
 
 def _enumerate_part(dataset_ref: str, max_pages: int = 500) -> dict[str, dict[str, list[tuple[str, int]]]]:
     """
-    Use Kaggle CLI to list all files in one dataset part.
+    Use Kaggle Python API to list all files in one dataset part.
     Returns {subject_id: {"ct": [(file_path, size_bytes), ...],
                           "cxr": [(file_path, size_bytes), ...]}}.
     """
+    api = _get_api()
     subjects: dict[str, dict[str, list[tuple[str, int]]]] = {}
     token: str | None = None
+    page = 0
 
     for _ in range(max_pages):
-        cmd = [KAGGLE_BIN, "datasets", "files", dataset_ref, "--csv"]
-        if token:
-            cmd += ["--page-token", token]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        lines = result.stdout.strip().split("\n")
+        resp = api.dataset_list_files(dataset_ref, page_token=token, page_size=200)
+        page += 1
 
-        token = None
-        for line in lines[:3]:
-            if line.startswith("Next Page Token"):
-                token = line.split(" = ", 1)[1].strip()
-                break
-
-        for line in lines:
-            parts = line.split(",")
-            if len(parts) < 2:
-                continue
-            file_path = parts[0].strip()
-            try:
-                size_bytes = int(parts[1].strip())
-            except ValueError:
-                continue
+        for f in resp.files:
+            file_path: str = f.name
+            size_bytes: int = f.total_bytes or 0
 
             m = _SUBJECT_RE.search(file_path)
             if m is None:
@@ -104,6 +102,7 @@ def _enumerate_part(dataset_ref: str, max_pages: int = 500) -> dict[str, dict[st
             elif _is_cxr(basename):
                 entry["cxr"].append((file_path, size_bytes))
 
+        token = resp.next_page_token or None
         if not token:
             break
 
@@ -148,8 +147,28 @@ def _download_single_file(
     Download one file from Kaggle into dest_dir, unpacking the .zip wrapper
     that Kaggle adds to single-file downloads.
     Returns the local Path to the extracted file, or None on failure.
+    Skips download if the target file already exists (resume support).
     """
     dest_dir.mkdir(parents=True, exist_ok=True)
+    basename = Path(remote_file_path).name
+    zip_path = dest_dir / (basename + ".zip")
+    target = dest_dir / basename
+
+    # Resume: skip if already extracted
+    if target.exists() and target.stat().st_size > 0:
+        return target
+
+    # Resume: extract if zip already downloaded but not unpacked
+    if zip_path.exists() and zip_path.stat().st_size > 0 and not target.exists():
+        try:
+            with zipfile.ZipFile(zip_path) as z:
+                target.write_bytes(z.read(z.namelist()[0]))
+            zip_path.unlink()
+            return target if target.exists() else None
+        except zipfile.BadZipFile:
+            print(f"    WARN corrupt zip, re-downloading: {zip_path.name}")
+            zip_path.unlink()
+
     cmd = [
         KAGGLE_BIN, "datasets", "download",
         dataset_ref,
@@ -162,14 +181,14 @@ def _download_single_file(
         print(f"    WARN download failed: {result.stderr.strip()[:120]}")
         return None
 
-    basename = Path(remote_file_path).name
-    zip_path = dest_dir / (basename + ".zip")
-    target = dest_dir / basename
-
     if zip_path.exists() and not target.exists():
-        with zipfile.ZipFile(zip_path) as z:
-            target.write_bytes(z.read(z.namelist()[0]))
-        zip_path.unlink()
+        try:
+            with zipfile.ZipFile(zip_path) as z:
+                target.write_bytes(z.read(z.namelist()[0]))
+            zip_path.unlink()
+        except zipfile.BadZipFile:
+            print(f"    WARN corrupt zip after download: {zip_path.name}")
+            zip_path.unlink()
     return target if target.exists() else None
 
 
@@ -211,6 +230,20 @@ def download_paired_subjects(
 
         if not dry_run:
             subject_dir = output_dir / f"sub-{subject_id}"
+
+            # Resume: skip subjects already fully downloaded
+            ct_basename = Path(ct_path).name
+            ct_expected = subject_dir / "ct" / ct_basename
+            cxr_count_expected = len(cxr_entries)
+            cxr_dir = subject_dir / "cxr"
+            existing_cxr = list(cxr_dir.glob("*")) if cxr_dir.exists() else []
+            if ct_expected.exists() and len(existing_cxr) >= cxr_count_expected:
+                print(f"  SKIP {subject_id}: already downloaded")
+                row["ct_local"] = str(ct_expected)
+                row["cxr_locals"] = [str(p) for p in existing_cxr]
+                row["status"] = "downloaded"
+                subjects_list.append(row)
+                continue
 
             ct_local = _download_single_file(ct_ref, ct_path, subject_dir / "ct")
             if ct_local:
@@ -254,7 +287,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default=r"D:\source\bimcv_paired",
+        default=r"D:\work\datasets\CTXRAY\bimcv_paired",
         help="Root directory where downloaded subject files will be stored.",
     )
     parser.add_argument(
