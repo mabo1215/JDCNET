@@ -287,7 +287,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default=r"D:\work\datasets\CTXRAY\bimcv_paired",
+        default="/mnt/d/work/datasets/CTXRAY/bimcv_paired",
         help="Root directory where downloaded subject files will be stored.",
     )
     parser.add_argument(

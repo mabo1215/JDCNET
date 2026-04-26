@@ -127,7 +127,7 @@ python -m jdcnet_exp.generate_paper_assets
 ```
 
 **待决策（non-COVID 跨源配对，作者已选"跨源"策略但尚未实施）：**
-- BIMCV 阴性 CXR（`rafiko1/bimcv-neg-pa-cr`）作为 non-COVID 学生输入
-- non-COVID CT 来源尚未确定（TCIA 或其他 non-COVID CT 数据集，不要求同患者）
+- BIMCV 阴性 CXR（`rafiko1/bimcv-neg-pa-cr`）作为 non-COVID 学生输入  A: 是的
+- non-COVID CT 来源尚未确定（TCIA 或其他 non-COVID CT 数据集，不要求同患者）  A: D:\work\datasets\CTXRAY\bimcv_paired
 - 若跨源对照与 pilot-study 的 same-patient 定语冲突，需在论文中明确区分"COVID+ 配对为同患者，non-COVID 对照为同类别跨源"
-
+A: 请明确区分 
