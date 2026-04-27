@@ -51,8 +51,8 @@
 
 - 更大 paired cohort / external validation 数据仍缺失。
 	- 需要你提供/决策：
-	1. 是否已有新的 same-patient CT+CXR 数据源可以接入当前仓库？
-	2. 是否已有可用于真正独立 external validation 的 cohort 路径、链接或访问方式？
+	1. 是否已有新的 same-patient CT+CXR 数据源可以接入当前仓库？   A:  有, 数据在 /mnt/d/work/datasets/CTXRAY/bimcv_paired/
+	2. 是否已有可用于真正独立 external validation 的 cohort 路径、链接或访问方式？ A:  有, 数据在 /mnt/d/work/datasets/CTXRAY/bimcv_paired/ 下载完毕。
 	- **A（2026-04-24 更新）：已通过 Kaggle API 确认以下可用数据源，推翻了之前"无新数据"的结论。**
 
 ### 已确认可用的 same-patient CT+CXR 数据源

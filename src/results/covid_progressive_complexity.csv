@@ -1,6 +1,0 @@
-experiment_group,display_name,accuracy_mean,accuracy_std,balanced_accuracy_mean,balanced_accuracy_std,macro_f1_mean,macro_f1_std,precision_mean,precision_std,recall_mean,recall_std,specificity_mean,specificity_std,roc_auc_mean,roc_auc_std,val_samples_mean,val_samples_std,teacher_params,student_params,total_params,total_params_m
-student_xray_cross_modal_plain_distill,Plain logit KD,0.875,0.14433756729740643,0.75,0.28867513459481287,0.7142857142857143,0.32991443953692895,0.875,0.14433756729740643,1.0,0.0,0.5,0.5773502691896257,1.0,0.0,4.0,0.0,389890,93954,483844,0.483844
-student_xray_cross_modal_progressive_dpe,+ DPE,0.8125,0.125,0.625,0.25,0.5714285714285714,0.2857142857142857,0.8125,0.125,1.0,0.0,0.25,0.5,0.8333333333333333,0.3333333333333333,4.0,0.0,390147,93954,484101,0.484101
-student_xray_cross_modal_progressive_dpe_dfpn,+ DPE + DFPN,0.8125,0.125,0.625,0.25,0.5714285714285714,0.28571428571428575,0.8125,0.125,1.0,0.0,0.25,0.5,1.0,0.0,4.0,0.0,390147,566530,956677,0.956677
-student_xray_cross_modal_distill_nodfpn,+ DPE + MHRA,0.75,0.0,0.5,0.0,0.42857142857142855,0.0,0.75,0.0,1.0,0.0,0.0,0.0,0.75,0.5,4.0,0.0,719619,93954,813573,0.813573
-student_xray_cross_modal_distill,+ DPE + MHRA + DFPN,0.75,0.0,0.5,0.0,0.42857142857142855,0.0,0.75,0.0,1.0,0.0,0.0,0.0,1.0,0.0,4.0,0.0,719619,566530,1286149,1.286149
