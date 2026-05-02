@@ -623,8 +623,10 @@ def _plot_resampling_summary(run_frame: pd.DataFrame, summary_frame: pd.DataFram
         axis.set_ylim(0.0, 1.05)
         axis.set_title(title)
         axis.grid(axis="y", linestyle="--", alpha=0.25)
-        axis.axvline(3.5, color="#9fb3c8", linestyle=":", linewidth=1.2)
-        axis.axvline(5.5, color="#9fb3c8", linestyle=":", linewidth=1.2)
+        # Vertical separators between tier groups
+        for xv in [3.5, 5.5, 6.5]:
+            if xv < len(plot_frame) - 0.5:
+                axis.axvline(xv, color="#9fb3c8", linestyle=":", linewidth=1.2)
 
     figure.suptitle("Repeated patient-level Monte Carlo resampling on the paired cohort", fontsize=14)
     output_path.parent.mkdir(parents=True, exist_ok=True)
