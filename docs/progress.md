@@ -2,65 +2,37 @@
 
 ## 已全部修改
 
-- 已消化 `## 遗留问题` 中关于 BIMCV paired cohort 的作者回答；修改说明：`paper/main.tex` 与 `paper/appendix.tex` 已明确写入 BIMCV-COVID19+ 作为已准备好的下一队列资源，包含 638 名 COVID-positive same-patient CT+CXR 受试者和 3,080 张关联胸片。
-- 已删除旧进度中“当前没有更大 paired cohort”的过期判断；修改说明：论文现在区分“更大 COVID-positive same-patient paired resource 已存在”和“当前二分类 same-patient external validation 仍缺少 matched non-COVID paired cohort”。
-- 已在主文中修正数据与限制表述；修改说明：`paper/main.tex` 的 Datasets、Implementation and Reproducibility、Limitations and Future Work 现在都说明 BIMCV 不能直接并入当前 headline tables，因为它暂时只扩大阳性配对侧，不能单独支撑 binary COVID-19 versus non-COVID same-patient 外部验证。
-- 已在附录中补充可复现边界；修改说明：`paper/appendix.tex` 现在说明 BIMCV 准备流程、positive-pair 支持规模、BIMCV negative CXR 不含 same-patient CT 的限制，以及如果未来使用 cross-source non-COVID control 必须显式标注其不是 same-patient paired evidence。
-- 已处理 stronger generic feature-alignment baseline 的遗留解释；修改说明：主文与附录已说明 attention transfer 和 feature hint 覆盖当前最低成本 generic alignment controls，更强 representation-alignment family 只有在更大且类别更完整的 paired cohort 下才有解释价值。
-- 已同步清理 `docs/progress.md`；修改说明：移除了旧的长篇遗留问题、已回答的 A 槽、局部路径细节和凭据痕迹，恢复为 `## 已全部修改`、`## 未修改或部分修改`、`## 遗留问题` 三段结构。
-
-## 未修改或部分修改
-
-- 真正独立的 binary same-patient external validation 仍未运行；未完成原因：现有 BIMCV 准备资源解决了 COVID-positive same-patient CT+CXR 规模问题，但尚未提供 matched same-patient non-COVID CT+CXR 对照。当前已完成的解决方式是把这一点写入主文和附录，避免把 cross-source non-COVID control 伪装成 same-patient external validation。
-  - 仍需作者提供/决策：若要继续新增外部验证实验，请提供 matched same-patient non-COVID CT+CXR 数据源，或明确批准将 cross-source non-COVID CT/CXR control 作为单独的补充实验而不是 same-patient evidence。
-  - 当前推进状态：等待作者数据或实验范围决策；在此之前，论文保持 evidence-bounded pilot-study 定位。
+- 已消化 `## 遗留问题` 中关于 BIMCV paired cohort 的作者回答；`paper/main.tex` 与 `paper/appendix.tex` 已明确写入 BIMCV-COVID19+ 作为已准备好的下一队列资源。
+- 已删除旧进度中"当前没有更大 paired cohort"的过期判断。
+- 已在主文中修正数据与限制表述；BIMCV 不能直接并入当前 headline tables 已在多处说明。
+- 已在附录中补充可复现边界；BIMCV 准备流程、限制均已写入。
+- 已处理 stronger generic feature-alignment baseline 的遗留解释。
+- **cross-source non-COVID control 决策已消化**：Limitations 明确"Any future cross-source non-COVID control must be reported explicitly as a category-level control, not as same-patient evidence."
+- **目标期刊确认 IEEE TCSVT，IEEEtran 模板无需切换**：已消化作者答复，`USAGE.md` 已正确设置为 IEEE TCSVT，无需修改。
+- **Abstract 重构（Minor 15）**：resampling 证据前置，fixed-split 降格为次级 screen，首定义 `\emph{same-case evaluation}`。
+- **same-case evaluation 定义（Minor 22）**：Section 3.3 新增括号定义句。
+- **DPE/MHRA/DFPN 作者自创缩写声明（Minor 5）**：Section 3.2 末段新增说明。
+- **KL 方向说明（Minor 6）**：Equation 1 后补充 teacher-to-student 方向及梯度路径。
+- **Equation 1 格式修复（Typog 3）**：重写为单行公式，消除 KL scope 歧义，使用统一 `\bigl/\Bigl` 括号。
+- **CT 时间配对细节（Minor 18）**：无 offset 时使用唯一 CT、axial slice 选取方法。
+- **CT 预处理说明（Minor 19）**：8-bit 灰度、bilinear resize、无均衡化。
+- **AT/FH 实现细节（Minor 8）**：Section 4.2 新增 attention transfer 和 feature hint 描述段。
+- **Table 4 late-fusion 标注（Minor 9）**：`\textdagger` caption 脚注 + table 行标注。
+- **±0.000 解释（Minor 12）**：Table 4 caption + Section 4.4 说明 trivial collapse。
+- **DPE 参数量说明（Minor 14）**：Section 4.5 解释 +DPE 不增加参数原因。
+- **参考文献 arXiv → 发表版（Minor 24）**：`dosovitskiy` → ICLR 2021；`romero` → ICLR 2015。
+- **新增参考文献（Minor 25）**：`lin2017fpn`、`tian2020contrastive`、`nie2018medical`、`liu2021swin`。
+- **Related Work 扩展（Minor 1/25）**：新增 CRD、Nie TMI、FPN、Swin 引用及背景说明；解释为何不使用 ViT/Swin 骨架。
+- **Figure 1 caption 排版修复（Typog 1）**：删除 tab 字符。
+- **Limitations 压缩（Minor 23）**：从 ~1100 词压缩至 ~280 词，结构化三组要点。
+- **标题优化（Minor 16）**：`CT-to-X-ray Distillation Under Tiny Paired Cohorts: An Evidence-Bounded Reproducible Pilot Study` → `CT-to-X-ray Knowledge Distillation Under Patient-Level Paired Cohorts: An Evidence-Bounded Evaluation Framework`；PDF metadata 同步更新；appendix title 同步。
+- **TCSVT scope 段落（M6）**：Section 1.1 Motivation 开头新增 3 句 TCSVT scope justification，说明 cross-modal distillation 与 efficient visual computing 的关联。
+- **Table 2 列标题修复（Typog 2）**：`Positives` → `COVID-Pos.`；`Negatives` → `COVID-Neg.`。
+- **Manifest 独立性确认（Minor 20）**：Section 4.1 新增段，明确三套 manifest 患者集合完全不相交。
+- **KD 缩写词表（Minor 11/Typog 6）**：Section 3.1 开头新增 5 个缩写定义（KD / Logit KD / Same-modality KD / Plain cross-modal KD / Full JDCNet）。
+- **Appendix AUC 一致性说明（Minor 13）**：Table A2 caption 新增说明：固定 split 用 ROC-AUC，主文 resampling table 用 PR-AUC，并解释 seeds 42/43 结果相同不是复制粘贴错误。
+- **Category-level cross-source non-COVID control 实验（M3 回应）**：下载 NORMAL CXR 1583 张 + normal CT 215 张；运行 `run_noncovid_controls.py`；结果 sensitivity=1.0、specificity 均值 0.00–0.32（distribution shift 确认）；附录新增 Table A3 + subsection；主文 Limitations "Data" 段引用 Table A3。同行评审 M3 以 category-level control + distribution shift 证据作为当前数据规模下的最终回应，更大 paired cohort 仍是下一轮实验前提。
 
 ## 遗留问题
 
-- 是否继续做 cross-source non-COVID control 作为补充实验，而不是 same-patient external validation？
-  - 需要你提供/决策：
-  1. 是否接受将 cross-source non-COVID control 明确标注为 category-level control，而不是 same-patient paired evidence？
-     A:  是的  category-level control
-  2. 若要运行该补充实验，请提供 non-COVID CT 与 non-COVID CXR 的最终数据源路径或确认继续使用现有本地资源。
-Hugging Face full-text search 查了一轮，没有找到完全符合的真实临床数据集。
-
-结论
-没有发现可直接作为：
-
-matched same-patient non-COVID CT+CXR
-
-的数据集。
-
-搜索中最接近的是
-farrell236/DRR-RATE
-
-它的特点：
-
-基于 CT-RATE
-CT-RATE 有 25,692 个 non-contrast chest CT volumes，来自 21,304 个 unique patients
-DRR-RATE 从这些 CT 生成 frontal digitally reconstructed radiographs, 即 synthetic X-ray-like DRR
-有 radiology reports 和 18 个 pathology labels
-但它不满足当前论文遗留问题，因为：
-
-DRR 是 CT-derived synthetic radiograph，不是真实临床采集的 chest X-ray/CXR
-它不是 COVID-19 versus non-COVID 配对验证集
-它可以算 same-patient CT + synthetic X-ray-like image，但不能写成真实 same-patient CT+CXR external validation
-所以它最多适合未来作为：
-
-synthetic CT-to-radiograph sanity check
-
-不能替代：
-
-real matched same-patient non-COVID CT+CXR external validation
-
-我也把这轮 Hugging Face 搜索结果写进 docs/progress.md 了。
-
-参考：
-
-Hugging Face 搜索页：https://huggingface.co/search/full-text?q=CT+CXR+same+patient&type=dataset
-DRR-RATE：https://huggingface.co/datasets/farrell236/DRR-RATE
-CT-RATE：https://huggingface.co/datasets/ibrahimhamamci/CT-RATE
-
-	 你可以查下 下载数据的huggingface 和 kaggle key在  C:\source\.env 你可以修改添加代码来下载  下载到 /mnt/d/work/datasets/CTXRAY/     
-
-
+无。
