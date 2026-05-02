@@ -12,7 +12,15 @@ from torch.utils.data import DataLoader
 from .artifacts import save_confusion_matrix, save_learning_curves, write_history_csv, write_json
 from .config import ExperimentConfig, load_config
 from .data import create_dataloaders, load_filtered_manifests
-from .distillation import attention_transfer_loss, distillation_loss, feature_hint_loss
+from .distillation import (
+    attention_transfer_loss,
+    crd_loss,
+    distillation_loss,
+    dist_loss,
+    dkd_loss,
+    feature_hint_loss,
+    modality_hallucination_loss,
+)
 from .metrics import compute_metrics
 from .models import build_model
 
@@ -126,11 +134,34 @@ def run_training(config: ExperimentConfig) -> None:
         if config.distillation.feature_hint_weight > 0.0:
             student_hint_adapter = nn.Linear(128, config.distillation.feature_hint_dim, bias=False).to(device)
             teacher_hint_adapter = nn.Linear(256, config.distillation.feature_hint_dim, bias=False).to(device)
+        if config.distillation.modality_hallucination_weight > 0.0:
+            hallucination_head = nn.Sequential(
+                nn.Linear(128, 256, bias=True),
+                nn.ReLU(inplace=True),
+                nn.Linear(256, 256, bias=True),
+            ).to(device)
+        else:
+            hallucination_head = None
+        if config.distillation.crd_weight > 0.0:
+            student_crd_adapter = nn.Linear(128, config.distillation.feature_hint_dim, bias=False).to(device)
+            teacher_crd_adapter = nn.Linear(256, config.distillation.feature_hint_dim, bias=False).to(device)
+        else:
+            student_crd_adapter = None
+            teacher_crd_adapter = None
+    else:
+        hallucination_head = None
+        student_crd_adapter = None
+        teacher_crd_adapter = None
 
     optimization_parameters: list[nn.Parameter] = list(model.parameters())
     if student_hint_adapter is not None and teacher_hint_adapter is not None:
         optimization_parameters.extend(student_hint_adapter.parameters())
         optimization_parameters.extend(teacher_hint_adapter.parameters())
+    if hallucination_head is not None:
+        optimization_parameters.extend(hallucination_head.parameters())
+    if student_crd_adapter is not None and teacher_crd_adapter is not None:
+        optimization_parameters.extend(student_crd_adapter.parameters())
+        optimization_parameters.extend(teacher_crd_adapter.parameters())
 
     optimizer = optim.AdamW(
         optimization_parameters,
@@ -184,6 +215,45 @@ def run_training(config: ExperimentConfig) -> None:
                         teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
                         student_adapter=student_hint_adapter,
                         teacher_adapter=teacher_hint_adapter,
+                    )
+                if (
+                    config.distillation.modality_hallucination_weight > 0.0
+                    and hallucination_head is not None
+                ):
+                    loss = loss + config.distillation.modality_hallucination_weight * modality_hallucination_loss(
+                        student_feature=student_outputs["deepest_feature"],
+                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                        hallucination_head=hallucination_head,
+                    )
+                if (
+                    config.distillation.crd_weight > 0.0
+                    and student_crd_adapter is not None
+                    and teacher_crd_adapter is not None
+                ):
+                    loss = loss + config.distillation.crd_weight * crd_loss(
+                        student_feature=student_outputs["deepest_feature"],
+                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                        labels=labels,
+                        student_adapter=student_crd_adapter,
+                        teacher_adapter=teacher_crd_adapter,
+                        temperature=config.distillation.crd_temperature,
+                    )
+                if config.distillation.dkd_weight > 0.0:
+                    loss = loss + config.distillation.dkd_weight * dkd_loss(
+                        student_logits=student_logits,
+                        teacher_logits=teacher_logits,
+                        labels=labels,
+                        temperature=config.distillation.temperature,
+                        alpha=config.distillation.dkd_alpha,
+                        beta=config.distillation.dkd_beta,
+                    )
+                if config.distillation.dist_weight > 0.0:
+                    loss = loss + config.distillation.dist_weight * dist_loss(
+                        student_logits=student_logits,
+                        teacher_logits=teacher_logits,
+                        temperature=config.distillation.temperature,
+                        beta=config.distillation.dist_beta,
+                        gamma=config.distillation.dist_gamma,
                     )
             else:
                 loss = nn.functional.cross_entropy(student_logits, labels, weight=class_weights)

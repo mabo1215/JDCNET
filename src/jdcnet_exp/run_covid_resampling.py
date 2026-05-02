@@ -31,6 +31,10 @@ EXPERIMENT_GROUPS = [
     "student_xray_cross_modal_attention_transfer_resampled",
     "student_xray_cross_modal_feature_hint_resampled",
     "student_xray_cross_modal_distill_resampled",
+    "student_xray_modality_hallucination_resampled",
+    "student_xray_crd_resampled",
+    "student_xray_dkd_resampled",
+    "student_xray_dist_resampled",
 ]
 
 DISPLAY_NAMES = {
@@ -41,6 +45,10 @@ DISPLAY_NAMES = {
     "student_xray_cross_modal_attention_transfer_resampled": "Cross-modal attention transfer",
     "student_xray_cross_modal_feature_hint_resampled": "Cross-modal feature hint",
     "student_xray_cross_modal_distill_resampled": "Full JDCNet",
+    "student_xray_modality_hallucination_resampled": "Modality hallucination KD",
+    "student_xray_crd_resampled": "CRD (Tian 2020)",
+    "student_xray_dkd_resampled": "DKD (Zhao 2022)",
+    "student_xray_dist_resampled": "DIST (Yang 2022)",
 }
 
 TIER_NAMES = {
@@ -51,12 +59,17 @@ TIER_NAMES = {
     "student_xray_cross_modal_attention_transfer_resampled": "Mechanism controls",
     "student_xray_cross_modal_feature_hint_resampled": "Mechanism controls",
     "student_xray_cross_modal_distill_resampled": "Proposed-module test",
+    "student_xray_modality_hallucination_resampled": "Modern KD baselines",
+    "student_xray_crd_resampled": "Modern KD baselines",
+    "student_xray_dkd_resampled": "Modern KD baselines",
+    "student_xray_dist_resampled": "Modern KD baselines",
 }
 
 TIER_COLORS = {
     "Feasibility controls": "#355070",
     "Mechanism controls": "#f4a261",
     "Proposed-module test": "#b56576",
+    "Modern KD baselines": "#6a994e",
 }
 
 SUMMARY_METRICS = [
@@ -407,6 +420,103 @@ def _run_resampled_split(
                 teacher_checkpoint=f"runs/covid_resampling/teacher_ct_paired_full_{suffix}/best.pt",
             ),
         ),
+        (
+            f"student_xray_modality_hallucination_resampled_{suffix}",
+            _build_config(
+                experiment_name=f"student_xray_modality_hallucination_resampled_{suffix}",
+                manifest_path=cross_manifest_path,
+                output_dir=f"runs/covid_resampling/student_xray_modality_hallucination_resampled_{suffix}",
+                seed=42,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_resampling/teacher_ct_paired_plain_{suffix}/best.pt",
+                alpha=0.0,
+                modality_hallucination_weight=1.0,
+                use_dpe=False,
+                use_mhra=False,
+                use_dfpn=False,
+                use_weighted_sampler=True,
+            ),
+        ),
+        (
+            f"student_xray_crd_resampled_{suffix}",
+            _build_config(
+                experiment_name=f"student_xray_crd_resampled_{suffix}",
+                manifest_path=cross_manifest_path,
+                output_dir=f"runs/covid_resampling/student_xray_crd_resampled_{suffix}",
+                seed=42,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_resampling/teacher_ct_paired_plain_{suffix}/best.pt",
+                alpha=0.3,
+                crd_weight=0.5,
+                crd_temperature=0.07,
+                use_dpe=False,
+                use_mhra=False,
+                use_dfpn=False,
+                use_weighted_sampler=True,
+            ),
+        ),
+        (
+            f"student_xray_dkd_resampled_{suffix}",
+            _build_config(
+                experiment_name=f"student_xray_dkd_resampled_{suffix}",
+                manifest_path=cross_manifest_path,
+                output_dir=f"runs/covid_resampling/student_xray_dkd_resampled_{suffix}",
+                seed=42,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_resampling/teacher_ct_paired_plain_{suffix}/best.pt",
+                alpha=0.0,
+                dkd_weight=1.0,
+                dkd_alpha=1.0,
+                dkd_beta=8.0,
+                use_dpe=False,
+                use_mhra=False,
+                use_dfpn=False,
+                use_weighted_sampler=True,
+            ),
+        ),
+        (
+            f"student_xray_dist_resampled_{suffix}",
+            _build_config(
+                experiment_name=f"student_xray_dist_resampled_{suffix}",
+                manifest_path=cross_manifest_path,
+                output_dir=f"runs/covid_resampling/student_xray_dist_resampled_{suffix}",
+                seed=42,
+                model_name="student",
+                train_modalities=["xray"],
+                val_modalities=["xray"],
+                batch_size=batch_size,
+                input_size=input_size,
+                epochs=epochs,
+                distillation_enabled=True,
+                teacher_checkpoint=f"runs/covid_resampling/teacher_ct_paired_plain_{suffix}/best.pt",
+                alpha=0.0,
+                dist_weight=1.0,
+                dist_beta=1.0,
+                dist_gamma=1.0,
+                use_dpe=False,
+                use_mhra=False,
+                use_dfpn=False,
+                use_weighted_sampler=True,
+            ),
+        ),
     ]
 
     for run_name, config_payload in experiment_specs:
@@ -536,6 +646,8 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--input-size", type=int, default=128)
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--skip-dataset-prep", action="store_true",
+                        help="Skip prepare_covid_dataset if manifests already exist at --data-dir.")
     args = parser.parse_args()
 
     data_dir = Path(args.data_dir)
@@ -544,8 +656,12 @@ def main() -> None:
     runs_root = Path(args.runs_root)
     runs_root.mkdir(parents=True, exist_ok=True)
 
-    _prepare_dataset(dataset_root=Path(args.dataset_root), data_dir=data_dir)
-    base_manifest_path = data_dir / "covid_paired_xray_target_manifest.csv"
+    base_manifest_check = data_dir / "covid_paired_xray_target_manifest.csv"
+    if args.skip_dataset_prep and base_manifest_check.exists():
+        print(f"[skip] dataset prep — manifest found at {base_manifest_check}")
+    else:
+        _prepare_dataset(dataset_root=Path(args.dataset_root), data_dir=data_dir)
+    base_manifest_path = base_manifest_check
     split_specs = _materialize_resampled_manifests(
         base_manifest_path=base_manifest_path,
         output_dir=resampling_dir,

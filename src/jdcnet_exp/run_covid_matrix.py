@@ -127,6 +127,15 @@ def _build_config(
     use_dfpn: bool = True,
     paired_input: bool = False,
     use_weighted_sampler: bool = False,
+    modality_hallucination_weight: float = 0.0,
+    crd_weight: float = 0.0,
+    crd_temperature: float = 0.07,
+    dkd_weight: float = 0.0,
+    dkd_alpha: float = 1.0,
+    dkd_beta: float = 8.0,
+    dist_weight: float = 0.0,
+    dist_beta: float = 1.0,
+    dist_gamma: float = 1.0,
 ) -> dict[str, object]:
     return {
         "experiment_name": experiment_name,
@@ -165,6 +174,15 @@ def _build_config(
             "feature_hint_weight": feature_hint_weight,
             "attention_transfer_weight": attention_transfer_weight,
             "feature_hint_dim": feature_hint_dim,
+            "modality_hallucination_weight": modality_hallucination_weight,
+            "crd_weight": crd_weight,
+            "crd_temperature": crd_temperature,
+            "dkd_weight": dkd_weight,
+            "dkd_alpha": dkd_alpha,
+            "dkd_beta": dkd_beta,
+            "dist_weight": dist_weight,
+            "dist_beta": dist_beta,
+            "dist_gamma": dist_gamma,
         },
     }
 
@@ -775,6 +793,8 @@ def main() -> None:
     parser.add_argument("--input-size", type=int, default=128)
     parser.add_argument("--skip-ablation", action="store_true")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument("--skip-dataset-prep", action="store_true",
+                        help="Skip prepare_covid_dataset if manifests already exist at --data-dir.")
     args = parser.parse_args()
 
     dataset_root = Path(args.dataset_root)
@@ -783,7 +803,8 @@ def main() -> None:
     runs_root = Path(args.runs_root)
     runs_root.mkdir(parents=True, exist_ok=True)
 
-    _prepare_dataset(dataset_root=dataset_root, data_dir=data_dir)
+    if not (args.skip_dataset_prep and (data_dir / "covid_paired_xray_target_manifest.csv").exists()):
+        _prepare_dataset(dataset_root=dataset_root, data_dir=data_dir)
     same_modal_manifest_path = _ensure_same_modality_manifest(data_dir=data_dir)
 
     xray_manifest_path = data_dir / "covid_xray_all_manifest.csv"

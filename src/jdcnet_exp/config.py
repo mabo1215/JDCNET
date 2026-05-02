@@ -38,12 +38,24 @@ class OptimizationConfig:
 @dataclass
 class DistillationConfig:
     enabled: bool
-    temperature: float
-    alpha: float
-    teacher_checkpoint: str
+    temperature: float = 4.0
+    alpha: float = 0.5
+    teacher_checkpoint: str = ""
     feature_hint_weight: float = 0.0
     attention_transfer_weight: float = 0.0
     feature_hint_dim: int = 128
+    # Modern KD baselines (2016--2022). Each weight defaults to 0; a non-zero
+    # weight enables the corresponding loss term as an additive contribution
+    # alongside the standard hard+soft distillation objective.
+    modality_hallucination_weight: float = 0.0
+    crd_weight: float = 0.0
+    crd_temperature: float = 0.07
+    dkd_weight: float = 0.0
+    dkd_alpha: float = 1.0
+    dkd_beta: float = 8.0
+    dist_weight: float = 0.0
+    dist_beta: float = 1.0
+    dist_gamma: float = 1.0
 
 
 @dataclass
