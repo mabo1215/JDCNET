@@ -39,7 +39,7 @@ def measure_macs(model: torch.nn.Module, input_size: int) -> float:
     """MACs via fvcore if available, else a simple flops estimator fallback."""
     try:
         from fvcore.nn import FlopCountAnalysis
-        x = torch.randn(1, 1, input_size, input_size)
+        x = torch.randn(1, 3, input_size, input_size)
         flops = FlopCountAnalysis(model, x)
         flops.unsupported_ops_warnings(False)
         flops.uncalled_modules_warnings(False)
@@ -47,7 +47,7 @@ def measure_macs(model: torch.nn.Module, input_size: int) -> float:
     except Exception:
         try:
             from thop import profile
-            x = torch.randn(1, 1, input_size, input_size)
+            x = torch.randn(1, 3, input_size, input_size)
             macs, _ = profile(model, inputs=(x,), verbose=False)
             return float(macs)
         except Exception:
@@ -56,7 +56,7 @@ def measure_macs(model: torch.nn.Module, input_size: int) -> float:
 
 def measure_latency(model: torch.nn.Module, input_size: int, device: str, n_warmup: int = 10, n_iter: int = 50) -> float:
     model.eval().to(device)
-    x = torch.randn(1, 1, input_size, input_size, device=device)
+    x = torch.randn(1, 3, input_size, input_size, device=device)
     with torch.no_grad():
         for _ in range(n_warmup):
             model(x)
