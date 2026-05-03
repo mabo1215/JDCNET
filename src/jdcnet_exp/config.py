@@ -14,6 +14,7 @@ class ModelConfig:
     use_mhra: bool = True
     use_dfpn: bool = True
     paired_input: bool = False
+    backbone: str = "custom"  # "custom" | "resnet18" | "biomedclip"
 
 
 @dataclass

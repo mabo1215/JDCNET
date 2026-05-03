@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -190,7 +192,88 @@ class LateFusionCNN(nn.Module):
         return self.classifier(fused)
 
 
+class ResNet18Classifier(nn.Module):
+    """E3 baseline: ResNet-18 backbone pre-trained on ImageNet, with classifier head replaced.
+
+    Uses torchvision ResNet-18 (weights=IMAGENET1K_V1). The final FC layer is
+    replaced with a new linear head of size `num_classes`. During training all
+    parameters are updated (fine-tuning); the frozen-feature variant is not
+    used here because the cohort is small enough that full fine-tuning diverges
+    less than pure linear probing.
+    """
+
+    def __init__(self, num_classes: int) -> None:
+        super().__init__()
+        import torchvision.models as tvm
+        backbone = tvm.resnet18(weights=tvm.ResNet18_Weights.IMAGENET1K_V1)
+        in_features = backbone.fc.in_features
+        backbone.fc = nn.Linear(in_features, num_classes)
+        self.net = backbone
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)
+
+    def forward_with_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
+        return {"logits": self.forward(x)}
+
+
+class BiomedCLIPClassifier(nn.Module):
+    """E4 baseline: BiomedCLIP image encoder (frozen) + linear probe.
+
+    Uses microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224 via open_clip.
+    The ViT image encoder is frozen; only the linear head is trained.
+
+    Requires: `pip install open_clip_torch`
+    Model will be downloaded to `~/.cache/huggingface` on first use.
+    """
+
+    def __init__(self, num_classes: int) -> None:
+        super().__init__()
+        try:
+            import open_clip  # type: ignore
+        except ImportError as exc:
+            raise ImportError(
+                "open_clip_torch is required for BiomedCLIPClassifier. "
+                "Install with: pip install open_clip_torch"
+            ) from exc
+
+        # Use mirror endpoint by default on restricted networks.
+        os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
+        os.environ.setdefault("HUGGINGFACE_HUB_ENDPOINT", "https://hf-mirror.com")
+
+        model, _, preprocess = open_clip.create_model_and_transforms(
+            "hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224"
+        )
+        self.encoder = model.visual
+        for param in self.encoder.parameters():
+            param.requires_grad_(False)
+
+        # Probe the output dimension with a dummy forward pass
+        with torch.no_grad():
+            dummy = torch.zeros(1, 3, 224, 224)
+            feat_dim = self.encoder(dummy).shape[-1]
+
+        self.head = nn.Linear(feat_dim, num_classes)
+        self.preprocess = preprocess
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        with torch.no_grad():
+            features = self.encoder(x)
+        return self.head(features)
+
+    def forward_with_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
+        return {"logits": self.forward(x)}
+
+
 def build_model(model_config: ModelConfig) -> nn.Module:
+    backbone = getattr(model_config, "backbone", "custom")
+
+    if backbone == "resnet18":
+        return ResNet18Classifier(num_classes=model_config.num_classes)
+
+    if backbone == "biomedclip":
+        return BiomedCLIPClassifier(num_classes=model_config.num_classes)
+
     if model_config.name == "teacher":
         return TeacherCNN(
             num_classes=model_config.num_classes,

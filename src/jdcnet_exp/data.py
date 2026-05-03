@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import numpy as np
@@ -27,7 +28,26 @@ def _build_transform(image_size: int, is_train: bool) -> transforms.Compose:
 
 
 def _load_rgb_image(image_path: str | Path) -> Image.Image:
-    return Image.open(Path(image_path)).convert("RGB")
+    return Image.open(_normalize_image_path(image_path)).convert("RGB")
+
+
+def _normalize_image_path(image_path: str | Path) -> Path:
+    """Normalize manifest image paths across Windows/WSL environments."""
+    path_str = str(image_path)
+    path = Path(path_str)
+    if path.exists():
+        return path
+
+    # Convert Windows absolute paths like D:\foo\bar.jpg to /mnt/d/foo/bar.jpg in WSL.
+    match = re.match(r"^([A-Za-z]):[\\/](.*)$", path_str)
+    if match:
+        drive = match.group(1).lower()
+        rest = match.group(2).replace("\\", "/")
+        mapped = Path(f"/mnt/{drive}/{rest}")
+        if mapped.exists():
+            return mapped
+
+    return path
 
 
 class MedicalImageManifestDataset(Dataset):
