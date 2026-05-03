@@ -1,0 +1,2773 @@
+{
+  "metrics": {
+    "balanced_accuracy": [
+      {
+        "method": "late_fusion_resampled",
+        "median": 1.0,
+        "q1": 0.5,
+        "q3": 1.0,
+        "ci_lo": 0.6,
+        "ci_hi": 0.9,
+        "mean": 0.8,
+        "std": 0.25819888974716115,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_attention_transfer_resampled",
+        "median": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "ci_lo": 0.65,
+        "ci_hi": 0.95,
+        "mean": 0.9,
+        "std": 0.21081851067789198,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_feature_hint_resampled",
+        "median": 1.0,
+        "q1": 0.5,
+        "q3": 1.0,
+        "ci_lo": 0.6,
+        "ci_hi": 0.9,
+        "mean": 0.8,
+        "std": 0.25819888974716115,
+        "n": 10
+      },
+      {
+        "method": "student_xray_supervised_resampled",
+        "median": 1.0,
+        "q1": 0.5,
+        "q3": 1.0,
+        "ci_lo": 0.6,
+        "ci_hi": 0.9,
+        "mean": 0.8,
+        "std": 0.25819888974716115,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_plain_distill_resampled",
+        "median": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "ci_lo": 0.65,
+        "ci_hi": 0.95,
+        "mean": 0.9,
+        "std": 0.21081851067789198,
+        "n": 10
+      },
+      {
+        "method": "student_xray_same_modality_distill_resampled",
+        "median": 0.9583333333333335,
+        "q1": 0.5,
+        "q3": 1.0,
+        "ci_lo": 0.6,
+        "ci_hi": 0.9,
+        "mean": 0.7916666666666667,
+        "std": 0.252304196174791,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_distill_resampled",
+        "median": 0.75,
+        "q1": 0.5,
+        "q3": 1.0,
+        "ci_lo": 0.55,
+        "ci_hi": 0.85,
+        "mean": 0.75,
+        "std": 0.26352313834736496,
+        "n": 10
+      },
+      {
+        "method": "student_xray_crd_resampled",
+        "median": 0.5,
+        "q1": 0.5,
+        "q3": 0.875,
+        "ci_lo": 0.5,
+        "ci_hi": 0.75,
+        "mean": 0.65,
+        "std": 0.24152294576982397,
+        "n": 10
+      },
+      {
+        "method": "student_xray_dist_resampled",
+        "median": 0.5,
+        "q1": 0.5,
+        "q3": 0.5,
+        "ci_lo": 0.5,
+        "ci_hi": 0.7,
+        "mean": 0.6,
+        "std": 0.21081851067789198,
+        "n": 10
+      },
+      {
+        "method": "student_xray_modality_hallucination_resampled",
+        "median": 0.5,
+        "q1": 0.5,
+        "q3": 0.5,
+        "ci_lo": 0.5,
+        "ci_hi": 0.7,
+        "mean": 0.6,
+        "std": 0.21081851067789198,
+        "n": 10
+      },
+      {
+        "method": "student_xray_dkd_resampled",
+        "median": 0.5,
+        "q1": 0.5,
+        "q3": 0.5,
+        "ci_lo": 0.5,
+        "ci_hi": 0.7,
+        "mean": 0.6,
+        "std": 0.21081851067789198,
+        "n": 10
+      }
+    ],
+    "macro_f1": [
+      {
+        "method": "late_fusion_resampled",
+        "median": 1.0,
+        "q1": 0.46457489878542507,
+        "q3": 1.0,
+        "ci_lo": 0.6209790209790209,
+        "ci_hi": 0.9454545454545455,
+        "mean": 0.7851306588148693,
+        "std": 0.27743313316460105,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_attention_transfer_resampled",
+        "median": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "ci_lo": 0.6741258741258741,
+        "ci_hi": 1.0,
+        "mean": 0.8916083916083917,
+        "std": 0.2285155190115819,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_feature_hint_resampled",
+        "median": 1.0,
+        "q1": 0.46842105263157896,
+        "q3": 1.0,
+        "ci_lo": 0.6223318655081898,
+        "ci_hi": 0.9454545454545455,
+        "mean": 0.7856434793276899,
+        "std": 0.2767724827173553,
+        "n": 10
+      },
+      {
+        "method": "student_xray_supervised_resampled",
+        "median": 1.0,
+        "q1": 0.46457489878542507,
+        "q3": 1.0,
+        "ci_lo": 0.6195804195804195,
+        "ci_hi": 0.9454545454545455,
+        "mean": 0.7844313581155686,
+        "std": 0.2783467197033908,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_plain_distill_resampled",
+        "median": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "ci_lo": 0.6741258741258741,
+        "ci_hi": 1.0,
+        "mean": 0.8916083916083917,
+        "std": 0.2285155190115819,
+        "n": 10
+      },
+      {
+        "method": "student_xray_same_modality_distill_resampled",
+        "median": 0.8939393939393939,
+        "q1": 0.46457489878542507,
+        "q3": 1.0,
+        "ci_lo": 0.6007974481658691,
+        "ci_hi": 0.9030303030303031,
+        "mean": 0.7632192369034474,
+        "std": 0.26798311967394906,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_distill_resampled",
+        "median": 0.7368421052631579,
+        "q1": 0.4615384615384615,
+        "q3": 1.0,
+        "ci_lo": 0.5676481413323519,
+        "ci_hi": 0.8923076923076924,
+        "mean": 0.7305852042694148,
+        "std": 0.2840359851580941,
+        "n": 10
+      },
+      {
+        "method": "student_xray_modality_hallucination_resampled",
+        "median": 0.4641025641025641,
+        "q1": 0.4615384615384615,
+        "q3": 0.4719298245614034,
+        "ci_lo": 0.4627064163906268,
+        "ci_hi": 0.7333139965221418,
+        "mean": 0.5700723837565943,
+        "std": 0.2266626113784233,
+        "n": 10
+      },
+      {
+        "method": "student_xray_dist_resampled",
+        "median": 0.4641025641025641,
+        "q1": 0.4615384615384615,
+        "q3": 0.4719298245614034,
+        "ci_lo": 0.4627064163906268,
+        "ci_hi": 0.7333139965221418,
+        "mean": 0.5700723837565943,
+        "std": 0.2266626113784233,
+        "n": 10
+      },
+      {
+        "method": "student_xray_dkd_resampled",
+        "median": 0.4641025641025641,
+        "q1": 0.4615384615384615,
+        "q3": 0.4719298245614034,
+        "ci_lo": 0.4627064163906268,
+        "ci_hi": 0.7333139965221418,
+        "mean": 0.5700723837565943,
+        "std": 0.2266626113784233,
+        "n": 10
+      },
+      {
+        "method": "student_xray_crd_resampled",
+        "median": 0.4615384615384615,
+        "q1": 0.45629370629370625,
+        "q3": 0.868421052631579,
+        "ci_lo": 0.5124033860875966,
+        "ci_hi": 0.837062937062937,
+        "mean": 0.6221935958778064,
+        "std": 0.2607715025692587,
+        "n": 10
+      }
+    ],
+    "mcc": [
+      {
+        "method": "late_fusion_resampled",
+        "median": 1.0,
+        "q1": 0.0,
+        "q3": 1.0,
+        "ci_lo": 0.2,
+        "ci_hi": 0.8,
+        "mean": 0.6,
+        "std": 0.5163977794943223,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_attention_transfer_resampled",
+        "median": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "ci_lo": 0.3,
+        "ci_hi": 0.9,
+        "mean": 0.8,
+        "std": 0.42163702135578396,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_feature_hint_resampled",
+        "median": 1.0,
+        "q1": 0.0,
+        "q3": 1.0,
+        "ci_lo": 0.2,
+        "ci_hi": 0.8,
+        "mean": 0.6,
+        "std": 0.5163977794943222,
+        "n": 10
+      },
+      {
+        "method": "student_xray_supervised_resampled",
+        "median": 1.0,
+        "q1": 0.0,
+        "q3": 1.0,
+        "ci_lo": 0.2,
+        "ci_hi": 0.8,
+        "mean": 0.6,
+        "std": 0.5163977794943223,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_plain_distill_resampled",
+        "median": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "ci_lo": 0.3,
+        "ci_hi": 0.9,
+        "mean": 0.8,
+        "std": 0.42163702135578396,
+        "n": 10
+      },
+      {
+        "method": "student_xray_same_modality_distill_resampled",
+        "median": 0.8227486121839513,
+        "q1": 0.0,
+        "q3": 1.0,
+        "ci_lo": 0.2,
+        "ci_hi": 0.8,
+        "mean": 0.5645497224367902,
+        "std": 0.4977173199977961,
+        "n": 10
+      },
+      {
+        "method": "student_xray_cross_modal_distill_resampled",
+        "median": 0.5,
+        "q1": 0.0,
+        "q3": 1.0,
+        "ci_lo": 0.1,
+        "ci_hi": 0.7,
+        "mean": 0.5,
+        "std": 0.5270462766947299,
+        "n": 10
+      },
+      {
+        "method": "student_xray_crd_resampled",
+        "median": 0.0,
+        "q1": 0.0,
+        "q3": 0.75,
+        "ci_lo": 0.0,
+        "ci_hi": 0.5,
+        "mean": 0.3,
+        "std": 0.48304589153964794,
+        "n": 10
+      },
+      {
+        "method": "student_xray_dist_resampled",
+        "median": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "ci_lo": 0.0,
+        "ci_hi": 0.4,
+        "mean": 0.2,
+        "std": 0.42163702135578396,
+        "n": 10
+      },
+      {
+        "method": "student_xray_modality_hallucination_resampled",
+        "median": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "ci_lo": 0.0,
+        "ci_hi": 0.4,
+        "mean": 0.2,
+        "std": 0.42163702135578396,
+        "n": 10
+      },
+      {
+        "method": "student_xray_dkd_resampled",
+        "median": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "ci_lo": 0.0,
+        "ci_hi": 0.4,
+        "mean": 0.2,
+        "std": 0.42163702135578396,
+        "n": 10
+      }
+    ]
+  },
+  "wilcoxon": {
+    "balanced_accuracy": {
+      "late_fusion_resampled": {
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 5.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.25
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.25
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.25
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 1.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_crd_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": -0.25
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 3.0,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": -0.25
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_attention_transfer_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.25
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 1,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_feature_hint_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 5.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 3.0,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 2.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 5.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_plain_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.25
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_dist_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.25
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.25
+        }
+      },
+      "student_xray_dkd_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.25
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_dist_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.25
+        }
+      },
+      "student_xray_modality_hallucination_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.25
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_dist_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.25
+        }
+      },
+      "student_xray_same_modality_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 1,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 2.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_supervised_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 1.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 5.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.25
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.25
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.25
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      }
+    },
+    "macro_f1": {
+      "late_fusion_resampled": {
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.75,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 4.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.75,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 5.0,
+          "p_value": 0.3125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.26666666666666666
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 5.0,
+          "p_value": 0.3125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.26666666666666666
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 5.0,
+          "p_value": 0.3125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.26666666666666666
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 1.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_crd_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": -0.26315789473684215
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 1.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": -0.26315789473684215
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 3.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 3.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 3.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_attention_transfer_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.75,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.26315789473684215
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5298245614035089
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5298245614035089
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5298245614035089
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 1.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 1,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_feature_hint_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 4.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 1.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 1.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 2.0,
+          "p_value": 0.75,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.75,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_plain_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.75,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.26315789473684215
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5298245614035089
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5298245614035089
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5298245614035089
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_dist_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 5.0,
+          "p_value": 0.3125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.26666666666666666
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 3.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5298245614035089
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5298245614035089
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 5.5,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.26666666666666666
+        }
+      },
+      "student_xray_dkd_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 5.0,
+          "p_value": 0.3125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.26666666666666666
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 3.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5298245614035089
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5298245614035089
+        },
+        "student_xray_dist_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 5.5,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.26666666666666666
+        }
+      },
+      "student_xray_modality_hallucination_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 5.0,
+          "p_value": 0.3125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.26666666666666666
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 3.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5298245614035089
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5298245614035089
+        },
+        "student_xray_dist_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 5.5,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.26666666666666666
+        }
+      },
+      "student_xray_same_modality_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 1,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 2.0,
+          "p_value": 0.75,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 4.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_supervised_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 1.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 2.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.75,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 5.5,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.26666666666666666
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 5.5,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.26666666666666666
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 5.5,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.26666666666666666
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 4.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      }
+    },
+    "mcc": {
+      "late_fusion_resampled": {
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 5.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 1.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_crd_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": -0.5
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 3.0,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": -0.5
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_attention_transfer_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.5
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 1.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 1.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 1.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 1,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_feature_hint_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 5.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 3.0,
+          "p_value": 0.375,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 2.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 5.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_cross_modal_plain_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.0625,
+          "n_paired": 10,
+          "n_nonzero": 5,
+          "median_diff": 0.5
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.5,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 1.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 1.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 1.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_dist_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -1.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -1.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        }
+      },
+      "student_xray_dkd_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -1.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -1.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        }
+      },
+      "student_xray_modality_hallucination_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -1.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.03125,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -1.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": NaN,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 0,
+          "median_diff": 0.0
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": -0.5
+        }
+      },
+      "student_xray_same_modality_distill_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 1,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 2.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.125,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_supervised_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      },
+      "student_xray_supervised_resampled": {
+        "late_fusion_resampled": {
+          "statistic": 1.5,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 2,
+          "median_diff": 0.0
+        },
+        "student_xray_crd_resampled": {
+          "statistic": 0.0,
+          "p_value": 0.25,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_attention_transfer_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_distill_resampled": {
+          "statistic": 2.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 3,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_feature_hint_resampled": {
+          "statistic": 5.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_cross_modal_plain_distill_resampled": {
+          "statistic": 2.5,
+          "p_value": 0.625,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        },
+        "student_xray_dist_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_dkd_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_modality_hallucination_resampled": {
+          "statistic": 3.5,
+          "p_value": 0.21875,
+          "n_paired": 10,
+          "n_nonzero": 6,
+          "median_diff": 0.5
+        },
+        "student_xray_same_modality_distill_resampled": {
+          "statistic": 4.0,
+          "p_value": 1.0,
+          "n_paired": 10,
+          "n_nonzero": 4,
+          "median_diff": 0.0
+        }
+      }
+    }
+  },
+  "rank_stability": {
+    "balanced_accuracy": {
+      "n_methods": 0,
+      "spearman_rho": NaN,
+      "spearman_p": NaN,
+      "kendall_tau": NaN,
+      "kendall_p": NaN
+    },
+    "macro_f1": {
+      "n_methods": 0,
+      "spearman_rho": NaN,
+      "spearman_p": NaN,
+      "kendall_tau": NaN,
+      "kendall_p": NaN
+    }
+  }
+}

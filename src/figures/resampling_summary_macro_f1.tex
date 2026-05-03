@@ -1,0 +1,20 @@
+\begin{table*}[t]
+\caption{Per-method macro_f1 on the same-case resampling cohort. We report median, interquartile range, and BCa bootstrap 95\% confidence interval over the resamples; mean$\pm$SD is included for compatibility with prior versions of this paper. The Wilcoxon and rank-stability diagnostics are reported separately.}
+\label{tab:macro_f1_resampling_stats}
+\centering
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+Method & Median [IQR] & 95\% BCa CI & Mean $\pm$ SD & $n$ resamples \\ \hline
+late_fusion_resampled & $1.000$ [$0.465$, $1.000$] & [$0.621$, $0.945$] & $0.785 \pm 0.277$ & 10 \\ \hline
+student_xray_cross_modal_attention_transfer_resampled & $1.000$ [$1.000$, $1.000$] & [$0.674$, $1.000$] & $0.892 \pm 0.229$ & 10 \\ \hline
+student_xray_cross_modal_feature_hint_resampled & $1.000$ [$0.468$, $1.000$] & [$0.622$, $0.945$] & $0.786 \pm 0.277$ & 10 \\ \hline
+student_xray_supervised_resampled & $1.000$ [$0.465$, $1.000$] & [$0.620$, $0.945$] & $0.784 \pm 0.278$ & 10 \\ \hline
+student_xray_cross_modal_plain_distill_resampled & $1.000$ [$1.000$, $1.000$] & [$0.674$, $1.000$] & $0.892 \pm 0.229$ & 10 \\ \hline
+student_xray_same_modality_distill_resampled & $0.894$ [$0.465$, $1.000$] & [$0.601$, $0.903$] & $0.763 \pm 0.268$ & 10 \\ \hline
+student_xray_cross_modal_distill_resampled & $0.737$ [$0.462$, $1.000$] & [$0.568$, $0.892$] & $0.731 \pm 0.284$ & 10 \\ \hline
+student_xray_modality_hallucination_resampled & $0.464$ [$0.462$, $0.472$] & [$0.463$, $0.733$] & $0.570 \pm 0.227$ & 10 \\ \hline
+student_xray_dist_resampled & $0.464$ [$0.462$, $0.472$] & [$0.463$, $0.733$] & $0.570 \pm 0.227$ & 10 \\ \hline
+student_xray_dkd_resampled & $0.464$ [$0.462$, $0.472$] & [$0.463$, $0.733$] & $0.570 \pm 0.227$ & 10 \\ \hline
+student_xray_crd_resampled & $0.462$ [$0.456$, $0.868$] & [$0.512$, $0.837$] & $0.622 \pm 0.261$ & 10 \\ \hline
+\end{tabular}
+\end{table*}

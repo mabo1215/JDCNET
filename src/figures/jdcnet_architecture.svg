@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="figure-svg" class="diagram" viewBox="0 0 1320 580" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1320" height="580"><style>text{font-family:Inter,Helvetica,Arial,sans-serif;}</style>
+    <defs>
+      <marker id="ah-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#b44a3a"/>
+      </marker>
+      <marker id="ah-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#2f6a57"/>
+      </marker>
+      <marker id="ah-l" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#8b6b08"/>
+      </marker>
+      <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="1.1"/>
+        <feOffset dy="1.2"/>
+        <feComponentTransfer><feFuncA type="linear" slope="0.10"/></feComponentTransfer>
+        <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <linearGradient id="teacherBand" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#b44a3a" stop-opacity="0.045"/>
+        <stop offset="1" stop-color="#b44a3a" stop-opacity="0.00"/>
+      </linearGradient>
+      <linearGradient id="studentBand" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2f6a57" stop-opacity="0.00"/>
+        <stop offset="1" stop-color="#2f6a57" stop-opacity="0.045"/>
+      </linearGradient>
+
+      <!-- Icons -->
+      <symbol id="ctGlyph" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <ellipse cx="12" cy="17" rx="3.2" ry="4.5" fill="none" stroke="currentColor" stroke-width="0.9"/>
+        <ellipse cx="20" cy="17" rx="3.2" ry="4.5" fill="none" stroke="currentColor" stroke-width="0.9"/>
+        <path d="M16 11 L16 23" stroke="currentColor" stroke-width="0.8"/>
+        <path d="M8 9 Q 16 4 24 9" fill="none" stroke="currentColor" stroke-width="0.8"/>
+      </symbol>
+      <symbol id="xrGlyph" viewBox="0 0 32 32">
+        <rect x="3" y="3" width="26" height="26" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M9 8 Q 16 14 23 8 M 16 14 L 16 26 M 10 18 L 22 18 M 11 22 L 21 22" fill="none" stroke="currentColor" stroke-width="0.9"/>
+      </symbol>
+      <symbol id="stageGlyph" viewBox="0 0 36 24">
+        <rect x="1" y="4" width="18" height="16" rx="1.5" fill="none" stroke="currentColor" stroke-width="1"/>
+        <rect x="8" y="7" width="18" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1"/>
+        <rect x="15" y="10" width="18" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1"/>
+      </symbol>
+      <symbol id="dpeGlyph" viewBox="0 0 24 24">
+        <g stroke="currentColor" stroke-width="1" fill="none">
+          <rect x="3" y="3" width="5" height="5"/><rect x="10" y="3" width="5" height="5"/><rect x="17" y="3" width="4" height="5"/>
+          <rect x="3" y="10" width="5" height="5"/><rect x="10" y="10" width="5" height="5"/><rect x="17" y="10" width="4" height="5"/>
+          <rect x="3" y="17" width="5" height="4"/><rect x="10" y="17" width="5" height="4"/><rect x="17" y="17" width="4" height="4"/>
+        </g>
+        <circle cx="12.5" cy="12.5" r="1.6" fill="currentColor"/>
+      </symbol>
+      <symbol id="mhraGlyph" viewBox="0 0 28 24">
+        <g stroke="currentColor" stroke-width="1" fill="none">
+          <circle cx="5" cy="12" r="2"/><circle cx="14" cy="12" r="2"/><circle cx="23" cy="12" r="2"/>
+          <path d="M5 10 Q 14 2, 23 10"/><path d="M5 14 Q 14 22, 23 14"/>
+          <path d="M14 10 Q 9 4, 5 10" opacity="0.6"/><path d="M14 10 Q 19 4, 23 10" opacity="0.6"/>
+        </g>
+      </symbol>
+      <symbol id="dfpnGlyph" viewBox="0 0 28 24">
+        <g stroke="currentColor" stroke-width="1" fill="none">
+          <rect x="3" y="4" width="22" height="4"/>
+          <rect x="6" y="10" width="16" height="4"/>
+          <rect x="9" y="16" width="10" height="4"/>
+          <path d="M14 8 L14 10 M14 14 L14 16" stroke-dasharray="1.5 1.5"/>
+        </g>
+      </symbol>
+    </defs>
+
+    <!-- ======= BACKGROUND BANDS ======= -->
+    <rect x="24" y="50" width="1040" height="180" rx="10" fill="url(#teacherBand)" stroke="#b44a3a" stroke-opacity="0.22" stroke-dasharray="4 4"/>
+    <text x="40" y="72" class="t-cap" fill="#b44a3a" textLength="190.16" lengthAdjust="spacingAndGlyphs">Teacher path · training only</text>
+
+    <rect x="24" y="310" width="1040" height="180" rx="10" fill="url(#studentBand)" stroke="#2f6a57" stroke-opacity="0.22"/>
+    <text x="40" y="480" class="t-cap" fill="#2f6a57" textLength="244.83" lengthAdjust="spacingAndGlyphs">Student path · deployed (X-ray only)</text>
+
+    <!-- ======= TEACHER ROW ======= -->
+    <!-- CT input -->
+    <g filter="url(#soft)">
+      <rect x="60" y="110" width="120" height="80" rx="6" fill="#eceef2" stroke="#8e95a1" stroke-width="1"/>
+    </g>
+    <g color="#4a5261" transform="translate(76,124)">
+      <use href="#ctGlyph" width="28" height="28"/>
+    </g>
+    <text x="120" y="172" class="t-io" text-anchor="middle" textLength="53.18" lengthAdjust="spacingAndGlyphs">CT input</text>
+    <text x="120" y="186" class="t-io-sub" text-anchor="middle" textLength="93.71" lengthAdjust="spacingAndGlyphs">same-patient scan</text>
+
+    <!-- Teacher encoder -->
+    <g filter="url(#soft)">
+      <rect x="215" y="102" width="168" height="96" rx="7" fill="#fbeee7" stroke="#b44a3a" stroke-width="1.2"/>
+    </g>
+    <g color="#b44a3a" transform="translate(228,115)">
+      <use href="#stageGlyph" width="36" height="24"/>
+    </g>
+    <text x="299" y="160" class="t-title" text-anchor="middle" fill="#7a2c20" textLength="113.61" lengthAdjust="spacingAndGlyphs">Teacher encoder</text>
+    <text x="299" y="178" class="t-sub" text-anchor="middle" textLength="77.08" lengthAdjust="spacingAndGlyphs">4 conv stages</text>
+
+    <!-- DPE -->
+    <g filter="url(#soft)">
+      <rect x="418" y="112" width="112" height="76" rx="7" fill="#eaeef7" stroke="#3a4a7a" stroke-width="1.2"/>
+    </g>
+    <g color="#3a4a7a" transform="translate(438,122)">
+      <use href="#dpeGlyph" width="20" height="20"/>
+    </g>
+    <text x="474" y="160" class="t-title" text-anchor="middle" fill="#283563" textLength="27.25" lengthAdjust="spacingAndGlyphs">DPE</text>
+    <text x="474" y="177" class="t-sub" text-anchor="middle" textLength="107.06" lengthAdjust="spacingAndGlyphs">positional encoding</text>
+
+    <!-- MHRA -->
+    <g filter="url(#soft)">
+      <rect x="565" y="112" width="112" height="76" rx="7" fill="#eaeef7" stroke="#3a4a7a" stroke-width="1.2"/>
+    </g>
+    <g color="#3a4a7a" transform="translate(579,124)">
+      <use href="#mhraGlyph" width="26" height="20"/>
+    </g>
+    <text x="621" y="160" class="t-title" text-anchor="middle" fill="#283563" textLength="42.39" lengthAdjust="spacingAndGlyphs">MHRA</text>
+    <text x="621" y="177" class="t-sub" text-anchor="middle" textLength="110.87" lengthAdjust="spacingAndGlyphs">multi-head attention</text>
+
+    <!-- Teacher logits -->
+    <g filter="url(#soft)">
+      <rect x="712" y="102" width="172" height="96" rx="7" fill="#f6e0d6" stroke="#b44a3a" stroke-width="1.2"/>
+    </g>
+    <text x="798" y="128" class="t-title" text-anchor="middle" fill="#7a2c20" textLength="94.30" lengthAdjust="spacingAndGlyphs">Teacher logits</text>
+    <text x="798" y="144" class="t-sub" text-anchor="middle" textLength="62.81" lengthAdjust="spacingAndGlyphs">soft targets</text>
+    <!-- soft distribution bars -->
+    <g transform="translate(738,154)">
+      <rect x="0" y="24" width="10" height="14" fill="#b44a3a" opacity="0.35"/>
+      <rect x="14" y="10" width="10" height="28" fill="#b44a3a" opacity="0.78"/>
+      <rect x="28" y="18" width="10" height="20" fill="#b44a3a" opacity="0.55"/>
+      <rect x="42" y="26" width="10" height="12" fill="#b44a3a" opacity="0.30"/>
+      <rect x="56" y="30" width="10" height="8" fill="#b44a3a" opacity="0.22"/>
+      <rect x="70" y="22" width="10" height="16" fill="#b44a3a" opacity="0.45"/>
+      <rect x="84" y="27" width="10" height="11" fill="#b44a3a" opacity="0.28"/>
+      <line x1="0" y1="38" x2="104" y2="38" stroke="#b44a3a" stroke-width="0.8" opacity="0.6"/>
+    </g>
+
+    <!-- ======= STUDENT ROW ======= -->
+    <!-- X-ray input -->
+    <g filter="url(#soft)">
+      <rect x="60" y="360" width="120" height="80" rx="6" fill="#eceef2" stroke="#8e95a1" stroke-width="1"/>
+    </g>
+    <g color="#4a5261" transform="translate(76,374)">
+      <use href="#xrGlyph" width="28" height="28"/>
+    </g>
+    <text x="120" y="422" class="t-io" text-anchor="middle" textLength="69.60" lengthAdjust="spacingAndGlyphs">X-ray input</text>
+    <text x="120" y="436" class="t-io-sub" text-anchor="middle" textLength="92.76" lengthAdjust="spacingAndGlyphs">deployed modality</text>
+
+    <!-- Student encoder -->
+    <g filter="url(#soft)">
+      <rect x="215" y="352" width="168" height="96" rx="7" fill="#e8f1ec" stroke="#2f6a57" stroke-width="1.2"/>
+    </g>
+    <g color="#2f6a57" transform="translate(228,365)">
+      <use href="#stageGlyph" width="36" height="24"/>
+    </g>
+    <text x="299" y="410" class="t-title" text-anchor="middle" fill="#1d4a3b" textLength="111.66" lengthAdjust="spacingAndGlyphs">Student encoder</text>
+    <text x="299" y="428" class="t-sub" text-anchor="middle" textLength="76.76" lengthAdjust="spacingAndGlyphs">3 conv stages</text>
+
+    <!-- DFPN -->
+    <g filter="url(#soft)">
+      <rect x="418" y="362" width="112" height="76" rx="7" fill="#eaeef7" stroke="#3a4a7a" stroke-width="1.2"/>
+    </g>
+    <g color="#3a4a7a" transform="translate(432,374)">
+      <use href="#dfpnGlyph" width="26" height="20"/>
+    </g>
+    <text x="474" y="410" class="t-title" text-anchor="middle" fill="#283563" textLength="37.19" lengthAdjust="spacingAndGlyphs">DFPN</text>
+    <text x="474" y="427" class="t-sub" text-anchor="middle" textLength="87.51" lengthAdjust="spacingAndGlyphs">feature pyramid</text>
+
+    <!-- Student logits -->
+    <g filter="url(#soft)">
+      <rect x="565" y="352" width="172" height="96" rx="7" fill="#d9e8e0" stroke="#2f6a57" stroke-width="1.2"/>
+    </g>
+    <text x="651" y="378" class="t-title" text-anchor="middle" fill="#1d4a3b" textLength="92.33" lengthAdjust="spacingAndGlyphs">Student logits</text>
+    <text x="651" y="394" class="t-sub" text-anchor="middle" textLength="115.09" lengthAdjust="spacingAndGlyphs">deployed predictions</text>
+    <g transform="translate(585,402)">
+      <rect x="0" y="22" width="14" height="14" fill="#2f6a57" opacity="0.35"/>
+      <rect x="20" y="6" width="14" height="30" fill="#2f6a57" opacity="0.85"/>
+      <rect x="40" y="16" width="14" height="20" fill="#2f6a57" opacity="0.55"/>
+      <rect x="60" y="25" width="14" height="11" fill="#2f6a57" opacity="0.30"/>
+      <rect x="80" y="28" width="14" height="8" fill="#2f6a57" opacity="0.25"/>
+      <rect x="100" y="24" width="14" height="12" fill="#2f6a57" opacity="0.30"/>
+      <rect x="120" y="26" width="8" height="10" fill="#2f6a57" opacity="0.28"/>
+      <line x1="0" y1="36" x2="128" y2="36" stroke="#2f6a57" stroke-width="0.8" opacity="0.6"/>
+    </g>
+
+    <!-- ======= GROUND-TRUTH LABEL (below student) ======= -->
+    <g>
+      <rect x="60" y="510" width="260" height="50" rx="6" fill="#fbf5dc" stroke="#c9a227" stroke-width="1.1"/>
+      <text x="190" y="532" class="t-io" text-anchor="middle" fill="#7a5b06" textLength="113.99" lengthAdjust="spacingAndGlyphs">Ground-truth label</text>
+      <text x="190" y="548" class="t-io-sub" text-anchor="middle" fill="#7a5b06" textLength="110.62" lengthAdjust="spacingAndGlyphs">COVID vs. non-COVID</text>
+    </g>
+
+    <!-- ======= LOSS PANEL (right) ======= -->
+    <g filter="url(#soft)">
+      <rect x="950" y="212" width="320" height="156" rx="9" fill="#fbf5dc" stroke="#c9a227" stroke-width="1.4"/>
+    </g>
+    <text x="1110" y="238" class="t-loss-h" text-anchor="middle" fill="#6e4e03" textLength="112.22" lengthAdjust="spacingAndGlyphs">Training objective</text>
+    <line x1="970" y1="248" x2="1250" y2="248" stroke="#c9a227" stroke-opacity="0.5"/>
+    <text x="1110" y="275" class="t-loss-eq" text-anchor="middle" fill="#3d2a02" textLength="181.45" lengthAdjust="spacingAndGlyphs">
+      L  =  (1 − α) · Hard CE  +  α · Soft KL
+    </text>
+
+    <g transform="translate(978,296)">
+      <rect x="0" y="0" width="140" height="48" rx="5" fill="#ffffff" stroke="#c9a227" stroke-opacity="0.55"/>
+      <text x="70" y="20" class="t-io" text-anchor="middle" fill="#7a5b06" textLength="49.78" lengthAdjust="spacingAndGlyphs">Hard CE</text>
+      <text x="70" y="36" class="t-io-sub" text-anchor="middle" fill="#7a5b06" textLength="73.74" lengthAdjust="spacingAndGlyphs">true-label loss</text>
+    </g>
+    <g transform="translate(1132,296)">
+      <rect x="0" y="0" width="140" height="48" rx="5" fill="#ffffff" stroke="#c9a227" stroke-opacity="0.55"/>
+      <text x="70" y="20" class="t-io" text-anchor="middle" fill="#7a5b06" textLength="44.68" lengthAdjust="spacingAndGlyphs">Soft KL</text>
+      <text x="70" y="36" class="t-io-sub" text-anchor="middle" fill="#7a5b06" textLength="100.72" lengthAdjust="spacingAndGlyphs">CT → X-ray transfer</text>
+    </g>
+
+    <!-- ======= FLOW ARROWS ======= -->
+    <!-- teacher row -->
+    <g stroke="#b44a3a" stroke-width="1.6" fill="none" marker-end="url(#ah-t)">
+      <line x1="180" y1="150" x2="213" y2="150"/>
+      <line x1="383" y1="150" x2="416" y2="150"/>
+      <line x1="530" y1="150" x2="563" y2="150"/>
+      <line x1="677" y1="150" x2="710" y2="150"/>
+    </g>
+    <!-- student row -->
+    <g stroke="#2f6a57" stroke-width="1.6" fill="none" marker-end="url(#ah-s)">
+      <line x1="180" y1="400" x2="213" y2="400"/>
+      <line x1="383" y1="400" x2="416" y2="400"/>
+      <line x1="530" y1="400" x2="563" y2="400"/>
+    </g>
+
+    <!-- soft distillation arrow: teacher logits -> loss -->
+    <g fill="none" stroke="#b44a3a" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#ah-l)">
+      <path d="M 884 172 C 940 172, 930 250, 990 262"/>
+    </g>
+    <g>
+      <rect x="892" y="180" width="118" height="26" rx="4" fill="#ffffff" stroke="#b44a3a" stroke-opacity="0.55"/>
+      <text x="951" y="197" class="t-edge" text-anchor="middle" fill="#7a2c20" textLength="73.15" lengthAdjust="spacingAndGlyphs">soft distillation</text>
+    </g>
+
+    <!-- student logits -> loss -->
+    <g fill="none" stroke="#2f6a57" stroke-width="1.6" marker-end="url(#ah-l)">
+      <path d="M 737 375 C 830 375, 900 340, 990 330"/>
+    </g>
+    <g>
+      <rect x="778" y="334" width="120" height="26" rx="4" fill="#ffffff" stroke="#2f6a57" stroke-opacity="0.55"/>
+      <text x="838" y="351" class="t-edge" text-anchor="middle" fill="#1d4a3b" textLength="68.86" lengthAdjust="spacingAndGlyphs">student logits</text>
+    </g>
+
+    <!-- ground truth -> loss -->
+    <g fill="none" stroke="#c9a227" stroke-width="1.6" marker-end="url(#ah-l)">
+      <path d="M 320 530 C 640 530, 830 420, 990 362"/>
+    </g>
+    <g>
+      <rect x="560" y="470" width="180" height="26" rx="4" fill="#ffffff" stroke="#c9a227" stroke-opacity="0.65"/>
+      <text x="650" y="487" class="t-edge" text-anchor="middle" fill="#6e4e03" textLength="112.69" lengthAdjust="spacingAndGlyphs">hard-label supervision</text>
+    </g>
+
+    <!-- deployment output (student at test time) -->
+    <g>
+      <rect x="770" y="370" width="170" height="60" rx="6" fill="#ffffff" stroke="#2f6a57" stroke-dasharray="4 3" stroke-width="1.1"/>
+      <text x="855" y="395" class="t-io" text-anchor="middle" fill="#1d4a3b" textLength="62.67" lengthAdjust="spacingAndGlyphs">Prediction</text>
+      <text x="855" y="411" class="t-io-sub" text-anchor="middle" fill="#1d4a3b" textLength="114.58" lengthAdjust="spacingAndGlyphs">X-ray only at inference</text>
+      <text x="855" y="424" class="t-edge-sub" text-anchor="middle" textLength="64.87" lengthAdjust="spacingAndGlyphs">CT not required</text>
+    </g>
+    <g stroke="#2f6a57" stroke-width="1.6" fill="none" marker-end="url(#ah-s)" stroke-dasharray="4 3" opacity="0.75">
+      <line x1="737" y1="405" x2="768" y2="400"/>
+    </g>
+
+    <!-- training-only note chip -->
+    <g transform="translate(940,64)">
+      <rect x="0" y="0" width="124" height="26" rx="5" fill="#fbeee7" stroke="#b44a3a" stroke-width="1"/>
+      <g transform="translate(8,6)" stroke="#b44a3a" fill="none" stroke-width="1.2">
+        <rect x="2" y="7" width="12" height="9" rx="1.3" fill="#fbeee7"/>
+        <path d="M4.5 7 V4.5 a3.5 3.5 0 0 1 7 0 V7"/>
+      </g>
+      <text x="74" y="17" class="t-edge" text-anchor="middle" fill="#7a2c20" textLength="90.67" lengthAdjust="spacingAndGlyphs">CT teacher frozen</text>
+    </g>
+
+  </svg>

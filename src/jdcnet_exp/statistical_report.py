@@ -127,6 +127,7 @@ def main() -> int:
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(args.resampling_csv)
+    df = df.rename(columns={"experiment_group": "method", "split_index": "resample_id", "seed": "resample_id"})
 
     summary_payload: dict[str, object] = {"metrics": {}, "wilcoxon": {}, "rank_stability": {}}
 
@@ -170,6 +171,7 @@ def main() -> int:
         # Rank stability vs fixed-split, if available
         if args.fixed_split_csv:
             fixed = pd.read_csv(args.fixed_split_csv)
+            fixed = fixed.rename(columns={"experiment_group": "method", "split_index": "resample_id", "seed": "resample_id"})
             if metric in fixed.columns:
                 fixed_means = fixed.groupby("method")[metric].mean()
                 resample_means = df.groupby("method")[metric].mean()
