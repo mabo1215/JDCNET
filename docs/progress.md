@@ -84,9 +84,9 @@
 ### New Experiments (E1–E10) 未完成项
 
 - **E1 BIMCV-COVID19+ headline integration — NOT DONE**：manifest 已准备好，但 BIMCV 缺 same-patient 阴性配对（结构性阻塞）；H800 上的训练尚未启动（Task #23）。
-- **E3 ImageNet/RadImageNet pretraining + cosine LR — NOT DONE**（Task #19）。
-- **E4 BiomedCLIP/MedCLIP frozen-feature baseline — NOT DONE**（Task #20）。
-- **E6 Calibration（reliability diagram + ECE + Youden-J）— NOT DONE**：当前只存在 fixed-split 6 group 的 `covid_control_val_probabilities.csv`；resampling cohort 需要从 `best.pt` 重新评估输出概率，待 GPU 环境就绪后补。
+- **E3 ImageNet/RadImageNet pretraining + cosine LR — PARTIAL**（Task #19）：ResNet18 ImageNet pretrained backbone（单 seed s42，paired cohort）已在 H800 上运行完成（2026-05-04）；结果：balanced_accuracy=1.0（val set 4 样本：1 pos / 3 neg，饱和信号）。未完成：cosine LR schedule + warmup（当前 fixed LR 0.0003）、224×224 训练分辨率（仍 128×128）、RadImageNet 预训练权重对比、10-resample 统计。`src/runs/covid_matrix_e34/student_xray_supervised_resnet18_paired_s42/` 已同步至本地。
+- **E4 BiomedCLIP/MedCLIP frozen-feature baseline — DONE（单 seed）**（Task #20）：BiomedCLIP 冻结特征 + linear probe（seed s42，paired cohort）已在 H800 上运行完成（2026-05-04，修复 `HF_HUB_OFFLINE=1` 绕过网络限制）；结果：balanced_accuracy=0.5（trivial predictor，specificity=0.0，始终预测正类），负面基线结论成立。`src/runs/covid_matrix_e34/student_xray_supervised_biomedclip_paired_s42/` 已同步至本地。M4 BiomedCLIP 子项部分关闭（单 seed，未进入 10-resample 统计）。
+- **E6 Calibration（reliability diagram + ECE + Youden-J）— DONE（2026-05-04）**：新增 `src/jdcnet_exp/calibration_report.py`，从 `covid_resampling/` 的 110 个 best.pt 加载各方法各 resample 的 student 模型，在对应 val 流形上推理，池化跨 10 个 resample 的概率（每方法 n=70 池化）；计算 10 bin ECE（范围 0.250--0.398），Youden-J 最优阈值（均在 0.48--0.52 附近，证实 default 0.5 已近最优）；生成 `paper/figs/covid_calibration_reliability.png`（11 方法可靠性图，多面板）和 `paper/figs/generated/calibration_table.tex`（LaTeX 表）；`paper/appendix.tex` 新增 `Calibration and Youden-J Optimal Threshold (E6)` 子节（`tab:calibration`、`fig:calibration_reliability`）。高 ECE (0.25--0.40) 在讨论中明确标注为小样本高不平衡限制。同时部分关闭 O2（Threshold sweep: Youden-J 已量化）。
 - **E10 Non-medical paired-modality demonstration（如 RGB→depth）— NOT DONE**：需引入额外数据集，规划留待下一次大改。
 
 ### Required New Citations 未补
