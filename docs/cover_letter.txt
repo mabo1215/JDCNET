@@ -1,8 +1,8 @@
 Cover Letter
 Submission to IEEE Transactions on Circuits and Systems for Video Technology (TCSVT)
 
-Title: CT-to-X-ray Knowledge Distillation Under Patient-Level Paired Cohorts:
-       An Evidence-Bounded Evaluation Framework
+Title: JDCNet: Cross-Modal CT-to-X-ray Knowledge Distillation with
+       Evidence-Bounded Evaluation on Patient-Level Paired Cohorts
 
 ------------------------------------------------------------------------
 
@@ -53,8 +53,9 @@ WHAT THE PAPER CONTRIBUTES
 3. Reproducibility artefact. We release manifests, training scripts,
    repeated-run summaries, mechanism controls, and a prepared
    BIMCV-COVID19+ next-cohort manifest (638 same-patient subjects,
-   3,080 radiographs) so that subsequent studies can be evaluated under
-   a uniform evidential floor.
+   3,080 radiographs) as a public Code Ocean capsule
+   (https://codeocean.com/capsule/6030764/tree) so that subsequent
+   studies can be evaluated under a uniform evidential floor.
 
 WHY TCSVT
 
@@ -106,5 +107,6 @@ Manuscript details:
   Keywords        : Medical image classification, cross-modality learning,
                     knowledge distillation, chest X-ray, computed tomography
   Supplemental    : Appendix (separate PDF)
-  Code/data       : Released pipeline and manifests included with submission
+  Code/data       : Public Code Ocean capsule
+                    (https://codeocean.com/capsule/6030764/tree)
 ------------------------------------------------------------------------
