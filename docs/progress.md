@@ -56,6 +56,7 @@
 - **NLST manifest 脚本（2026-05-04 追加）**：新增 `src/jdcnet_exp/prepare_nlst_dataset.py`，支持 CSV manifest 驱动（nlst_prsn.csv + nlst_screen.csv）和目录扫描双路径；通过 pydicom 提取中间轴向切片；二元标签为肺癌 year-1 诊断；支持 `--dry-run` 在 DICOM 下载前估计配对样本量。
 - **H800 GPU 就绪确认（2026-05-04）**：smoke_test.py 9/9 PASS 已在上轮验证完成。**H800 GPU 现可开启**。
 - **PDF 重新编译（2026-05-04）**：main.pdf 23 页（M8 环境句 + 附录 tab:resample_support）；appendix.pdf 10 页。
+- **Abstract prevalence 句增加（2026-05-04）**：在 Abstract 第 2 句添加"validation: 1 negative, 3 positive per resample"，直接回应 reviewer Minor 15。
 - **Venue 战略决策（2026-05-03 消化）**：保持 IEEE TCSVT 正刊，按 conservative evidence-bounded protocol paper 投。叙事聚焦正向子发现（Logit KD 为最优 KD 方式、non-COVID distribution shift 检出、reproducible protocol scaffold）。DPE/MHRA/DFPN 保留为探索性模块但不作 headline positive claim。Cls. 中关于 venue 切换的子项关闭；M3 叙事调整（命名模块同时 disclaim 的矛盾）仍需处理，方向是改写为"reproducible ablation targets"而非"proposed method components"。
 - **Pres. PNG → PDF（2026-05-03 消化）**：作者决定保留 PNG，不做矢量图格式转换。该项关闭。
 
@@ -122,6 +123,34 @@
 - "5–10 validation images per resample (mean 6.9)" 应替换为显式分布 list — NOT DONE。
 - Table III `\resizebox` → `\small` — NOT DONE。
 - Promote Discussion 一段进入 Section I — NOT DONE。
+
+## E3/E4 多种子对比表（2026-05-04）
+
+E3 = ResNet18 ImageNet-pretrained linear-probe（paired cohort, 50 epochs）  
+E4 = BiomedCLIP frozen-feature linear-probe（paired cohort, 50 epochs）  
+验证集共 4 样本（1 neg / 3 pos），饱和信号下指标须谨慎解读。
+
+### 逐 seed 明细
+
+| 模型 | seed | Acc | Bal-Acc | Macro-F1 | MCC | ROC-AUC | PR-AUC | Brier |
+|---|---|---|---|---|---|---|---|---|
+| E3 ResNet18 | 42 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.097 |
+| E3 ResNet18 | 43 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.039 |
+| E3 ResNet18 | 44 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.084 |
+| E3 ResNet18 | 45 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.052 |
+| E4 BiomedCLIP | 42 | 0.750 | 0.500 | 0.429 | 0.000 | 0.000 | 0.639 | 0.308 |
+| E4 BiomedCLIP | 43 | 0.750 | 0.500 | 0.429 | 0.000 | 0.667 | 0.917 | 0.149 |
+| E4 BiomedCLIP | 44 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.160 |
+| E4 BiomedCLIP | 45 | 0.500 | 0.667 | 0.500 | 0.333 | 1.000 | 1.000 | 0.337 |
+
+### 4-seed 均值汇总
+
+| 模型 | Acc | Bal-Acc | Macro-F1 | MCC | ROC-AUC | PR-AUC | Brier |
+|---|---|---|---|---|---|---|---|
+| E3 ResNet18 | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** | **0.068** |
+| E4 BiomedCLIP | 0.750 | 0.667 | 0.589 | 0.333 | 0.667 | 0.889 | 0.239 |
+
+**结论**：E3 ResNet18 在所有 4 个种子下完美收敛（验证集全正确预测）；E4 BiomedCLIP 冻结特征存在明显种子间方差（MCC 0–1.0），mean ROC-AUC=0.667 为弱正相关，总体低于 E3。小样本（n=4 val）导致方差极大，结论仅为方向性参考。
 
 ## 遗留问题
 
