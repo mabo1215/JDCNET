@@ -187,3 +187,61 @@ E4 = BiomedCLIP frozen-feature linear-probe（paired cohort, 50 epochs）
 2. **额外 thoracic dataset（M10）**：
    - **推进状态**：PARTIAL — 方向与脚本已就绪（作者 A: NLST 作为第二 thoracic dataset）。`src/jdcnet_exp/prepare_nlst_dataset.py` 已创建；待完成 NBIA 数据下载并跑同协议实验。
    - 下步：(a) 在 TCIA 申请 NLST 访问并配置 NBIA Data Retriever；(b) 运行 `python -m jdcnet_exp.prepare_nlst_dataset --nlst-root /data/nlst --output-dir src/data/nlst`；(c) 按同一 10-resample 协议跑 NLST 上的 plain cross-modal logit KD baseline。
+
+## 2026-05-04 工作区核对与继续推进
+
+> 本节基于当前 Windows 工作区实测状态（`C:\source\JDCNET`）补充，优先保证“可执行性”而非“理想状态”。
+
+### 已立即推进（今天已落地）
+
+- [x] **NLST 依赖补齐**：`src/requirements.txt` 已加入 `pydicom>=2.4`，消除 `prepare_nlst_dataset.py` 在 DICOM 读取阶段的缺包风险。
+- [x] **关键阻塞脚本在位确认**：`download_bimcv_neg_paired.py`、`prepare_bimcv_neg_dataset.py`、`prepare_nlst_dataset.py` 均存在，可直接进入数据阶段。
+
+### 当前可继续推进（不依赖新训练）
+
+- [ ] **资源可见性核对**：当前工作区未检索到 `paper/figs/generated/*.tex` 与 `paper/figs/*.png`，且 `paper/` 目录为空；先确认是否在另一分支/另一机器产出，必要时回传到当前仓库。
+- [ ] **NLST dry-run 先行**：在拿到 TCIA/NBIA 首批目录后先跑 dry-run，先拿“可配对样本量”再决定训练预算。
+- [ ] **BIMCV-neg 样本量门槛检查**：下载后先只生成 manifest 和 summary，达到最小阈值再开 10-resample 训练。
+
+### 资源需求清单（按优先级）
+
+1. **P0 数据访问凭据**
+  - Kaggle API（用于 BIMCV-neg 下载）。
+  - TCIA/NBIA 访问与下载权限（用于 NLST）。
+2. **P0 存储与路径约定**
+  - 推荐准备：`/data/bimcv_neg_paired`、`/data/nlst`、`src/data/bimcv`、`src/data/nlst`。
+  - 需要可持续空间：原始 DICOM + 中间切片 + 训练产物。
+3. **P1 计算资源**
+  - H800/H100 级 GPU 窗口（E1/M2/M10 主体训练）。
+  - CPU 即可完成 dry-run、manifest 构建、样本统计。
+4. **P1 环境依赖**
+  - Python 包：`pydicom`（已写入 requirements）、`kaggle`、`torch`、`fvcore`。
+
+### 下一步执行顺序（建议直接照此推进）
+
+1. 数据访问开通后先执行 BIMCV-neg 下载与 manifest 生成（只做数据侧，不开训练）。
+2. 并行执行 NLST dry-run，拿到 paired CT+CXR 的真实可用规模。
+3. 依据两条 summary 的样本量决定是否进入 E1/M10 训练窗口，并在本文件回填“可训练/不可训练”结论。
+
+### 开训门槛（执行判定规则，2026-05-04 新增）
+
+- 判定脚本：`python -m jdcnet_exp.data_readiness_gate`
+- 默认门槛（可通过命令行覆盖）：
+  - `min_total_patients = 50`
+  - `min_pos_patients = 20`
+  - `min_neg_patients = 20`
+  - `min_val_neg_patients = 5`
+  - `min_val_total_patients = 20`
+  - `target_resamples = 10`（若设为 `>=30`，脚本会额外检查 negative 规模稳定性）
+- 输出：`START_TRAINING` 或 `HOLD_DATA_EXPANSION`，并给出阻塞原因列表。
+
+### H800 无GPU模式调试链路（先跑数据侧）
+
+1. BIMCV-neg 下载与 manifest：
+  - `python -m jdcnet_exp.download_bimcv_neg_paired --output-dir /data/bimcv_neg_paired`
+  - `python -m jdcnet_exp.prepare_bimcv_neg_dataset --bimcv-root /data/bimcv_neg_paired --output-dir src/data/bimcv --merge-with src/data/bimcv/bimcv_paired_manifest.csv`
+2. BIMCV 开训门槛判定：
+  - `python -m jdcnet_exp.data_readiness_gate --manifest src/data/bimcv/bimcv_combined_manifest.csv --dataset-name bimcv_combined --output src/results/bimcv_readiness_gate.json`
+3. NLST dry-run 与门槛判定：
+  - `python -m jdcnet_exp.prepare_nlst_dataset --nlst-root /data/nlst --output-dir src/data/nlst --dry-run`
+  - `python -m jdcnet_exp.data_readiness_gate --manifest src/data/nlst/nlst_paired_manifest.csv --dataset-name nlst_paired --output src/results/nlst_readiness_gate.json`

@@ -79,6 +79,12 @@ Run the paired-cohort patient-level resampling study with attention-transfer and
 python -m jdcnet_exp.run_covid_resampling
 ```
 
+Check whether a newly prepared paired manifest is ready for E1/M2/M10 training (no-GPU gate):
+
+```powershell
+python -m jdcnet_exp.data_readiness_gate --manifest .\data\bimcv\bimcv_combined_manifest.csv --dataset-name bimcv_combined --output .\results\bimcv_readiness_gate.json
+```
+
 Download curated Kaggle datasets into `src/data/kaggle/`:
 
 ```powershell
