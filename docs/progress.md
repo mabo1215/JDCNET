@@ -245,3 +245,261 @@ E4 = BiomedCLIP frozen-feature linear-probe（paired cohort, 50 epochs）
 3. NLST dry-run 与门槛判定：
   - `python -m jdcnet_exp.prepare_nlst_dataset --nlst-root /data/nlst --output-dir src/data/nlst --dry-run`
   - `python -m jdcnet_exp.data_readiness_gate --manifest src/data/nlst/nlst_paired_manifest.csv --dataset-name nlst_paired --output src/results/nlst_readiness_gate.json`
+
+### 2026-05-04 远端继续推进（H800 无卡模式已开启）
+
+- 状态确认：远端 H800 当前以无 GPU 任务模式运行，可继续执行数据下载、manifest 构建、dry-run、门槛判定与日志核对。
+- 本轮目标：在不开训的前提下，先把 BIMCV-neg/NLST 两条数据链路跑通并产出可审计 summary。
+
+#### A. 远端无卡调试最小闭环（按顺序）
+
+1. 环境与脚本可执行性检查：
+  - `cd /root/autodl-tmp/JDCNET/src`
+  - `python -m jdcnet_exp.download_bimcv_neg_paired --help`
+  - `python -m jdcnet_exp.prepare_bimcv_neg_dataset --help`
+  - `python -m jdcnet_exp.prepare_nlst_dataset --help`
+  - `python -m jdcnet_exp.data_readiness_gate --help`
+2. BIMCV-neg 数据链路（仅数据侧）：
+  - `python -m jdcnet_exp.download_bimcv_neg_paired --output-dir /data/bimcv_neg_paired`
+  - `python -m jdcnet_exp.prepare_bimcv_neg_dataset --bimcv-root /data/bimcv_neg_paired --output-dir src/data/bimcv --merge-with src/data/bimcv/bimcv_paired_manifest.csv`
+  - `python -m jdcnet_exp.data_readiness_gate --manifest src/data/bimcv/bimcv_combined_manifest.csv --dataset-name bimcv_combined --output src/results/bimcv_readiness_gate.json`
+3. NLST 数据链路（先 dry-run）：
+  - `python -m jdcnet_exp.prepare_nlst_dataset --nlst-root /data/nlst --output-dir src/data/nlst --dry-run`
+  - `python -m jdcnet_exp.data_readiness_gate --manifest src/data/nlst/nlst_paired_manifest.csv --dataset-name nlst_paired --output src/results/nlst_readiness_gate.json`
+
+#### B. 本轮完成判定（必须全部满足）
+
+- `src/results/bimcv_readiness_gate.json` 已生成且可读。
+- `src/results/nlst_readiness_gate.json` 已生成且可读。
+- 两个 manifest 文件（BIMCV combined / NLST paired）均存在并可统计总样本、正负样本、val 负样本。
+- 在本文件回填 gate 输出结论：`START_TRAINING` 或 `HOLD_DATA_EXPANSION`，并附阻塞原因。
+
+#### C. 若遇到常见阻塞（无卡模式优先排障）
+
+- Kaggle 认证失败：先校验 `~/.kaggle/kaggle.json` 权限，再重试下载。
+- NLST 路径为空或结构不匹配：先执行 dry-run，只回传样本量估计与缺失字段。
+- manifest 生成成功但 gate 未达标：保持 `HOLD_DATA_EXPANSION`，不进入任何训练任务。
+
+#### D. 2026-05-04 连通性实测记录（本次会话）
+
+- 已读取 `c:\source\.env` 的 H800 连接信息并尝试自动登录验证。
+- 当前会话下（WSL + 本机网络栈）到 `connect.westb.seetacloud.com:39830` 的连通性表现为 timeout/failed，导致自动化 SSH 链路未完成。
+- 结论：本轮阻塞属于网络连通层，不是仓库脚本缺失；`download_bimcv_neg_paired.py`、`prepare_bimcv_neg_dataset.py`、`prepare_nlst_dataset.py`、`data_readiness_gate.py` 均已在仓库内确认存在。
+
+#### E. 你本机可立即执行的两步复核（通过即继续）
+
+1. SSH 通道复核：
+  - `ssh h800`
+  - 或 `ssh -p 39830 root@connect.westb.seetacloud.com`
+2. 进入项目后执行最小 help 自检：
+  - `cd /root/autodl-tmp/JDCNET/src`
+  - `python -m jdcnet_exp.download_bimcv_neg_paired --help`
+  - `python -m jdcnet_exp.prepare_bimcv_neg_dataset --help`
+  - `python -m jdcnet_exp.prepare_nlst_dataset --help`
+  - `python -m jdcnet_exp.data_readiness_gate --help`
+
+> 只要上述 help 自检通过，即可按本节 A/B 的无卡链路继续推进并产出 gate json。
+
+## 2026-05-04 H800 无卡模式 dry-run 执行结果
+
+### 执行环境确认
+
+- H800 SSH：`connect.westc.seetacloud.com:12437`，`root@h800` alias 有效。
+- Python：`/root/miniconda3/bin/python3.12`，torch 2.8.0+cu128 已安装。
+- 项目路径：`/root/autodl-tmp/JDCNET/src/`，35 个 Python 脚本 rsync 完成（EXIT:0）。
+- pip 依赖：`kaggle nibabel pydicom scipy` 安装成功（PIP_DONE PIP_EXIT:0）。
+- PYTHONPATH：`/root/autodl-tmp/JDCNET/src`，四个核心模块 `--help` 全部通过（HELP_CHECK_OK）。
+
+### BIMCV-neg dry-run 结果
+
+- **状态：HOLD_DATA_EXPANSION — 数据集不存在**
+- **根本原因**：`rafiko1/bimcv-covid19-neg-a-0`（以及 b/c/d-0）在 Kaggle 上根本不存在。
+  - `kaggle datasets list -s "bimcv-covid19-neg"` → `No datasets found`
+  - 错误类型：`403 Forbidden`（非认证失败）
+  - Kaggle 认证本身正常（`bimcv-covid19` 正例臂 `rafiko1/bimcv-covid19-a/b/c/d-0` 可正常枚举）。
+- **`download_bimcv_neg_paired.py` 中的数据集名称假设不正确。**
+- **BIMCV-COVID19- 负例臂实际位置**：未在 Kaggle 发布，需从 BIMCV 官方门户或其他途径获取。
+  - 官方参考：https://bimcv.cipf.es/bimcv-projects/bimcv-covid19/
+- **阻塞项**：无法继续 E1/M2 BIMCV 集成，直到找到正确的负例数据集来源并修改脚本。
+- **修复建议**：
+  1. 在 BIMCV 官方门户确认 COVID19- 负例臂是否有 Kaggle 镜像（名称可能不同）。
+  2. 或改用直接 BIMCV 官方下载（需注册）。
+  3. 修改 `download_bimcv_neg_paired.py` 中的 `BIMCV_NEG_PARTS` 列表。
+
+### NLST dry-run 结果
+
+- **状态：HOLD_DATA_EXPANSION — 数据未下载**
+- dry-run 完成（`NLST_DRYRUN_DONE`），`/data/nlst` 目录为空。
+- 脚本输出：`WARN: Neither CSV manifests nor CT/CXR directories found under /data/nlst.`
+- 符合预期：NLST 需从 TCIA/NBIA 先申请访问权限再下载；dry-run 只是验证脚本本身可运行。
+- **下步**：在 TCIA 提交/确认 NLST 访问权限，配置 NBIA Data Retriever，完成首批下载后重新执行。
+
+### Gate 判定
+
+| 数据集 | 门槛状态 | 阻塞原因 |
+|---|---|---|
+| BIMCV-neg | `HOLD_DATA_EXPANSION` | Kaggle 数据集 `rafiko1/bimcv-covid19-neg-*` 不存在，数据未下载 |
+| NLST | `HOLD_DATA_EXPANSION` | `/data/nlst` 为空，需 TCIA 申请 + NBIA 下载 |
+
+**结论：两条数据链路均处于 HOLD_DATA_EXPANSION 状态，不进入任何训练任务。**
+
+## 2026-05-04 B2Drop 修复 dry-run（第二轮）
+
+### 背景
+
+上轮阻塞：`download_bimcv_neg_paired.py` 使用 Kaggle API（`rafiko1/bimcv-covid19-neg-*`），数据集不存在（403 Forbidden）。用户提供正确下载链接：`https://b2drop.bsc.es/index.php/s/BIMCV-COVID19`（BSC B2Drop 公开分享）。
+
+### 脚本重写
+
+`src/jdcnet_exp/download_bimcv_neg_paired.py` 完整重写：
+- **移除** Kaggle API 依赖（`KaggleApi`、`zipfile`、`shutil` 无必要导入）
+- **改用** B2Drop WebDAV（PROPFIND 列目录）+ HTTP GET 下载 `.tar-tvf.txt` manifest 和 `.tar.gz` 档案
+- **修复** manifest 下载 ZIP 包裹问题：`index.php/s/{token}/download?path=/&files=FILE` 会重定向到 `?accept=zip` 端点，响应为 ZIP 二进制，导致文本解析得 0 subjects；改用 WebDAV 直接 GET 返回纯文本
+- **新增** 请求间隔（1s）和 429 自动重试（最多 3 次，退避 5/10/15s）
+- **保留** 全部原有主体逻辑：subject regex、CT/CXR 检测、最大 CT 选择、`sub-S*/ct/cxr/` 目录结构、`--dry-run`、`--min-ct-bytes`、JSON 报告
+- **新增** `--share-token`（默认 `BIMCV-COVID19`）和 `--archives`（按需子集下载）
+
+### dry-run v2 执行结果（H800，screen dryrun3）
+
+- **Share token**：`BIMCV-COVID19`
+- **WebDAV 列目录**：35 个 `.tar.gz` 档案（`bimcv_covid19_posi_subjects_1–34.tgz` + `bimcv_covid19_posi_head_iter1.tgz`）
+- **Manifest 解析**：WebDAV 直接 GET 正常，文本解析成功（每档约 33–40 subjects）
+- **配对结果**：32 / 35 档案含配对主体，共 **113 个 unique paired subjects**（CT+CXR，`min_ct_bytes=1M`）
+- 报告写入：`/data/bimcv_neg_paired/download_report_neg.json`，`EXIT:0`
+
+### 重要发现：share 内容为 COVID-19 **阳性臂**
+
+| 项 | 观察 |
+|---|---|
+| 档案命名 | 全部为 `bimcv_covid19_**posi**_subjects_*.tgz` |
+| 期望 | BIMCV-COVID19- 阴性臂（`neg`，label=0 non-COVID） |
+| 实际 | `BIMCV-COVID19` share = 阳性臂 iter1（COVID+ 患者，113 paired subjects） |
+| 阳性臂迭代 1+2+3 | 另在 `BIMCV-COVID19-cIter_1_2_3` share（571 档案），更完整 |
+
+**结论**：用户提供的 `BIMCV-COVID19` share 为 COVID-19 **阳性臂** iter1 而非阴性臂。
+
+### 当前状态（更新）
+
+| 数据集 | 状态 | 说明 |
+|---|---|---|
+| BIMCV-neg（label=0）| **HOLD** — share URL 有误 | 阴性臂 share token 未知，需用户确认 |
+| BIMCV-posi iter1（label=1）| 可下载，113 subjects | `BIMCV-COVID19` share，脚本就绪 |
+| NLST | HOLD — 数据未下载 | 需 TCIA/NBIA 访问 |
+
+---
+
+## 2026-05-04 B2Drop 阴性臂 dry-run（第三轮，正确 share）
+
+### 背景
+
+用户提供正确阴性臂 URL：`https://b2drop.bsc.es/index.php/s/BIMCV-COVID19-cIter_1_2-Negative`
+
+通过 WebDAV PROPFIND 验证：该 share 含 64 个 subject archives（`covid19_neg_subjects_part*.tar.gz`）+ 3 个辅助 archives（derivative / metadata / sessions）。
+
+### 脚本修复（两处）
+
+`src/jdcnet_exp/download_bimcv_neg_paired.py` 做了两处更新：
+
+1. **默认 share token** 从 `BIMCV-COVID19` 更新为 `BIMCV-COVID19-cIter_1_2-Negative`
+2. **Manifest 文件名推导**：阴性臂 manifest 命名为 `archive.tar.gz.tar-tvf.txt`（双扩展名），而非阳性臂的 `archive.tgz → archive.tar-tvf.txt`；修复为 `archive_name + ".tar-tvf.txt"`
+3. **`_enumerate_archives` 过滤**：新增 `_NON_SUBJECT_PREFIXES` 跳过 `covid19_neg_derivative` / `covid19_neg_metadata` / `covid19_neg_sessions` 等非主体档案
+
+### dry-run v4 执行结果（H800，screen dryrun_neg4）
+
+- **Share token**：`BIMCV-COVID19-cIter_1_2-Negative`
+- **WebDAV 列目录**：64 个 subject archives（`covid19_neg_subjects_part{ab..dt}.tar.gz`）
+- **Manifest 解析**：每档案 32–87 subjects，配对比例约 6–15%
+- **配对结果**：63 / 64 档案含配对主体，共 **398 unique paired subjects**（CT+CXR，`min_ct_bytes=1M`）
+- 报告写入：`/data/bimcv_neg_paired/download_report_neg.json`，`EXIT:0`
+
+### 当前状态
+
+| 数据集 | 状态 | 说明 |
+|---|---|---|
+| BIMCV-neg（label=0）| **READY** — dry-run 通过 | 398 paired subjects，可启动完整下载 |
+| BIMCV-posi iter1（label=1）| 可下载，113 subjects | `BIMCV-COVID19` share，脚本就绪 |
+| NLST | HOLD — 数据未下载 | 需 TCIA/NBIA 访问 |
+
+### 下一步
+
+1. **完整下载 BIMCV-neg**（不带 `--dry-run`），约 64 档案，估计数 GB 磁盘空间
+2. 验证磁盘：`df -h /data`（当前约 40 GB 可用）
+3. 运行 `prepare_bimcv_neg_dataset.py` 生成 manifest（label=0）
+4. 运行 `data_readiness_gate.py` 评估两数据集合并后是否满足训练阈值
+
+---
+
+## 2026-05-04/05 BIMCV-neg prepare 脚本 OOM 修复（进行中）
+
+### 背景与阶段总结
+
+下载阶段（Option A，受 50 GB 磁盘限制，选 4 个档案）已完成：
+- **23 subjects** 下载至 `/root/autodl-tmp/bimcv_neg_paired/sub-S*/`（ct + cxr 各一份）
+- 档案示例：`partab, partae, partaf, partah`（共 4 个，约 3.5 GB）
+
+`prepare_bimcv_neg_dataset.py` 反复 EXIT:137（OOM kill），根本原因为 H800 **cgroup 内存上限仅 2 GB**：
+
+| 修复轮次 | 修改内容 | 结果 |
+|---|---|---|
+| v1（float32）| `get_fdata(dtype=np.float32)` 替换 float64 | 仍 EXIT:137 |
+| v2（dataobj int16）| `np.asarray(canonical.dataobj)`，仅对 2D slab 转 float32 | 仍 EXIT:137 — 829 MB .nii.gz 解压后 ~2.5 GB int16 |
+| **v3（streaming mmap）** | gzip 流式解压 → 临时 .nii（数据盘） + `nib.load(mmap=True)` 仅读5片 | **正在运行** |
+
+### v3 技术方案
+
+```python
+# 1. 流式解压（1 MB chunks，不占 RAM）
+with gzip.open(nii_path, "rb") as gz, open(tmp_nii, "wb") as out:
+    shutil.copyfileobj(gz, out, length=1 << 20)
+
+# 2. mmap 加载（只分页所需切片，~2.5 MB vs 2.5 GB）
+img = nib.load(tmp_nii, mmap=True)
+raw_slab = np.array(img.dataobj[slicer], dtype=np.float32)  # 仅 5 切片
+
+# 3. 用完立即删除临时文件
+tmp_path.unlink()
+```
+
+峰值内存预估：解压写盘（streaming，无 RAM 压力）+ mmap 5片（~5 MB）+ Python overhead ≪ 2 GB
+
+### 当前 H800 执行状态（本地关机后继续）
+
+| 项 | 值 |
+|---|---|
+| Screen session | `3455.prep_neg3`（H800 后台，SSH 断开不受影响） |
+| 日志文件 | `/root/autodl-tmp/prep_neg.log` |
+| 预计完成时间 | 23 subjects × ~30-60s/CT = 约 15-25 分钟 |
+| 磁盘（数据盘）| `/root/autodl-tmp`：50 GB 总量，~36 GB 可用（解压后 .nii 临时文件用完即删） |
+
+### 明日检查步骤
+
+```bash
+# 1. 快速查结果（推荐先用这条）
+ssh h800 "cat /root/autodl-tmp/prep_neg.log; echo SLICES=$(ls /root/autodl-tmp/bimcv_neg_ct_slices/ 2>/dev/null | wc -l)"
+
+# 2. 若 EXIT:0，运行 data_readiness_gate
+ssh h800 "cd /root/autodl-tmp/JDCNET/src && \
+  PYTHONPATH=/root/autodl-tmp/JDCNET/src \
+  /root/miniconda3/bin/python -m jdcnet_exp.data_readiness_gate \
+  --neg-manifest /root/autodl-tmp/JDCNET/src/data/bimcv/bimcv_neg_manifest.csv"
+
+# 3. 若仍 EXIT:137，attach screen 查实时错误
+ssh h800 "screen -r prep_neg3"
+# Ctrl+A, D 退出不杀进程
+```
+
+### 期望成功输出
+
+```
+Scanning BIMCV-COVID19- root: /root/autodl-tmp/bimcv_neg_paired
+BIMCV-COVID19- pairs found: {'rows': N, 'patients': 23, ...}
+Wrote BIMCV-negative manifest: .../bimcv_neg_manifest.csv (23 rows)
+EXIT:0
+SLICES=23
+```
+
+### 后续（gate 通过后）
+
+- `data_readiness_gate.py` 当前门槛：`min_neg=20`，23 subjects 预计可通过负例门槛
+- 若输出 `START_TRAINING`：进入 E1 BIMCV headline integration 训练窗口
+- 若 `HOLD_DATA_EXPANSION`：查阻塞原因（通常是 val 负例不足 `min_val_neg=5`）

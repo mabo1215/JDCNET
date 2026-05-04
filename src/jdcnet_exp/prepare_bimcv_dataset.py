@@ -19,9 +19,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import random
 import re
+import shutil
+import tempfile
 from pathlib import Path
 
 import nibabel as nib
@@ -47,23 +50,68 @@ def _extract_session_id(path: Path) -> str | None:
 
 
 def _ct_middle_axial_slice(nii_path: Path) -> np.ndarray:
-    """Load a NIfTI CT volume and return the middle axial slice as uint8."""
-    img = nib.load(str(nii_path))
-    data = img.get_fdata()
+    """Load a NIfTI CT volume and return the middle axial slice as uint8.
 
-    # Canonicalize orientation so that axis-2 is the axial (superior-inferior) axis.
-    # nibabel's as_closest_canonical reorders to RAS; axis 2 is then S-I.
-    canonical = nib.as_closest_canonical(img)
-    data = canonical.get_fdata()
+    Memory strategy for large (>100 MB) .nii.gz files:
+    1. Stream-decompress to a temp .nii on the same disk (no RAM pressure,
+       uses only a 1 MB copy buffer).
+    2. Memory-map the uncompressed .nii so only the accessed pages are paged
+       in — loading 5 slices costs ~2.5 MB, not 2+ GB.
+    3. Delete the temp file immediately after extracting the slab.
+    This keeps peak RAM well under the 2 GB cgroup limit even for 829 MB
+    compressed scans that decompress to ~2.5 GB.
+    """
+    tmp_path: Path | None = None
+    try:
+        if nii_path.suffix == ".gz":
+            # Stream-decompress to a temp .nii on the same filesystem.
+            tmp_fd, tmp_name = tempfile.mkstemp(
+                suffix=".nii", dir=nii_path.parent
+            )
+            tmp_path = Path(tmp_name)
+            with gzip.open(str(nii_path), "rb") as gz, open(tmp_fd, "wb") as out:
+                shutil.copyfileobj(gz, out, length=1 << 20)  # 1 MB chunks
+            load_path = tmp_path
+        else:
+            load_path = nii_path
 
-    if data.ndim == 4:
-        data = data[:, :, :, 0]
+        img = nib.load(str(load_path), mmap=True)
 
-    mid = data.shape[2] // 2
-    # Use a 5-slice average around the midpoint to reduce noise.
-    lo = max(0, mid - 2)
-    hi = min(data.shape[2], mid + 3)
-    slice_2d = data[:, :, lo:hi].mean(axis=2)
+        # Determine the axial (S-I) axis from the affine without reorienting
+        # (reorienting would materialise the full array and defeat mmap).
+        # The image axis whose world-space direction is most aligned with z.
+        aff = img.affine[:3, :3]
+        axial_axis = int(np.argmax(np.abs(aff[2, :])))
+
+        shape = img.shape
+        n_slices = shape[axial_axis]
+        mid = n_slices // 2
+        lo = max(0, mid - 2)
+        hi = min(n_slices, mid + 3)
+
+        # Build a slicer that fetches only the 5-slice slab we need.
+        slicer: list = [slice(None)] * 3
+        slicer[axial_axis] = slice(lo, hi)
+        if len(shape) == 4:
+            slicer.append(0)
+
+        # Read slab from mmap (only pages those slices into RAM).
+        raw_slab = np.array(img.dataobj[tuple(slicer)], dtype=np.float32)
+
+        # Move the axial dimension to last if needed.
+        if axial_axis != 2:
+            raw_slab = np.moveaxis(raw_slab, axial_axis, 2)
+
+        # Apply NIfTI slope/intercept (for HU units).
+        slope, inter = img.header.get_slope_inter()
+        slope = float(slope) if slope is not None else 1.0
+        inter = float(inter) if inter is not None else 0.0
+        slice_2d = raw_slab * slope + inter
+        slice_2d = slice_2d.mean(axis=2)
+
+    finally:
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
 
     # Lung window: HU center = -600, width = 1500 → [-1350, 150]
     hu_min, hu_max = -1350.0, 150.0
