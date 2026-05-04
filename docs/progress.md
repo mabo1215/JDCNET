@@ -64,65 +64,82 @@
 
 > 本节按 `docs/revision_suggestions.tex` 的章节编号（M = Major, O = Moderate, E = New experiments, Pres. = Presentation, Eth. = Ethical, Cls. = Closing）系统化对照当前 `paper/main.tex` 与 `paper/appendix.tex` 状态。"PARTIAL" 表示在主线方向已动手但 reviewer 列出的子项仍有缺口；"NOT DONE" 表示尚未着手。
 
-### Major Concerns (M1–M10)
+### A. 可立即写作闭环（不依赖新数据/GPU）
 
-- **M1 Venue fit (TCSVT) — PARTIAL**：Section 1.1 已加入 cross-modal/efficient visual computing 段；附录新增 `tab:efficiency` 给出 params/MACs/CPU latency。仍缺：(a) GPU 端 latency（本地 WSL 无 CUDA）、(b) embedded/edge 设备测量、(c) video-temporal 维度（CT volumes 仍按 axial 单切片处理）、(d) coding/compression 视角。Reviewer 给的两条出路（"重新建效率论证 vs. 改投 MIA/TMI/JBHI"）目前选了前者但只完成了一半。
-- **M2 Sample size — PARTIAL**：resamples 8→10、加入 BCa CI（E7）、Wilcoxon 已报告。仍缺：BIMCV 折入 headline tables（Task #23）、paired non-COVID arm（structurally blocked，见遗留问题）、≥30 resamples 且 $n_{\text{neg}} \geq 5$。
-- **M3 The proposed method does not work, paper does not pivot cleanly — PARTIAL**：标题改为 `JDCNet: ...` 等于隐式选了"positive method"叙事，但 DPE/MHRA/DFPN 在主文与附录中仍被反复 disclaim（"not validated"）。**2026-05-03 消化后部分修复**：Contribution 2 已改写为以正向发现（logit KD 为最优 KD 方式，显著优于 DKD/DIST/MH p=0.031）为首，明确将 DPE/MHRA/DFPN 称为"three architectural ablation variables"。Section 3.2 中 DPE/MHRA/DFPN 的引入语已加入"ablation"限定词（"optional DPE ablation module"、"MHRA ablation module"、"DFPN ablation neck"），与后文"auditable complexity increments"保持一致。仍缺：彻底解决需在 Section 3–4 中统一把 DPE/MHRA/DFPN 定性为"ablation targets"，消除所有"proposed method"暗示。
-- **M4 Baseline coverage too narrow — PARTIAL**：MH/CRD/DKD/DIST 都已实跑（E2 完成）。仍缺：Cross-Modal Distillation for Supervision Transfer（Gupta 2016）作为 named baseline、BiomedCLIP/MedCLIP/GLoRIA frozen-feature baseline（Task #20）、CheXNet/ConvNeXt-Tiny strong same-modality teacher。
-- **M5 Architecture below TCSVT practice — PARTIAL**：epochs 5→50 且新增收敛曲线（E5 已确认 ~30 收敛）。仍缺：ImageNet/RadImageNet 预训练（Task #19）、cosine LR schedule + warmup、224×224 训练分辨率（efficiency table 用 224 仅为测量；训练仍 128×128）。
-- **M6 Statistical reporting — DONE**：median + IQR + BCa CI 全套已加入（E7 / `tab:robust_stats`）；per-resample $n_{\text{pos}}/n_{\text{neg}}$ 表已追加（`tab:resample_support`，`A.5 Per-Resample Validation Support`）。Reviewer 明确列出的两子项：(a) ✅ 已完成；(b) PR-AUC $\Delta$ 相对 prevalence 说明 — NOT DONE（低优先级）。
-- **M8 Reproducibility statement — DONE**：anonymized code link 已通过 Code Ocean capsule 给出；environment file pinning 句已加入 main.tex Implementation 段（`requirements.txt` / Docker + `torch.use_deterministic_algorithms` 声明）。BIMCV redistribution restriction sentence 仍在 Data Availability 段中。M8 关闭。
-- **M10 Single dataset — NOT DONE**：协议仍只在 Cohen COVID-19 Image Data Collection 上演示。Reviewer 要求至少在第二个独立 thoracic 数据集上跑同一协议；BIMCV 已准备但未折入。
+- **M3 / Cls. 叙事矛盾 — PARTIAL**：统一 Section 3–4 对 DPE/MHRA/DFPN 的定性为"reproducible ablation targets"，清除"proposed method components"暗示。
+- **O1 Figure 1 分析定位 — NOT DONE**：二选一完成闭环（重画为多基线对比图 / 删除并收束文字）。
+- **O2 threshold sweep 叙事补齐 — PARTIAL**：E6 已有 calibration + Youden-J；补 prevalence-matched argmax 指标行并统一到主表叙事。
+- **O5 Related-work 写作补齐 — PARTIAL**：补 reviewer 点名文献与 2022–2024 cross-modal medical distillation 讨论。
+- **O8 术语一致性 — PARTIAL**：统一 "Cross-modality distillation" / "Full JDCNet" 在 Table III/IV 与正文的命名。
+- **Pres. resizebox 可读性整改 — NOT DONE**：将主文/附录关键表从 `\resizebox` 改为 `\small` + 列重排或 `sidewaystable`。
+- **Cross-ref `tab:hypothesis_status` — NOT DONE**：升格为 abstract-level 摘要信号。
+- **Cross-ref `tab:module_ablation` — NOT DONE**：5 行表改柱状图表达。
+- **Eth. CLAIM checklist — NOT DONE**：补 supplementary CLAIM 清单。
+- **主文 Minor 行级改写包 — NOT DONE**：
+  - "Computer-aided diagnosis systems" / "currently supported by the data and implementation" 措辞微调。
+  - problem-formulation table 位置移动（Sec. I 末或 Sec. III 起）。
+  - ViT/Swin 论证改写为"小队列下不启用 pretrained-ViT 比较"。
+  - Section III.A 拆为 "Notation and Glossary" + "Task Formulation"。
+  - BIMCV 段从 Datasets and Cohort Construction 迁到 Limitations。
+  - "5–10 validation images per resample (mean 6.9)" 改为显式分布 list。
+  - Table III `\resizebox` → `\small`。
+  - Promote Discussion 一段前移到 Section I。
+- **Required New Citations 未补（写作可闭环）**：BiomedCLIP 2023、MedCLIP 2022、RadImageNet 2022、Demšar 2006、Benavoli 2017。
 
-### Moderate Concerns (O1–O10)
+### B. 需外部资源（GPU/新数据/新实验）
 
-- **O1 Figure 1 described but not analyzed — NOT DONE**：架构总览图仍按 designed pipeline 呈现；reviewer 建议二选一（重画为多基线对比图 / 删除）。
-- **O2 Threshold sweep descriptive, not actionable — NOT DONE**：threshold sweep 图存在但未做 calibration 介入；reviewer 要求加 prevalence-matched argmax + Youden-J 最优阈值的指标行（与 E6 部分重叠，需要 best.pt 重评估）。
-- **O5 Related-work coverage dated — PARTIAL**：DKD/DIST/CRD/MH 已引用并实跑。仍缺 reviewer 点名的：Knowledge Distillation via Softmax Regression Representation Learning (ICLR 2021)、2022–2024 cross-modal medical distillation（CT-to-X-ray for tuberculosis、MR-to-CT distillation）、BiomedCLIP/MedCLIP/GLoRIA。
-- **O8 Inconsistent terminology — PARTIAL**：Section 3.1 有缩写词表，但 reviewer 仍指出 "Cross-modality distillation" / "Full JDCNet" 在 Table III 与 Table IV 之间互换使用。需统一表头与文段措辞。
+- **M1 Venue fit (TCSVT) — PARTIAL**：仍缺 GPU latency、embedded/edge 测量、video-temporal 维度、coding/compression 视角证据。
+- **M2 Sample size — PARTIAL**：仍缺 BIMCV 折入 headline tables、paired non-COVID arm、≥30 resamples 且 $n_{\text{neg}} \geq 5$。
+- **M4 Baseline coverage — PARTIAL**：仍缺 Gupta 2016 named baseline、MedCLIP/GLoRIA frozen-feature、CheXNet/ConvNeXt-Tiny same-modality teacher 实验。
+- **M5 Architecture practice gap — PARTIAL**：仍缺 cosine LR + warmup、224×224 训练、RadImageNet 对比、10-resample 统计。
+- **M10 Single dataset — NOT DONE**：仍缺第二独立 thoracic dataset 的完整同协议结果。
+- **E1 BIMCV-COVID19+ headline integration — NOT DONE**：待 same-patient 阴性配对与训练落地（Task #23）。
+- **E3 ImageNet/RadImageNet + cosine LR — PARTIAL**：ImageNet 4 seeds 已完成；仍缺 cosine/warmup、224 训练、RadImageNet、10-resample。
+- **E10 Non-medical paired-modality demo — NOT DONE**：需引入新数据集并运行额外实验。
 
-### New Experiments (E1–E10) 未完成项
+## 排期清单（可直接执行）
 
-- **E1 BIMCV-COVID19+ headline integration — NOT DONE**：manifest 已准备好，但 BIMCV 缺 same-patient 阴性配对（结构性阻塞）；H800 上的训练尚未启动（Task #23）。
-- **E3 ImageNet/RadImageNet pretraining + cosine LR — PARTIAL**（Task #19）：ResNet18 ImageNet pretrained backbone（单 seed s42，paired cohort）已在 H800 上运行完成（2026-05-04）；结果：balanced_accuracy=1.0（val set 4 样本：1 pos / 3 neg，饱和信号）。未完成：cosine LR schedule + warmup（当前 fixed LR 0.0003）、224×224 训练分辨率（仍 128×128）、RadImageNet 预训练权重对比、10-resample 统计。`src/runs/covid_matrix_e34/student_xray_supervised_resnet18_paired_s42/` 已同步至本地。
-- **E4 BiomedCLIP/MedCLIP frozen-feature baseline — DONE（单 seed）**（Task #20）：BiomedCLIP 冻结特征 + linear probe（seed s42，paired cohort）已在 H800 上运行完成（2026-05-04，修复 `HF_HUB_OFFLINE=1` 绕过网络限制）；结果：balanced_accuracy=0.5（trivial predictor，specificity=0.0，始终预测正类），负面基线结论成立。`src/runs/covid_matrix_e34/student_xray_supervised_biomedclip_paired_s42/` 已同步至本地。M4 BiomedCLIP 子项部分关闭（单 seed，未进入 10-resample 统计）。
-- **E6 Calibration（reliability diagram + ECE + Youden-J）— DONE（2026-05-04）**：新增 `src/jdcnet_exp/calibration_report.py`，从 `covid_resampling/` 的 110 个 best.pt 加载各方法各 resample 的 student 模型，在对应 val 流形上推理，池化跨 10 个 resample 的概率（每方法 n=70 池化）；计算 10 bin ECE（范围 0.250--0.398），Youden-J 最优阈值（均在 0.48--0.52 附近，证实 default 0.5 已近最优）；生成 `paper/figs/covid_calibration_reliability.png`（11 方法可靠性图，多面板）和 `paper/figs/generated/calibration_table.tex`（LaTeX 表）；`paper/appendix.tex` 新增 `Calibration and Youden-J Optimal Threshold (E6)` 子节（`tab:calibration`、`fig:calibration_reliability`）。高 ECE (0.25--0.40) 在讨论中明确标注为小样本高不平衡限制。同时部分关闭 O2（Threshold sweep: Youden-J 已量化）。
-- **E10 Non-medical paired-modality demonstration（如 RGB→depth）— NOT DONE**：需引入额外数据集，规划留待下一次大改。
+### 1) 本周可完成（写作闭环）
 
-### Required New Citations 未补
+- [ ] **M3/Cls 叙事统一包**：将 Section 3–4 中 DPE/MHRA/DFPN 统一改写为 "reproducible ablation targets"，删除/替换所有 "proposed method components" 暗示。
+- [ ] **O2 主表叙事补齐**：把 prevalence-matched argmax 指标行并入主表体系，并与 E6 的 calibration + Youden-J 结果一致引用。
+- [ ] **O5 引文与段落补齐**：补 reviewer 点名文献（含 2022–2024 cross-modal medical distillation）并更新 Related Work 讨论。
+- [ ] **O8 术语统一**：统一 Table III/IV 与正文中的 "Cross-modality distillation" / "Full JDCNet" 命名。
+- [ ] **版式可读性整改（Pres）**：将关键表格 `\resizebox` 调整为 `\small` + 列重排或 `sidewaystable`。
+- [ ] **Cross-ref 两项收口**：`tab:hypothesis_status` 升格为 abstract-level 摘要；`tab:module_ablation` 由表改柱状图。
+- [ ] **Eth. CLAIM 清单**：补 supplementary CLAIM checklist。
+- [ ] **Minor 行级改写包**：
+  - 措辞微调（"Computer-aided diagnosis systems" / "currently supported by the data and implementation"）。
+  - problem-formulation table 前移（Sec. I 末或 Sec. III 起）。
+  - ViT/Swin 论证句改写。
+  - Section III.A 拆分为 "Notation and Glossary" + "Task Formulation"。
+  - BIMCV 段迁移到 Limitations。
+  - "5–10 validation images per resample (mean 6.9)" 改为显式分布 list。
+  - Table III `\resizebox` → `\small`。
+  - Promote Discussion 段前移到 Section I。
 
-- BiomedCLIP (Zhang et al. 2023)
-- MedCLIP (Wang et al. 2022, EMNLP)
-- RadImageNet (Mei et al. 2022)
-- Demšar (2006) on classifier comparison
-- Benavoli et al. (2017) Bayesian alternatives to NHST
+### 2) GPU窗口期执行（实验项）
 
-### Presentation & Cross-reference Hygiene
+- [ ] **E1 / M2 / M10**：在 BIMCV 完成 same-patient 阴性配对后，跑 headline integration（Task #23）并回填主文 headline tables。
+- [ ] **M1 效率证据补齐**：补 GPU latency 测量（与 CPU latency 同口径），形成 TCSVT 叙事闭环证据。
+- [ ] **M4 baseline 扩展**：补 Gupta 2016 named baseline、MedCLIP/GLoRIA frozen-feature、CheXNet/ConvNeXt-Tiny same-modality teacher。
+- [ ] **M5 / E3 扩展**：补 cosine LR + warmup、224×224 训练、RadImageNet 权重对比，并进入 10-resample 统计。
+- [ ] **E10**：若资源允许，新增非医学 paired-modality 演示实验（独立数据集 + 同协议）。
 
-- **Pres. resizebox**：`\resizebox{\textwidth}{!}{...}` 仍用于 main 表 III/IV 与 appendix A1/A6/`tab:robust_stats`。Reviewer 建议改为 `\small` + 列重排或 `sidewaystable`，否则字号低于 IEEE 可读性下限。NOT DONE。
-- **Pres. PNG → PDF**：作者已决定保留 PNG（2026-05-03 消化）。关闭。
-- **Cross-ref `tab:hypothesis_status`**：仅被引用一次，reviewer 建议升格为 abstract-level 摘要。NOT DONE。
-- **Cross-ref `tab:module_ablation`**：5 行表只有 1 行非零 delta，reviewer 建议改为柱状图。NOT DONE。
+### 3) 数据申请并行推进（NLST/MIDRC）
 
-### Ethical & Closing
-
-- **Eth. CLAIM checklist — NOT DONE**：reviewer 建议作为 supplementary 提供 CLAIM (Checklist for AI in Medical Imaging) 完成版。
-- **Cls. 叙事矛盾（M3 / Cls. — PARTIAL）**：venue 已决策（保持 TCSVT，conservative evidence-bounded protocol paper）。仍需处理 M3 叙事矛盾：命名 DPE/MHRA/DFPN 的同时在正文中反复 disclaim（"not validated"），reviewer 将此列为"single most damaging editorial choice"。解决方向：在 Section 3–4 中把三个模块定性为"reproducible ablation targets"而非"proposed method components"。
-
-### 主文 Minor 行级项（revision_suggestions.tex 的 longtable）
-
-- 主文 / 附录 PDF metadata（`pdftitle`/`pdfauthor`）：TCSVT 单盲，无需匿名化，关闭。
-- Main.tex 行 87–93 的 commented-out author block：TCSVT 单盲，无需删除，关闭。
-- Abstract 中按 reviewer 要求"插入每 split 的 prevalence 比例（4 pos / 1 neg）"句 — NOT DONE。
-- "Computer-aided diagnosis systems"（line 121）/ "currently supported by the data and implementation"（line 131）等措辞 — NOT DONE，属低优先级。
-- "Move problem-formulation table to end of Sec. I or beginning of Sec. III"（line 156） — NOT DONE。
-- ViT/Swin 论证（line 175）按 reviewer 要求改写为"小队列禁用 pretrained-ViT 比较"句 — NOT DONE。
-- Section III.A "Notation and Glossary" + "Task Formulation" 拆为两子节 — NOT DONE。
-- BIMCV 段（main.tex 253–258）按 reviewer 要求迁出 Datasets and Cohort Construction，移入 Limitations — NOT DONE。
-- "5–10 validation images per resample (mean 6.9)" 应替换为显式分布 list — NOT DONE。
-- Table III `\resizebox` → `\small` — NOT DONE。
-- Promote Discussion 一段进入 Section I — NOT DONE。
+- [ ] **NLST（主线）**：
+  - 在 TCIA 提交/确认 NLST 访问权限。
+  - 配置 NBIA Data Retriever 并完成首批下载。
+  - 执行 `python -m jdcnet_exp.prepare_nlst_dataset --nlst-root /data/nlst --output-dir src/data/nlst`。
+  - 产出 dry-run/正式样本量统计并登记到进度日志。
+- [ ] **MIDRC RICORD（备线）**：
+  - 提交访问申请（预估 1–2 周）。
+  - 申请获批后制定最小可运行配对筛选方案（仅作为 BIMCV 风险兜底）。
+- [ ] **BIMCV-neg 数据落地**：
+  - 执行 `python -m jdcnet_exp.download_bimcv_neg_paired --output-dir /data/bimcv_neg_paired`。
+  - 执行 `python -m jdcnet_exp.prepare_bimcv_neg_dataset --bimcv-root /data/bimcv_neg_paired --output-dir src/data/bimcv`。
+  - 将产出的 manifest 与 E1 训练计划绑定（记录可用样本量与 split 可行性）。
 
 ## E3/E4 多种子对比表（2026-05-04）
 
@@ -156,15 +173,17 @@ E4 = BiomedCLIP frozen-feature linear-probe（paired cohort, 50 epochs）
 
 > 这些不是写作层面就能闭环、需要外部资源（GPU 时间、新数据、数据集研究）。
 
+### A. 可立即写作闭环
+
+- 当前无（遗留问题均依赖外部资源执行）。
+
+### B. 需外部资源（GPU/新数据/数据访问）
+
 1. **BIMCV-COVID19- same-patient negative 下载与 manifest 准备（结构性阻塞 M2 / M10 / E1）**：
-   - **推进状态**：DONE — 方向已确认（作者 A: 优先在 BIMCV 内过滤 COVID-neg pneumonia paired CT）。`src/jdcnet_exp/download_bimcv_neg_paired.py` 和 `src/jdcnet_exp/prepare_bimcv_neg_dataset.py` 已创建，等待 H800 GPU 环境执行数据下载。
+   - **推进状态**：PARTIAL — 方向与脚本已就绪（作者 A: 优先在 BIMCV 内过滤 COVID-neg pneumonia paired CT）。`src/jdcnet_exp/download_bimcv_neg_paired.py` 和 `src/jdcnet_exp/prepare_bimcv_neg_dataset.py` 已创建；待执行下载与 manifest 生成。
    - **MIDRC RICORD**：备选，申请制访问，申请约 1–2 周。
    - 下步（H800 GPU 上）：`python -m jdcnet_exp.download_bimcv_neg_paired --output-dir /data/bimcv_neg_paired` → `python -m jdcnet_exp.prepare_bimcv_neg_dataset --bimcv-root /data/bimcv_neg_paired --output-dir src/data/bimcv`
 
-2. **GPU 资源调度（影响 E1 / E3 / E4 / E6 / M5）**：
-   - **推进状态**：DONE — smoke test `src/jdcnet_exp/smoke_test.py` 9/9 PASS 已验证 CPU 兼容性。**H800 GPU 现在可以开启**。
-   - H800 上第一条训练命令：`cd /mnt/c/source/JDCNET/src && python3 -m jdcnet_exp.run_covid_resampling --config configs/student_xray_cross_modal_distill.json`
-
-3. **额外 thoracic dataset（M10）**：
-   - **推进状态**：DONE — 方向已确认（作者 A: NLST 作为第二 thoracic dataset）。`src/jdcnet_exp/prepare_nlst_dataset.py` 已创建，等待在 H800 上执行 NBIA 数据下载。
+2. **额外 thoracic dataset（M10）**：
+   - **推进状态**：PARTIAL — 方向与脚本已就绪（作者 A: NLST 作为第二 thoracic dataset）。`src/jdcnet_exp/prepare_nlst_dataset.py` 已创建；待完成 NBIA 数据下载并跑同协议实验。
    - 下步：(a) 在 TCIA 申请 NLST 访问并配置 NBIA Data Retriever；(b) 运行 `python -m jdcnet_exp.prepare_nlst_dataset --nlst-root /data/nlst --output-dir src/data/nlst`；(c) 按同一 10-resample 协议跑 NLST 上的 plain cross-modal logit KD baseline。
