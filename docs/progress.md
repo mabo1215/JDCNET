@@ -1,5 +1,42 @@
 # 进度日志
 
+## 2026-05-06 关机前交接（3090/H800）
+
+> 本节仅保留未完成项，已完成项已从本节移除，便于明早直接续跑。
+
+### 0) 3090 当前状态快照（关机前最后记录）
+
+- 已确认：`prepare_bimcv_neg_dataset.py`、`prepare_bimcv_dataset.py`、`data.py`、`__init__.py` 已传到 `/data/JDCNET/src/jdcnet_exp/`。
+- 已触发过一次后台任务（`NEG_PID=4109268`，`POS_PID=4109269`），但当时失败：
+  - `prepare_bimcv_neg_dataset` 报 `ModuleNotFoundError: No module named 'pandas'`。
+  - `download_bimcv_paired` 报 `ModuleNotFoundError: No module named 'jdcnet_exp'`（需设置 `PYTHONPATH=/data/JDCNET/src`）。
+- 已再次触发“链式后台引导”（bootstrap），用于自动安装依赖后再启动两任务：
+  - 记录到的 bootstrap pid：`4110210`、`4110214`。
+  - 主日志：`/data/logs/start_bimcv_jobs_driver.log`、`/data/logs/bootstrap_bimcv.log`。
+- 明早第一优先检查（先看链式引导是否完成）：
+  - `sshpass -p 'mabo1215' ssh mabo1215@10.147.20.176 'tail -n 50 /data/logs/start_bimcv_jobs_driver.log 2>/dev/null; echo "---"; tail -n 50 /data/logs/bootstrap_bimcv.log 2>/dev/null'`
+  - `sshpass -p 'mabo1215' ssh mabo1215@10.147.20.176 'pgrep -af "prepare_bimcv_neg_dataset|download_bimcv_paired|start_bimcv_jobs.sh"'`
+
+### 一、3090 明早先检查（优先级最高）
+
+- [ ] 确认关键脚本已到位：
+  - `sshpass -p 'mabo1215' ssh mabo1215@10.147.20.176 'ls -l /data/JDCNET/src/jdcnet_exp/prepare_bimcv_neg_dataset.py /data/JDCNET/src/jdcnet_exp/prepare_bimcv_dataset.py'`
+- [ ] 配置 Kaggle 凭据并检查权限：
+  - `sshpass -p 'mabo1215' ssh mabo1215@10.147.20.176 'mkdir -p ~/.kaggle && echo '"'"'{"username":"mabo1215","key":"KGAT_736ec39e9254a69ff354954720b63e54"}'"'"' > ~/.kaggle/kaggle.json && chmod 600 ~/.kaggle/kaggle.json && ls -l ~/.kaggle/kaggle.json'`
+- [ ] 以 `nohup` 启动负例 manifest 生成（断连后继续）：
+  - `sshpass -p 'mabo1215' ssh mabo1215@10.147.20.176 'mkdir -p /data/logs /data/JDCNET/src/data/bimcv /data/bimcv_neg_ct_slices && cd /data/JDCNET/src && nohup python3 -m jdcnet_exp.prepare_bimcv_neg_dataset --bimcv-root /data/bimcv_neg_paired --output-dir /data/JDCNET/src/data/bimcv --slice-dir /data/bimcv_neg_ct_slices > /data/logs/prepare_neg_manifest.log 2>&1 & echo PID:$!'`
+- [ ] 以 `nohup` 启动 BIMCV-COVID19+ 下载（断连后继续）：
+  - `sshpass -p 'mabo1215' ssh mabo1215@10.147.20.176 'mkdir -p /data/bimcv_paired /data/logs && cd /data/JDCNET/src && nohup python3 -m jdcnet_exp.download_bimcv_paired --output-dir /data/bimcv_paired > /data/logs/bimcv_pos_download.log 2>&1 & echo PID:$!'`
+- [ ] 检查两个后台任务日志是否持续更新：
+  - `sshpass -p 'mabo1215' ssh mabo1215@10.147.20.176 'tail -n 20 /data/logs/prepare_neg_manifest.log; echo "---"; tail -n 20 /data/logs/bimcv_pos_download.log'`
+
+### 二、H800 明早检查（并行）
+
+- [ ] 查看 BIMCV-neg 下载是否仍在运行及进度：
+  - `ssh h800 'ps -fp 1014; ls -d /root/autodl-tmp/bimcv_neg_paired/sub-* 2>/dev/null | wc -l'`
+- [ ] 如进程已退出，读取最终报告：
+  - `ssh h800 'cat /root/autodl-tmp/bimcv_neg_paired/download_report_neg.json 2>/dev/null || echo "report not ready"'`
+
 ## 已全部修改
 
 - 已消化 `## 遗留问题` 中关于 BIMCV paired cohort 的作者回答；`paper/main.tex` 与 `paper/appendix.tex` 已明确写入 BIMCV-COVID19+ 作为已准备好的下一队列资源。
@@ -180,8 +217,7 @@ E4 = BiomedCLIP frozen-feature linear-probe（paired cohort, 50 epochs）
 
 ### 已立即推进（今天已落地）
 
-- [x] **NLST 依赖补齐**：`src/requirements.txt` 已加入 `pydicom>=2.4`，消除 `prepare_nlst_dataset.py` 在 DICOM 读取阶段的缺包风险。
-- [x] **关键阻塞脚本在位确认**：`download_bimcv_neg_paired.py`、`prepare_bimcv_neg_dataset.py`、`prepare_nlst_dataset.py` 均存在，可直接进入数据阶段。
+- 本小节已归档清理；仅在上方“关机前交接”保留未完成任务。
 
 ### 当前可继续推进（不依赖新训练）
 
