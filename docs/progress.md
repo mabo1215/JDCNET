@@ -30,6 +30,11 @@
 - **Table 2 列标题修复（Typog 2）**：`Positives` → `COVID-Pos.`；`Negatives` → `COVID-Neg.`。
 - **Manifest 独立性确认（Minor 20）**：Section 4.1 新增段，明确三套 manifest 患者集合完全不相交。
 - **KD 缩写词表（Minor 11/Typog 6）**：Section 3.1 开头新增 5 个缩写定义（KD / Logit KD / Same-modality KD / Plain cross-modal KD / Full JDCNet）。
+- **O8 术语统一 + 版式前移整改（2026-05-05）**：`paper/main.tex` 中残留的 `cross-modality` 统一为 `cross-modal`；`tab:problem_scope` 从 Introduction 尾部前移到贡献段之前，并新增 `Discussion Preview` 小节把讨论性判断提前到 Section I；Datasets 小节中的 BIMCV next-cohort 说明迁移到 `Limitations and Future Work` 的 Data 段；主文固定 split 表由 `\resizebox` 改为 `\small + tabularx`，主 resampling 表改为 `sidewaystable`，Windows 侧 `paper/build.bat` 重新编译通过；[main.tex](c:/source/JDCNET/paper/main.tex) 编辑器诊断为无错误。
+- **主文 Minor 行级改写包收口（2026-05-05）**：`paper/main.tex` 中将 "computer-aided diagnosis systems" 改为更中性的 "automated thoracic classifiers"，将 "currently supported by the data and implementation" 改为 "supported by the available paired evidence"；把 Abstract、Experimental Protocol、Table IV/common-support 行和 Figure 2 caption 中的 resampling validation support 统一为"每个 resample 固定 1 个 negative，positive 为 4--9，验证总数为 5/6/6/6/7/7/7/8/8/10"，与 appendix `tab:resample_support` 对齐；Conclusion 压缩为 evidential-floor 结论，减少与 Discussion Preview 的重复；修复固定 split `tabularx` 环境结尾与主 resampling 表 caption/support 文案，`paper/build.bat` 重新编译通过（main 24 页，appendix 12 页）。
+- **Figure/Cross-ref/CLAIM 写作收口（2026-05-05）**：`paper/main.tex` 中将 Figure 1 重画为多基线 primary evidence map（`paper/figs/baseline_evidence_map.png`），原始架构图已按要求备份为 `paper/figs/jdcnet_architecture.png_.bak`；`tab:hypothesis_status` 已前移并升格为 Introduction 中的 paper-level claim-status summary；`paper/appendix.tex` 中原 `tab:module_ablation` 5 行表已改为 delta 图式说明（`fig:module_ablation_summary` / `paper/figs/module_ablation_delta.png`）；附录新增 CLAIM-style reporting checklist（`tab:claim_checklist`）并补入 `mongan2020claim` 参考文献；`paper/build.bat` 重新编译通过（main 24 页，appendix 12 页），仅保留既有 appendix power-analysis table overfull 风险。
+- **Table 5/6 边界整改（2026-05-05/06）**：`paper/main.tex` 中 `tab:real_results`（Table 5）已放入 0.92 `\textwidth` 的 `minipage`，Role 列改为 `tabularx` 的 `X` 列，common-support 跨列表行改为定宽可换行单元，修复右侧边界与长行溢出；`tab:resampling_main`（Table 6）按作者偏好取消 `landscape` 单独横页，恢复为普通 `table*` 双栏宽表，使用 `minipage + tabularx + \tiny` 和可换行 common-support 行在竖页内显示；`paper/build.bat` 重新编译通过，已抽取 PDF 第 8/9 页确认 Table 5 边界闭合、Table 6 无 `landscape` 且按列内换行显示，未引入新的主文表格 overfull。
+- **Appendix Table 24 / Fig. 12 空间整改（2026-05-06）**：`paper/appendix.tex` 中 `tab:power_analysis` 已从单栏长 `tabular` 改为双栏 `table* + tabularx`，缩短并换行表头，修复 “Closed-form power table (E9)” 覆盖正文的问题；Fig. 12 reliability diagram 已改用按方法族叠加的三面板 grouped 图（`paper/figs/covid_calibration_reliability_grouped.png`），原 11 面板图保留并备份为 `paper/figs/covid_calibration_reliability.png_.bak`；补齐本地 r09/r10 resampling manifest 后重新生成 calibration 图，保持 `n=70` 与正文一致；`paper/build.bat` 编译通过，日志无 Table 24 相关 overfull，已抽取 appendix PDF 第 8/10/11 页确认图表未覆盖正文。
 - **Appendix AUC 一致性说明（Minor 13）**：Table A2 caption 新增说明：固定 split 用 ROC-AUC，主文 resampling table 用 PR-AUC，并解释 seeds 42/43 结果相同不是复制粘贴错误。
 - **Category-level cross-source non-COVID control 实验（M3 回应）**：下载 NORMAL CXR 1583 张 + normal CT 215 张；运行 `run_noncovid_controls.py`；结果 sensitivity=1.0、specificity 均值 0.00–0.32（distribution shift 确认）；附录新增 Table A3 + subsection；主文 Limitations "Data" 段引用 Table A3。同行评审 M3 以 category-level control + distribution shift 证据作为当前数据规模下的最终回应，更大 paired cohort 仍是下一轮实验前提。
 - **标题再次重命名（2026-05-03）**：`CT-to-X-ray Knowledge Distillation Under Patient-Level Paired Cohorts: An Evidence-Bounded Evaluation Framework` → `JDCNet: Cross-Modal CT-to-X-ray Knowledge Distillation with Evidence-Bounded Evaluation on Patient-Level Paired Cohorts`；`paper/main.tex` `\title` 与 `\markboth` 同步；`docs/cover_letter.txt` 标题行同步。
@@ -49,8 +54,18 @@
   - E4 BiomedCLIP frozen-feature baseline（Task #20）。
   - E6 校准（reliability diagram + ECE + Youden-J）：当前只有 fixed-split 6 个 group 的 `covid_control_val_probabilities.csv`，resampling cohort 需要从 `best.pt` 重新评估输出概率，待 GPU 环境就绪后补。
   - E10 非医学跨模态示范（如 RGB↔depth）：需引入额外数据集，规划留待下一次大改。
-- **M8 환境 pinning（2026-05-04 追加）**：`paper/main.tex` Implementation and Reproducibility 段新增一句明确说明：pinned `requirements.txt` 与 Docker image 在 Code Ocean capsule 内；所有实验均以 `torch.use_deterministic_algorithms(True)` 和 `torch.backends.cudnn.benchmark = False` 执行。M8 主项完全关闭。
+- **M8 환境 pinning（2026-05-04 追加）**：`paper/main.tex` Implementation and Reproducibility 段新增一句明确说明：pinned `requirements.txt` 与 Docker image 在 Code Ocean capsule 内；所有实验均以 `torch.use_deterministic_algorithms(True)` 和 `torch.backends.cudnn.benchmark = False` 执行。M8 主项完全关闭。- **M3/Cls 叙事统一及 Section III 重组（2026-05-05 完成）**：
+  - 所有 "Proposed-module test" 改为 "Reproducible-ablation test"（Table III 行标签 + Tier 3 标题 + 正文三处）。
+  - Section III 从 "Problem Formulation" 拆分为两个子节："Notation and Glossary"（缩写定义表）+ "Task Formulation"（任务形式化）。
+  - Related Work 新增段落补充 BiomedCLIP~\cite{zhang2023biomedclip}、MedCLIP~\cite{wang2022medclip}、RadImageNet~\cite{mei2022radimagenet} 的讨论，解释为何这些基础模型不直接适用于当前的 training-only cross-modal 设定。
+  - 所有引文补齐：BiomedCLIP 2023、MedCLIP 2022、RadImageNet 2022、Demšar 2006、Benavoli 2017 均已在 ref.bib 中。
 - **M6 per-resample 支持统计表（2026-05-04 追加）**：`paper/appendix.tex` 新增 `A.5 Per-Resample Validation Support` 子节（`tab:resample_support`），列出 r01–r10 的 train/val $n_+$/$n_-$（train: $n_+=13$–$18$, $n_-=3$ fixed；val: $n_+=4$–$9$, $n_-=1$ fixed，mean val total=7.0）。直接回应 reviewer 明确要求的"显式 $n_{\text{pos}}/n_{\text{neg}}$ 表"。M6 相关子项关闭。
+- **BIMCV-neg 下载脚本（2026-05-04 追加）**：新增 `src/jdcnet_exp/download_bimcv_neg_paired.py`，对应 BIMCV-COVID19- 四部分 Kaggle 数据集，枚举配对 CT+CXR subject 并选择性下载，结构与 download_bimcv_paired.py 对齐；产出 `sub-S*/ct/` + `sub-S*/cxr/` 结构。
+- **BIMCV-neg manifest 脚本（2026-05-04 追加）**：新增 `src/jdcnet_exp/prepare_bimcv_neg_dataset.py`，调用 `build_paired_manifest(..., label=0)` 生成 `src/data/bimcv/bimcv_neg_manifest.csv`；支持 `--merge-with` 与正例 manifest 合并，自动重新分配 train/val splits。
+- **NLST manifest 脚本（2026-05-04 追加）**：新增 `src/jdcnet_exp/prepare_nlst_dataset.py`，支持 CSV manifest 驱动（nlst_prsn.csv + nlst_screen.csv）和目录扫描双路径；通过 pydicom 提取中间轴向切片；二元标签为肺癌 year-1 诊断；支持 `--dry-run` 在 DICOM 下载前估计配对样本量。
+- **H800 GPU 就绪确认（2026-05-04）**：smoke_test.py 9/9 PASS 已在上轮验证完成。**H800 GPU 现可开启**。
+- **PDF 重新编译（2026-05-04）**：main.pdf 23 页（M8 环境句 + 附录 tab:resample_support）；appendix.pdf 10 页。
+- **Abstract prevalence 句增加（2026-05-04）**：在 Abstract 第 2 句添加"validation: 1 negative, 3 positive per resample"，直接回应 reviewer Minor 15。- **M6 per-resample 支持统计表（2026-05-04 追加）**：`paper/appendix.tex` 新增 `A.5 Per-Resample Validation Support` 子节（`tab:resample_support`），列出 r01–r10 的 train/val $n_+$/$n_-$（train: $n_+=13$–$18$, $n_-=3$ fixed；val: $n_+=4$–$9$, $n_-=1$ fixed，mean val total=7.0）。直接回应 reviewer 明确要求的"显式 $n_{\text{pos}}/n_{\text{neg}}$ 表"。M6 相关子项关闭。
 - **BIMCV-neg 下载脚本（2026-05-04 追加）**：新增 `src/jdcnet_exp/download_bimcv_neg_paired.py`，对应 BIMCV-COVID19- 四部分 Kaggle 数据集，枚举配对 CT+CXR subject 并选择性下载，结构与 download_bimcv_paired.py 对齐；产出 `sub-S*/ct/` + `sub-S*/cxr/` 结构。
 - **BIMCV-neg manifest 脚本（2026-05-04 追加）**：新增 `src/jdcnet_exp/prepare_bimcv_neg_dataset.py`，调用 `build_paired_manifest(..., label=0)` 生成 `src/data/bimcv/bimcv_neg_manifest.csv`；支持 `--merge-with` 与正例 manifest 合并，自动重新分配 train/val splits。
 - **NLST manifest 脚本（2026-05-04 追加）**：新增 `src/jdcnet_exp/prepare_nlst_dataset.py`，支持 CSV manifest 驱动（nlst_prsn.csv + nlst_screen.csv）和目录扫描双路径；通过 pydicom 提取中间轴向切片；二元标签为肺癌 year-1 诊断；支持 `--dry-run` 在 DICOM 下载前估计配对样本量。
@@ -67,24 +82,8 @@
 ### A. 可立即写作闭环（不依赖新数据/GPU）
 
 - **M3 / Cls. 叙事矛盾 — PARTIAL**：统一 Section 3–4 对 DPE/MHRA/DFPN 的定性为"reproducible ablation targets"，清除"proposed method components"暗示。
-- **O1 Figure 1 分析定位 — NOT DONE**：二选一完成闭环（重画为多基线对比图 / 删除并收束文字）。
 - **O2 threshold sweep 叙事补齐 — PARTIAL**：E6 已有 calibration + Youden-J；补 prevalence-matched argmax 指标行并统一到主表叙事。
 - **O5 Related-work 写作补齐 — PARTIAL**：补 reviewer 点名文献与 2022–2024 cross-modal medical distillation 讨论。
-- **O8 术语一致性 — PARTIAL**：统一 "Cross-modality distillation" / "Full JDCNet" 在 Table III/IV 与正文的命名。
-- **Pres. resizebox 可读性整改 — NOT DONE**：将主文/附录关键表从 `\resizebox` 改为 `\small` + 列重排或 `sidewaystable`。
-- **Cross-ref `tab:hypothesis_status` — NOT DONE**：升格为 abstract-level 摘要信号。
-- **Cross-ref `tab:module_ablation` — NOT DONE**：5 行表改柱状图表达。
-- **Eth. CLAIM checklist — NOT DONE**：补 supplementary CLAIM 清单。
-- **主文 Minor 行级改写包 — NOT DONE**：
-  - "Computer-aided diagnosis systems" / "currently supported by the data and implementation" 措辞微调。
-  - problem-formulation table 位置移动（Sec. I 末或 Sec. III 起）。
-  - ViT/Swin 论证改写为"小队列下不启用 pretrained-ViT 比较"。
-  - Section III.A 拆为 "Notation and Glossary" + "Task Formulation"。
-  - BIMCV 段从 Datasets and Cohort Construction 迁到 Limitations。
-  - "5–10 validation images per resample (mean 6.9)" 改为显式分布 list。
-  - Table III `\resizebox` → `\small`。
-  - Promote Discussion 一段前移到 Section I。
-- **Required New Citations 未补（写作可闭环）**：BiomedCLIP 2023、MedCLIP 2022、RadImageNet 2022、Demšar 2006、Benavoli 2017。
 
 ### B. 需外部资源（GPU/新数据/新实验）
 
@@ -104,19 +103,6 @@
 - [ ] **M3/Cls 叙事统一包**：将 Section 3–4 中 DPE/MHRA/DFPN 统一改写为 "reproducible ablation targets"，删除/替换所有 "proposed method components" 暗示。
 - [ ] **O2 主表叙事补齐**：把 prevalence-matched argmax 指标行并入主表体系，并与 E6 的 calibration + Youden-J 结果一致引用。
 - [ ] **O5 引文与段落补齐**：补 reviewer 点名文献（含 2022–2024 cross-modal medical distillation）并更新 Related Work 讨论。
-- [ ] **O8 术语统一**：统一 Table III/IV 与正文中的 "Cross-modality distillation" / "Full JDCNet" 命名。
-- [ ] **版式可读性整改（Pres）**：将关键表格 `\resizebox` 调整为 `\small` + 列重排或 `sidewaystable`。
-- [ ] **Cross-ref 两项收口**：`tab:hypothesis_status` 升格为 abstract-level 摘要；`tab:module_ablation` 由表改柱状图。
-- [ ] **Eth. CLAIM 清单**：补 supplementary CLAIM checklist。
-- [ ] **Minor 行级改写包**：
-  - 措辞微调（"Computer-aided diagnosis systems" / "currently supported by the data and implementation"）。
-  - problem-formulation table 前移（Sec. I 末或 Sec. III 起）。
-  - ViT/Swin 论证句改写。
-  - Section III.A 拆分为 "Notation and Glossary" + "Task Formulation"。
-  - BIMCV 段迁移到 Limitations。
-  - "5–10 validation images per resample (mean 6.9)" 改为显式分布 list。
-  - Table III `\resizebox` → `\small`。
-  - Promote Discussion 段前移到 Section I。
 
 ### 2) GPU窗口期执行（实验项）
 
@@ -503,3 +489,11 @@ SLICES=23
 - `data_readiness_gate.py` 当前门槛：`min_neg=20`，23 subjects 预计可通过负例门槛
 - 若输出 `START_TRAINING`：进入 E1 BIMCV headline integration 训练窗口
 - 若 `HOLD_DATA_EXPANSION`：查阻塞原因（通常是 val 负例不足 `min_val_neg=5`）
+
+### 2026-05-05 本轮复核结果（未能读取远端日志）
+
+- **状态：等待远端认证恢复**。
+- 本地尝试 `ssh -o BatchMode=yes -o ConnectTimeout=15 -p 12437 root@connect.westc.seetacloud.com`，远端返回 `Permission denied (publickey,password)`；说明 host/port 可达，但当前会话没有可用的非交互认证凭据。
+- 本地尝试 `ssh -o BatchMode=yes -o ConnectTimeout=15 -p 39830 root@connect.westb.seetacloud.com`，连接被拒绝；该旧端口仍不可用。
+- 因此本轮未能读取 `/root/autodl-tmp/prep_neg.log`、未能确认 `3455.prep_neg3` screen 状态，也未能运行 `data_readiness_gate.py`。
+- 下步仍沿用上方检查命令：恢复 SSH alias/密钥或交互登录后，先读取 `prep_neg.log` 与 slice 数；若 manifest 已生成再运行 gate，若仍是 EXIT:137 则继续修 `prepare_bimcv_neg_dataset.py` 的内存路径。

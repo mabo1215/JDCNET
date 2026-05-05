@@ -8,6 +8,7 @@ resamples, and computes calibration metrics.
 Outputs:
   - paper/figs/generated/calibration_table.tex
   - paper/figs/covid_calibration_reliability.png
+  - paper/figs/covid_calibration_reliability_grouped.png
 """
 
 from __future__ import annotations
@@ -272,11 +273,10 @@ def _youden_j(probs: np.ndarray, labels: np.ndarray) -> tuple[float, float]:
     return best_thr, float(best_j)
 
 
-def _reliability_diagram_ax(ax: plt.Axes, probs: np.ndarray, labels: np.ndarray, label: str, n_bins: int = 5) -> None:
+def _reliability_points(probs: np.ndarray, labels: np.ndarray, n_bins: int = 5) -> tuple[np.ndarray, np.ndarray]:
     bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     acc_per_bin = []
-    count_per_bin = []
     for lo, hi in zip(bin_edges[:-1], bin_edges[1:]):
         mask = (probs >= lo) & (probs < hi)
         if hi == 1.0:
@@ -285,14 +285,18 @@ def _reliability_diagram_ax(ax: plt.Axes, probs: np.ndarray, labels: np.ndarray,
             acc_per_bin.append(np.nan)
         else:
             acc_per_bin.append(labels[mask].mean())
-        count_per_bin.append(mask.sum())
 
     acc_arr = np.array(acc_per_bin)
     valid = ~np.isnan(acc_arr)
+    return bin_centers[valid], acc_arr[valid]
+
+
+def _reliability_diagram_ax(ax: plt.Axes, probs: np.ndarray, labels: np.ndarray, label: str, n_bins: int = 5) -> None:
+    x, y = _reliability_points(probs, labels, n_bins=n_bins)
     ax.plot([0, 1], [0, 1], "k--", lw=0.8, alpha=0.5)
     ax.plot(
-        bin_centers[valid],
-        acc_arr[valid],
+        x,
+        y,
         "o-",
         lw=1.2,
         ms=5,
@@ -303,6 +307,71 @@ def _reliability_diagram_ax(ax: plt.Axes, probs: np.ndarray, labels: np.ndarray,
     ax.set_xlabel("Mean predicted probability", fontsize=8)
     ax.set_ylabel("Fraction of positives", fontsize=8)
     ax.tick_params(labelsize=7)
+
+
+def _write_grouped_reliability_figure(records: list[dict], out_path: Path) -> None:
+    groups = [
+        (
+            "Feasibility controls",
+            ["Student-only", "Late fusion", "Same-modal KD", "Plain cross-modal KD"],
+        ),
+        (
+            "Cross-modal mechanisms",
+            ["Attention transfer", "Feature hint", "Full JDCNet"],
+        ),
+        (
+            "Generic KD baselines",
+            ["Modality-hallucination KD", "CRD", "DKD", "DIST"],
+        ),
+    ]
+    short_labels = {
+        "Student-only": "Student",
+        "Late fusion": "Late fusion",
+        "Same-modal KD": "Same-modal",
+        "Plain cross-modal KD": "Plain X-modal",
+        "Attention transfer": "Attention",
+        "Feature hint": "Feature hint",
+        "Full JDCNet": "Full JDCNet",
+        "Modality-hallucination KD": "Hallucination",
+        "CRD": "CRD",
+        "DKD": "DKD",
+        "DIST": "DIST",
+    }
+    by_label = {r["label"]: r for r in records if "probs" in r and "labels" in r}
+
+    fig, axes = plt.subplots(1, 3, figsize=(10.8, 3.15), sharex=True, sharey=True)
+    marker_cycle = ["o", "s", "^", "D"]
+
+    for ax, (title, labels) in zip(axes, groups):
+        ax.plot([0, 1], [0, 1], "k--", lw=0.9, alpha=0.55)
+        for idx, label in enumerate(labels):
+            rec = by_label.get(label)
+            if rec is None:
+                continue
+            x, y = _reliability_points(rec["probs"], rec["labels"], n_bins=_N_BINS)
+            ax.plot(
+                x,
+                y,
+                marker=marker_cycle[idx % len(marker_cycle)],
+                lw=1.25,
+                ms=4.2,
+                label=f"{short_labels[label]} ({rec['ece']:.2f})",
+            )
+        ax.set_title(title, fontsize=8.5)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.grid(True, lw=0.35, alpha=0.35)
+        ax.tick_params(labelsize=7)
+        ax.legend(fontsize=5.8, loc="upper left", frameon=False)
+
+    axes[0].set_ylabel("Fraction of positives", fontsize=8)
+    for ax in axes:
+        ax.set_xlabel("Mean predicted probability", fontsize=8)
+
+    fig.suptitle("Grouped reliability diagrams by comparator family", fontsize=10)
+    fig.tight_layout(rect=(0, 0, 1, 0.94), w_pad=1.2)
+    fig.savefig(out_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
 
 
 def main() -> None:
@@ -316,6 +385,7 @@ def main() -> None:
     print(f"Using device: {device}")
 
     results: list[dict] = []
+    plot_records: list[dict] = []
 
     # One reliability diagram panel per method
     n_methods = len(_METHODS)
@@ -379,6 +449,12 @@ def main() -> None:
             youden_j=j_val,
             skipped=skipped,
         ))
+        plot_records.append(dict(
+            label=method["label"],
+            probs=p,
+            labels=y,
+            ece=ece_val,
+        ))
 
         _reliability_diagram_ax(axes_flat[mi], p, y, method["label"])
         axes_flat[mi].set_title(method["label"], fontsize=8)
@@ -397,6 +473,10 @@ def main() -> None:
     fig.savefig(out_png, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"\nSaved reliability diagram: {out_png}")
+
+    out_grouped_png = out_fig_dir / "covid_calibration_reliability_grouped.png"
+    _write_grouped_reliability_figure(plot_records, out_grouped_png)
+    print(f"Saved grouped reliability diagram: {out_grouped_png}")
 
     # LaTeX table
     _write_latex_table(results, out_tex_dir / "calibration_table.tex")
