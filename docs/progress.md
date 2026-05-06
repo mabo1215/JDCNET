@@ -1,5 +1,68 @@
 # 进度日志
 
+## 2026-05-07 本地+远端同步复核（与 progress_BIMCV_May5-6 对齐）
+
+- 本地工作区：
+  - `docs/progress_BIMCV_May5-6.md` 已有本轮更新（May 7 状态段）。
+  - `docs/progress.md` 正在同步追加本条总日志，保持两份文档一致。
+- R3090（`10.147.20.176`）实时状态：
+  - `bimcv_paired`（positive）=`113/113`（100%）。
+  - `bimcv_neg_paired`（negative）=`368/398`（92.5%）。
+  - 训练进程在线：`python3 -m jdcnet_exp.train --config configs/bimcv_headline/bimcv_xray_supervised_s42.json`（PID `2886056`）。
+  - FIFO 状态：`/data/JDCNET/src/ops/job_pool/job_pool_status.sh` 显示 `RUNNING_PID=none`、`QUEUE_LENGTH=0`；历史日志中可见 `bimcv_xray_cross_modal_kd_s42` 已跑到 50 epoch。
+- H800（`connect.westc.seetacloud.com:12437`）实时状态：
+  - `bimcv_neg_paired`（negative）=`380/398`（95.5%）。
+  - 下载进程在线：`python3 -u -m jdcnet_exp.download_bimcv_neg_paired ... --share-token BIMCV-COVID19-cIter_1_2-Negative`（PID `920`）。
+  - 磁盘：`/root/autodl-tmp` 约 `100G total / 58G used / 43G avail`。
+  - 最新日志仍在推进（已进入 `covid19_neg_subjects_partct.tar.gz` 解包阶段）。
+- 本轮结论：
+  - 数据侧：H800 下载持续推进，3090 positive 已满、negative 高比例完成。
+  - 训练侧：3090 当前有 active 训练进程；FIFO 队列为空，后续任务需按需重新入队。
+  - 文档侧：本条已与 `docs/progress_BIMCV_May5-6.md` 的 May 7 状态保持同步。
+
+## 2026-05-07 3090 单进程 + FIFO 强一致化收口
+
+- 执行动作（R3090）：
+  - 重置 `job_pool` 运行态文件：清空 `queue.txt`，删除 `running.pid`/`running.job`。
+  - 重启统一 worker：`screen -S jdcnet_pool -X quit` 后重新 `screen -dmS jdcnet_pool /data/JDCNET/src/ops/job_pool/job_pool_worker.sh`。
+  - 仅通过统一入口入队 1 个训练任务：`/data/JDCNET/src/ops/job_pool/job_pool_enqueue.sh /data/JDCNET/src/ops/job_pool/tasks/task_bimcv_xray_supervised_s42.sh`。
+- 收口后状态（已验证）：
+  - `RUNNING_PID=2932812`
+  - `RUNNING_JOB=/data/JDCNET/src/ops/job_pool/tasks/task_bimcv_xray_supervised_s42.sh`
+  - `QUEUE_LENGTH=0`（worker 已取走唯一队首任务）
+  - 活跃训练进程：`python3 -m jdcnet_exp.train --config configs/bimcv_headline/bimcv_xray_supervised_s42.json`（PID `2932822`）
+  - worker screen 存在：`2931849.jdcnet_pool (Detached)`
+- 结论：
+  - 3090 已恢复到“单训练进程 + FIFO 单入口”的一致状态。
+  - 后续新增任务必须仅使用 `ops/job_pool/job_pool_enqueue.sh` 入队，避免绕过池状态造成分叉。
+
+## 2026-05-07 3090 四卡并行训练启动（GPU0 保持不动）
+
+- 执行目标：保留 GPU0 当前任务不动，新增 GPU1/2/3 三条并行训练。
+- 启动编排：
+  - GPU0（保留原任务）：`bimcv_xray_supervised_s42.json`
+  - GPU1（新增）：`bimcv_teacher_ct_s42.json`（日志：`/data/logs/bimcv_teacher_ct_s42_gpu1.log`）
+  - GPU2（新增）：`bimcv_xray_cross_modal_kd_s42.json`（日志：`/data/logs/bimcv_xray_cross_modal_kd_s42_gpu2.log`）
+  - GPU3（新增）：`bimcv_xray_supervised_s43.json`（日志：`/data/logs/bimcv_xray_supervised_s43_gpu3.log`）
+- 启动后实时进程（已验证）：
+  - `2932822` → `bimcv_xray_supervised_s42.json`（GPU0）
+  - `2955838` → `bimcv_teacher_ct_s42.json`（GPU1）
+  - `2956136` → `bimcv_xray_cross_modal_kd_s42.json`（GPU2）
+  - `2956560` → `bimcv_xray_supervised_s43.json`（GPU3）
+- 启动后显存占用快照：
+  - GPU0: ~1945 MiB
+  - GPU1: ~1437 MiB
+  - GPU2: ~2045 MiB
+  - GPU3: ~1945 MiB
+- 说明：
+  - `bimcv_xray_supervised_s43.json` 已使用独立 `experiment_name/output_dir`，避免覆盖 GPU0 的 `s42` 产物。
+
+一键健康检查命令（R3090）：
+
+```powershell
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "***" 10.147.20.176 'echo HOST=R3090; echo GPU; nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits; echo TRAIN; pgrep -af "bimcv_xray_supervised_s42.json|bimcv_teacher_ct_s42.json|bimcv_xray_cross_modal_kd_s42.json|bimcv_xray_supervised_s43.json" || echo TRAIN_NOT_RUNNING; echo LOG_TAIL_gpu1; tail -n 5 /data/logs/bimcv_teacher_ct_s42_gpu1.log 2>/dev/null || echo NO_LOG; echo LOG_TAIL_gpu2; tail -n 5 /data/logs/bimcv_xray_cross_modal_kd_s42_gpu2.log 2>/dev/null || echo NO_LOG; echo LOG_TAIL_gpu3; tail -n 5 /data/logs/bimcv_xray_supervised_s43_gpu3.log 2>/dev/null || echo NO_LOG'
+```
+
 ## 2026-05-06 本机关机前远端依赖复核
 
 - 结论：本地机器可以关机；当前 3090 与 H800 任务均已在远端后台独立运行，不依赖本地终端或本地 SSH 会话。
@@ -210,7 +273,6 @@
 
 ### A. 可立即写作闭环（不依赖新数据/GPU）
 
-- **M3 / Cls. 叙事矛盾 — PARTIAL**：统一 Section 3–4 对 DPE/MHRA/DFPN 的定性为"reproducible ablation targets"，清除"proposed method components"暗示。
 - **O2 threshold sweep 叙事补齐 — PARTIAL**：E6 已有 calibration + Youden-J；补 prevalence-matched argmax 指标行并统一到主表叙事。
 - **O5 Related-work 写作补齐 — PARTIAL**：补 reviewer 点名文献与 2022–2024 cross-modal medical distillation 讨论。
 
@@ -221,7 +283,7 @@
 - **M4 Baseline coverage — PARTIAL**：仍缺 Gupta 2016 named baseline、MedCLIP/GLoRIA frozen-feature、CheXNet/ConvNeXt-Tiny same-modality teacher 实验。
 - **M5 Architecture practice gap — PARTIAL**：仍缺 cosine LR + warmup、224×224 训练、RadImageNet 对比、10-resample 统计。
 - **M10 Single dataset — NOT DONE**：仍缺第二独立 thoracic dataset 的完整同协议结果。
-- **E1 BIMCV-COVID19+ headline integration — NOT DONE**：待 same-patient 阴性配对与训练落地（Task #23）。
+- **E1 BIMCV-COVID19+ headline integration — PARTIAL**：3090 端 headline 配置与训练流水线已落地并运行过；待 H800 negative 完整收敛后补齐统一主表回填与复核报告。
 - **E3 ImageNet/RadImageNet + cosine LR — PARTIAL**：ImageNet 4 seeds 已完成；仍缺 cosine/warmup、224 训练、RadImageNet、10-resample。
 - **E10 Non-medical paired-modality demo — NOT DONE**：需引入新数据集并运行额外实验。
 
@@ -229,7 +291,6 @@
 
 ### 1) 本周可完成（写作闭环）
 
-- [ ] **M3/Cls 叙事统一包**：将 Section 3–4 中 DPE/MHRA/DFPN 统一改写为 "reproducible ablation targets"，删除/替换所有 "proposed method components" 暗示。
 - [ ] **O2 主表叙事补齐**：把 prevalence-matched argmax 指标行并入主表体系，并与 E6 的 calibration + Youden-J 结果一致引用。
 - [ ] **O5 引文与段落补齐**：补 reviewer 点名文献（含 2022–2024 cross-modal medical distillation）并更新 Related Work 讨论。
 
@@ -288,20 +349,15 @@ E4 = BiomedCLIP frozen-feature linear-probe（paired cohort, 50 epochs）
 
 > 这些不是写作层面就能闭环、需要外部资源（GPU 时间、新数据、数据集研究）。
 
-### A. 可立即写作闭环
+### A. 当前运行阻塞（本周）
 
-- 当前无（遗留问题均依赖外部资源执行）。
+1. **H800 negative 尚未全量完成**：当前 `380/398`，需继续跑到 `398/398` 后再触发最终 manifest/readiness 的完整复核。
+2. **3090 主训练与 FIFO 需统一调度口径**：当前 active 训练进程存在，但 FIFO 显示 `RUNNING_PID=none`、`QUEUE_LENGTH=0`；后续批处理任务应统一通过 job pool 入队，避免状态分叉。
 
-### B. 需外部资源（GPU/新数据/数据访问）
+### B. 中期阻塞（需外部资源）
 
-1. **BIMCV-COVID19- same-patient negative 下载与 manifest 准备（结构性阻塞 M2 / M10 / E1）**：
-   - **推进状态**：PARTIAL — 方向与脚本已就绪（作者 A: 优先在 BIMCV 内过滤 COVID-neg pneumonia paired CT）。`src/jdcnet_exp/download_bimcv_neg_paired.py` 和 `src/jdcnet_exp/prepare_bimcv_neg_dataset.py` 已创建；待执行下载与 manifest 生成。
-   - **MIDRC RICORD**：备选，申请制访问，申请约 1–2 周。
-   - 下步（H800 GPU 上）：`python -m jdcnet_exp.download_bimcv_neg_paired --output-dir /data/bimcv_neg_paired` → `python -m jdcnet_exp.prepare_bimcv_neg_dataset --bimcv-root /data/bimcv_neg_paired --output-dir src/data/bimcv`
-
-2. **额外 thoracic dataset（M10）**：
-   - **推进状态**：PARTIAL — 方向与脚本已就绪（作者 A: NLST 作为第二 thoracic dataset）。`src/jdcnet_exp/prepare_nlst_dataset.py` 已创建；待完成 NBIA 数据下载并跑同协议实验。
-   - 下步：(a) 在 TCIA 申请 NLST 访问并配置 NBIA Data Retriever；(b) 运行 `python -m jdcnet_exp.prepare_nlst_dataset --nlst-root /data/nlst --output-dir src/data/nlst`；(c) 按同一 10-resample 协议跑 NLST 上的 plain cross-modal logit KD baseline。
+1. **M10 第二独立 thoracic dataset**：NLST 仍待 TCIA/NBIA 下载落地与同协议实验。
+2. **E10 非医学跨模态演示**：仍需新数据集与额外训练窗口。
 
 ## 2026-05-04 工作区核对与继续推进
 

@@ -1,5 +1,41 @@
 # JDCNET Download Progress - May 5/6 2026
 
+## Latest Verified Status (May 7, 2026)
+
+### H800 (connect.westc.seetacloud.com:12437)
+
+```text
+negative_total_paired_subjects: 398
+negative_downloaded_subjects: 370
+negative_progress_percent: 93.0%
+downloader_process: running
+```
+
+### R3090 (10.147.20.176)
+
+```text
+positive_total_paired_subjects: 113
+positive_downloaded_subjects: 113
+positive_progress_percent: 100.0%
+
+negative_total_paired_subjects: 398
+negative_downloaded_subjects: 368
+negative_progress_percent: 92.5%
+
+training_process: running
+training_command: python3 -m jdcnet_exp.train --config configs/bimcv_headline/bimcv_xray_supervised_s42.json
+```
+
+### One-command health audit (next boot)
+
+```powershell
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 'echo HOST=R3090; echo POS; find /data/bimcv_paired -mindepth 1 -maxdepth 1 -type d -name "sub-S*" 2>/dev/null | wc -l; echo NEG; find /data/bimcv_neg_paired -mindepth 1 -maxdepth 1 -type d -name "sub-S*" 2>/dev/null | wc -l; echo TRAIN; pgrep -af bimcv_xray_supervised_s42.json || echo TRAIN_NOT_RUNNING; tail -n 20 /data/logs/bimcv_xray_supervised_s42.log 2>/dev/null || echo TRAIN_LOG_MISSING'
+```
+
+```powershell
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:liZ36vNCsNcNdXeWs4f+g5ZIhPM/ZihP834vxs8Ulqc" -P 12437 -l root -pw "k5qShTLQWF5a" connect.westc.seetacloud.com 'echo HOST=H800; echo NEG; find /root/autodl-tmp/bimcv_neg_paired -mindepth 1 -maxdepth 1 -type d -name "sub-S*" 2>/dev/null | wc -l; echo DL_PROC; pgrep -af download_bimcv_neg_paired || echo DOWNLOADER_NOT_RUNNING'
+```
+
 ## Local Shutdown Handoff (May 6, 2026)
 
 Local shutdown is safe: both remote workflows are detached from the local SSH
