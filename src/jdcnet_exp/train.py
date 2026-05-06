@@ -169,7 +169,7 @@ def run_training(config: ExperimentConfig) -> None:
         weight_decay=config.optimization.weight_decay,
     )
 
-    best_accuracy = -1.0
+    best_score = -1.0
     history: list[dict[str, object]] = []
 
     for epoch in range(1, config.optimization.epochs + 1):
@@ -272,8 +272,9 @@ def run_training(config: ExperimentConfig) -> None:
             f"f1={metrics['macro_f1']:.4f} auc={metrics['roc_auc']}"
         )
 
-        if metrics["accuracy"] > best_accuracy:
-            best_accuracy = float(metrics["accuracy"])
+        score = float(metrics.get("balanced_accuracy", metrics["accuracy"]))
+        if score > best_score:
+            best_score = score
             torch.save(model.state_dict(), output_dir / "best.pt")
             write_json(metrics, output_dir / "best_metrics.json")
 

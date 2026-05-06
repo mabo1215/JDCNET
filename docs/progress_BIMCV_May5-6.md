@@ -307,3 +307,132 @@ plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XX
 plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 'tail -80 /data/JDCNET/job_pool/worker.log'
 ```
 
+---
+
+## Latest Verified Status (May 6, 2026 local re-check)
+
+### R3090
+
+```text
+host: ubuntu-4card
+gpu: 4 x NVIDIA GeForce RTX 3090, all idle at check time
+positive_downloaded_subjects: 113/113
+negative_downloaded_subjects: 368/398
+train_process: not running
+job_pool_worker: running in detached screen
+job_pool_running_pid: none
+job_pool_queue_length: 0
+```
+
+Observed training artifacts:
+- `/data/JDCNET/src/runs/bimcv_neg_teacher_xray_main/best.pt`
+- `/data/JDCNET/src/runs/bimcv_neg_teacher_xray_main/history.csv`
+- `/data/logs/train_main_flow.log` contains epochs 1--10 for `bimcv_neg_teacher_xray_main`.
+
+Interpretation:
+- The 3090 main training job appears to have completed rather than crashed; no active training process remains and the GPU is idle.
+- Validation warnings report a single-class validation target (`auc=nan`), so the run is operationally complete but scientifically needs caution.
+- FIFO follow-up task `task_generate_assets.sh` failed because `/data/JDCNET/src/results/paper_metrics.json` was missing.
+
+### H800
+
+```text
+host: autodl-container-092840bd03-905c7945
+negative_downloaded_subjects: 306/398
+download_process: running
+download_pid_seen: 3536
+download_command: python3 -m jdcnet_exp.download_bimcv_neg_paired --output-dir /root/autodl-tmp/bimcv_neg_paired
+disk: /root/autodl-tmp 44G used / 50G total, 7.0G available
+training_started: no
+```
+
+Observed preparation state:
+- `/root/autodl-tmp/prep_neg.log` shows the previous 23-subject manifest preparation completed with `EXIT:0`.
+- Current full negative download is not complete yet, so H800 training was not launched in this check.
+- Disk headroom is now tight; completing the remaining 92 subjects may require cleanup or more storage.
+
+Next decision:
+- Do not start H800 full-data training until download reaches 398/398 or a deliberate partial-data training decision is made.
+- Re-check H800 count and disk before launching training.
+
+---
+
+## BIMCV Headline Training Launch (May 6, 2026)
+
+### R3090
+
+Prepared correct merged-manifest BIMCV headline jobs on `/data/JDCNET/src`.
+
+Data state:
+```text
+merged_manifest: /data/JDCNET/src/data/bimcv/bimcv_merged_paired_manifest.csv
+total_rows: 1182
+total_patients: 481
+train_rows: 943
+train_neg_pos: 732 / 211
+val_rows: 239
+val_neg_pos: 188 / 51
+```
+
+Implementation note:
+- `jdcnet_exp.train` now selects `best.pt` by `balanced_accuracy` when available, rather than raw `accuracy`.
+- Helper script copied to remote: `/data/JDCNET/src/ops/create_bimcv_headline_remote.py`.
+- CT teacher input is materialized through `data/bimcv/bimcv_teacher_ct_manifest.csv`, derived from `teacher_image_path`.
+
+Generated configs:
+```text
+/data/JDCNET/src/configs/bimcv_headline/bimcv_xray_supervised_s42.json
+/data/JDCNET/src/configs/bimcv_headline/bimcv_teacher_ct_s42.json
+/data/JDCNET/src/configs/bimcv_headline/bimcv_xray_cross_modal_kd_s42.json
+```
+
+FIFO queue:
+```text
+RUNNING_JOB: /data/JDCNET/src/ops/job_pool/tasks/task_bimcv_xray_supervised_s42.sh
+RUNNING_PID: 2950603
+TRAIN_PID: 2950612
+QUEUE_HEAD[0]: /data/JDCNET/src/ops/job_pool/tasks/task_bimcv_teacher_ct_s42.sh
+QUEUE_HEAD[1]: /data/JDCNET/src/ops/job_pool/tasks/task_bimcv_xray_cross_modal_kd_s42.sh
+```
+
+Logs:
+```text
+/data/logs/bimcv_xray_supervised_s42.log
+/data/logs/bimcv_teacher_ct_s42.log
+/data/logs/bimcv_xray_cross_modal_kd_s42.log
+```
+
+Output directories:
+```text
+/data/JDCNET/src/runs/bimcv_headline/bimcv_xray_supervised_s42
+/data/JDCNET/src/runs/bimcv_headline/bimcv_teacher_ct_s42
+/data/JDCNET/src/runs/bimcv_headline/bimcv_xray_cross_modal_kd_s42
+```
+
+Post-reboot checks:
+```bash
+cd /data/JDCNET/src
+ops/job_pool/job_pool_status.sh
+tail -80 /data/logs/bimcv_xray_supervised_s42.log
+tail -80 /data/logs/bimcv_teacher_ct_s42.log
+tail -80 /data/logs/bimcv_xray_cross_modal_kd_s42.log
+find runs/bimcv_headline -maxdepth 2 \( -name history.csv -o -name best_metrics.json \) -print
+```
+
+### H800
+
+Latest check:
+```text
+negative_downloaded_subjects: 306/398
+download_pid: 3536
+download_elapsed: >9h
+download_log: /root/autodl-tmp/logs_neg.log
+last_log_update: 2026-05-06 14:58 CST
+disk: /root/autodl-tmp about 44G used / 50G total, about 7G available
+```
+
+Interpretation:
+- H800 full negative download has not completed.
+- The process is still alive, but count and log output were not progressing at the latest check.
+- Do not start H800 training until this is resolved or a deliberate partial-data run is chosen.
+

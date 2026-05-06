@@ -1,5 +1,44 @@
 # 进度日志
 
+## 2026-05-06 3090 训练结果复核
+
+- 3090 上的 `bimcv_neg_teacher_xray_main` 已完成 10 epoch，但配置使用的是 `data/bimcv/bimcv_neg_manifest.csv`，训练/验证均为 label=0 的负例数据。
+- 该 run 的验证集混淆矩阵为 `[[188, 0], [0, 0]]`，`roc_auc=NaN`，`pr_auc=0.0`，accuracy/balanced accuracy/macro-F1=1.0 仅表示模型学会了全预测负例；不能作为有效 BIMCV 正负分类结果。
+- 结论：不应在该 run 上继续增加 epoch。继续训练只会强化单类塌缩，不能带来论文可用效果。
+- 3090 已具备正确合并数据：`data/bimcv/bimcv_merged_paired_manifest.csv`，共 1182 rows / 481 patients；train 为 732 neg + 211 pos，val 为 188 neg + 51 pos。
+- 下一步应新建并运行基于合并 manifest 的 BIMCV headline integration 配置，例如 X-ray supervised baseline、CT teacher、cross-modal distillation student；优先用 50 epoch 或沿用主实验口径，并启用 `use_weighted_sampler=true` 处理类别不均衡。
+- 最新刷新：3090 四张 GPU 均空闲，未见训练进程；H800 BIMCV-neg 仍为 306/398，下载进程仍在但日志自 2026-05-06 14:58 CST 后未更新，需后续判断是否重启或清理磁盘后续跑。
+
+## 2026-05-06 BIMCV headline 训练已启动（3090）
+
+- 已将 `src/jdcnet_exp/train.py` 的 best checkpoint 选择从 `accuracy` 改为优先 `balanced_accuracy`，避免 BIMCV 类别不均衡时选择偏负例的 checkpoint。
+- 已新增本地辅助脚本 `ops/create_bimcv_headline_remote.py`，并同步到 3090 的 `/data/JDCNET/src/ops/create_bimcv_headline_remote.py`；该脚本可重复生成 BIMCV headline manifest/config/task。
+- 3090 端已生成：
+  - `data/bimcv/bimcv_teacher_ct_manifest.csv`
+  - `data/bimcv/bimcv_same_modality_manifest.csv`
+  - `configs/bimcv_headline/bimcv_xray_supervised_s42.json`
+  - `configs/bimcv_headline/bimcv_teacher_ct_s42.json`
+  - `configs/bimcv_headline/bimcv_xray_cross_modal_kd_s42.json`
+- FIFO 已按依赖顺序入队并启动：
+  1. `task_bimcv_xray_supervised_s42.sh`（正在运行，PID 2950603；训练进程 PID 2950612）
+  2. `task_bimcv_teacher_ct_s42.sh`
+  3. `task_bimcv_xray_cross_modal_kd_s42.sh`
+- 训练日志：
+  - `/data/logs/bimcv_xray_supervised_s42.log`
+  - `/data/logs/bimcv_teacher_ct_s42.log`
+  - `/data/logs/bimcv_xray_cross_modal_kd_s42.log`
+- 输出目录：
+  - `/data/JDCNET/src/runs/bimcv_headline/bimcv_xray_supervised_s42`
+  - `/data/JDCNET/src/runs/bimcv_headline/bimcv_teacher_ct_s42`
+  - `/data/JDCNET/src/runs/bimcv_headline/bimcv_xray_cross_modal_kd_s42`
+- 当前观察：第一项训练 CPU 使用约 222%，GPU0 显存约 1.9GB；日志可能因当前任务启动时 stdout 缓冲而延迟写出。已把后续两个排队 task 改为 `python3 -u` 与 `PYTHONUNBUFFERED=1`，便于开机后实时查看 epoch 输出。
+- 开机后优先检查：
+  - `/data/JDCNET/src/ops/job_pool/job_pool_status.sh`
+  - `tail -80 /data/logs/bimcv_xray_supervised_s42.log`
+  - `tail -80 /data/logs/bimcv_teacher_ct_s42.log`
+  - `tail -80 /data/logs/bimcv_xray_cross_modal_kd_s42.log`
+  - `find /data/JDCNET/src/runs/bimcv_headline -maxdepth 2 -name history.csv -o -name best_metrics.json`
+
 ## 2026-05-06 关机前交接（3090/H800）
 
 > 本节仅保留未完成项，已完成项已从本节移除，便于明早直接续跑。
