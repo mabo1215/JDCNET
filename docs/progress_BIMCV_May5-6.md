@@ -168,3 +168,51 @@ plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XX
 - If all true, start training immediately.
 
 Updated: 2026-05-06
+
+---
+
+## WSL 稳定命令模板（非交互式，sshpass 消除密码弹窗）
+
+> `sshpass` 已在本机 WSL 确认可用（`/usr/bin/sshpass`）。
+> `pgrep -f` 模式匹配已在 WSL 确认可用。
+> 所有命令从 PowerShell 终端执行，outer 双引号给 PowerShell，inner 单引号给 bash。
+
+### 规则：外层单引号，内层双引号
+- PowerShell 对单引号内容**完全不解析**（`2>/dev/null`、`|`、`$` 均安全）
+- bash 收到完整命令，传给 sshpass → ssh
+- 远端命令用双引号包裹（bash 层已消耗单引号）
+
+### 连通性测试
+```powershell
+# R3090
+wsl bash -c 'sshpass -p mabo1215 ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new mabo1215@10.147.20.176 "echo R3090_OK; hostname"'
+
+# H800
+wsl bash -c 'sshpass -p k5qShTLQWF5a ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -p 12437 root@connect.westc.seetacloud.com "echo H800_OK; hostname"'
+```
+
+### 进度快照
+```powershell
+# R3090 — 正/负样本数 + 进程状态
+wsl bash -c 'sshpass -p mabo1215 ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new mabo1215@10.147.20.176 "echo POS_COUNT:; ls /data/bimcv_paired/ 2>/dev/null | grep -c sub-S; echo NEG_COUNT:; ls /data/bimcv_neg_paired/ 2>/dev/null | grep -c sub-S; pgrep -af download_bimcv_paired || echo PROCESS_DEAD"'
+
+# H800 — 负样本数 + 进程状态
+wsl bash -c 'sshpass -p k5qShTLQWF5a ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -p 12437 root@connect.westc.seetacloud.com "echo NEG_COUNT:; ls /root/autodl-tmp/bimcv_neg_paired/ 2>/dev/null | grep -c sub-S; pgrep -af download_bimcv || echo PROCESS_DEAD"'
+```
+
+### 重启正样本下载（R3090 进程死亡时）
+```powershell
+wsl bash -c 'sshpass -p mabo1215 ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new mabo1215@10.147.20.176 "pkill -9 -f download_bimcv_paired; sleep 1; cd /data/JDCNET/src && nohup python3 -m jdcnet_exp.download_bimcv_paired --output-dir /data/bimcv_paired > /data/logs/bimcv_pos_download.log 2>&1 & sleep 2; pgrep -af download_bimcv_paired && echo STARTED || echo FAILED"'
+```
+
+### 查看下载日志
+```powershell
+wsl bash -c 'sshpass -p mabo1215 ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new mabo1215@10.147.20.176 "tail -30 /data/logs/bimcv_pos_download.log 2>/dev/null || echo NO_LOG"'
+```
+
+### 为什么用 sshpass 而不是 plink
+| 方案 | 问题 |
+|---|---|
+| `plink` + PowerShell 双引号 | `2>/dev/null`、`\|`、`$()` 被 PowerShell 解析破坏 |
+| `wsl ssh` 无 sshpass | 等待密码输入，无法脚本化 |
+| `wsl sshpass ssh`（外层单引号）| ✅ 非交互式，PowerShell 完全透传，稳定 |
