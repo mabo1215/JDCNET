@@ -273,3 +273,37 @@ plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XX
 # Log tail
 plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 'tail -40 /data/logs/train_main_flow.log'
 ```
+
+### FIFO 作业任务池（已启用）
+
+当前池状态（已验证）：
+
+```text
+RUNNING_PID: 1189292
+RUNNING_JOB: python3 -m jdcnet_exp.train --config configs/bimcv_neg_teacher_xray_main.json
+QUEUE_LENGTH: 2
+QUEUE_HEAD[0]: /data/JDCNET/src/ops/job_pool/tasks/task_summarize_runs.sh
+QUEUE_HEAD[1]: /data/JDCNET/src/ops/job_pool/tasks/task_generate_assets.sh
+WORKER: screen session jdcnet_pool (detached)
+```
+
+说明：
+- 只保留 1 个训练进程，避免并发覆盖。
+- 后续任务采用先进先出（FIFO），当前训练结束后自动执行队列中的脚本任务。
+- 任务池目录：`/data/JDCNET/job_pool`
+- 任务池脚本：`/data/JDCNET/src/ops/job_pool/*.sh`
+- 队列任务脚本：`/data/JDCNET/src/ops/job_pool/tasks/*.sh`
+
+常用命令：
+
+```powershell
+# 查看队列状态
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 '/data/JDCNET/src/ops/job_pool/job_pool_status.sh'
+
+# 新增一个 FIFO 任务（示例）
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 '/data/JDCNET/src/ops/job_pool/job_pool_enqueue.sh /data/JDCNET/src/ops/job_pool/tasks/task_summarize_runs.sh'
+
+# 查看 worker 日志
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 'tail -80 /data/JDCNET/job_pool/worker.log'
+```
+
