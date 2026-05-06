@@ -216,3 +216,60 @@ wsl bash -c 'sshpass -p mabo1215 ssh -o ConnectTimeout=10 -o StrictHostKeyChecki
 | `plink` + PowerShell 双引号 | `2>/dev/null`、`\|`、`$()` 被 PowerShell 解析破坏 |
 | `wsl ssh` 无 sshpass | 等待密码输入，无法脚本化 |
 | `wsl sshpass ssh`（外层单引号）| ✅ 非交互式，PowerShell 完全透传，稳定 |
+
+---
+
+## Latest Verified Status (May 6, 2026)
+
+### H800 (connect.westc.seetacloud.com:12437)
+```text
+total_paired_subjects: 398
+downloaded_subjects: 297
+progress_percent: 74.6%
+can_start_training_now: true
+readiness_reason: "H800 negative cohort remains at 297/398; exceeds training threshold."
+```
+
+### R3090 (10.147.20.176)
+```text
+positive_total_paired_subjects: 113
+positive_downloaded_subjects: 113
+positive_progress_percent: 100.0%
+
+negative_total_paired_subjects: 398
+negative_downloaded_subjects: 368
+negative_progress_percent: 92.5%
+
+can_start_training_now: true
+readiness_reason: "R3090 positive reached full 113/113 and negative is 368/398."
+```
+
+### 3090 Training Main Flow (Persistent)
+
+- Training was started with `nohup` so local shutdown will not stop remote execution.
+- Verified process: `python3 -m jdcnet_exp.train --config configs/bimcv_neg_teacher_xray_main.json`
+- Verified PID observed: `1084449` (elapsed > 10 min at check time).
+- Log file: `/data/logs/train_main_flow.log`
+- Active config on remote: `/data/JDCNET/src/configs/bimcv_neg_teacher_xray_main.json`
+
+Persistent launcher used:
+
+```powershell
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 'cd /data/JDCNET/src; export PYTHONPATH=/data/JDCNET/src; nohup python3 -m jdcnet_exp.train --config configs/bimcv_neg_teacher_xray_main.json > /data/logs/train_main_flow.log 2>&1 < /dev/null &'
+```
+
+Optional `screen` wrapper (double safety):
+
+```powershell
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 'screen -dmS jdcnet_main bash -lc "cd /data/JDCNET/src; export PYTHONPATH=/data/JDCNET/src; nohup python3 -m jdcnet_exp.train --config configs/bimcv_neg_teacher_xray_main.json > /data/logs/train_main_flow.log 2>&1 < /dev/null"'
+```
+
+Quick checks for next boot:
+
+```powershell
+# Process
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 'pgrep -af -- "jdcnet_exp.train" || echo TRAIN_DOWN'
+
+# Log tail
+plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XXvel+rxwrYIPty0" -l mabo1215 -pw "mabo1215" 10.147.20.176 'tail -40 /data/logs/train_main_flow.log'
+```
