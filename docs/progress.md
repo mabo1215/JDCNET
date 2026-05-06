@@ -1,5 +1,58 @@
 # 进度日志
 
+## 2026-05-06 本机关机前远端依赖复核
+
+- 结论：本地机器可以关机；当前 3090 与 H800 任务均已在远端后台独立运行，不依赖本地终端或本地 SSH 会话。
+- 3090：
+  - 远端时间：`2026-05-06T12:28:07+00:00`。
+  - `jdcnet_pool` screen worker 仍在运行；当前 FIFO job 为 `/data/JDCNET/src/ops/job_pool/tasks/task_bimcv_xray_supervised_s42.sh`。
+  - 当前 job PID `2950603`，训练进程 PID `2950612`，队列剩余 2 个任务：`task_bimcv_teacher_ct_s42.sh`、`task_bimcv_xray_cross_modal_kd_s42.sh`。
+  - 当前 best metrics 文件：`runs/bimcv_headline/bimcv_xray_supervised_s42/best_metrics.json`；最新 best epoch `29`，`balanced_accuracy=0.6270`，`roc_auc=0.6731`，`pr_auc=0.3362`。
+  - `history.csv` 尚未出现，说明该 50-epoch run 尚未正常收尾。
+- H800：
+  - 远端时间：`2026-05-06T20:28:00+08:00`。
+  - watchdog 进程 PID `1173`，下载进程 PID `920`，均在远端后台运行。
+  - 当前 BIMCV negative count `323/398`；日志已确认 `398 unique subjects`，正在继续处理 `covid19_neg_subjects_partab.tar.gz`。
+  - `/root/autodl-tmp` 当前约 `100G` total / `46G` used / `55G` available，磁盘余量充足。
+- 本地工作区关机前注意：
+  - 本地尚有未提交记录文件：`docs/progress.md`、`docs/progress_BIMCV_May5-6.md`。
+  - 新增本地脚本：`ops/h800_resume_bimcv_neg_pipeline.sh`；已同步到 H800 `/root/autodl-tmp/h800_resume_bimcv_neg_pipeline.sh`。
+  - 若换机器继续，需要同步/提交上述本地文件；若只是在本机之后开机继续，则无需额外操作。
+- 开机后优先检查：
+  - 3090：`cd /data/JDCNET/src && ops/job_pool/job_pool_status.sh`，再查 `runs/bimcv_headline/*/best_metrics.json` 与 `history.csv`。
+  - H800：`pgrep -af 'h800_resume_bimcv_neg_pipeline|download_bimcv_neg_paired'`，`tail -80 /root/autodl-tmp/logs_neg.log`，`tail -80 /root/autodl-tmp/h800_bimcv_neg_pipeline.log`，并统计 `sub-S*` 是否到 `398/398`。
+  - H800 若下载完成：确认 `data/bimcv/bimcv_neg_manifest.csv` 与 `results/bimcv_neg_readiness_gate.json` 是否已由 watchdog 生成。
+
+## 2026-05-06 H800 扩容后已恢复下载
+
+- H800 已重启并扩容完成；`/root/autodl-tmp` 从 `50G` 扩到 `100G`，当前约 `45G` used / `56G` available，使用率约 `45%`。
+- 已恢复 BIMCV negative 下载，显式使用 share token `BIMCV-COVID19-cIter_1_2-Negative`，继续写入原目录 `/root/autodl-tmp/bimcv_neg_paired`。
+- 当前下载进程：`PID 920`，命令为 `python3 -u -m jdcnet_exp.download_bimcv_neg_paired --output-dir /root/autodl-tmp/bimcv_neg_paired --share-token BIMCV-COVID19-cIter_1_2-Negative`。
+- 当前 watchdog 进程：`PID 1173`，脚本为 `/root/autodl-tmp/h800_resume_bimcv_neg_pipeline.sh`；本地版本记录在 `ops/h800_resume_bimcv_neg_pipeline.sh`。
+- watchdog 行为：若下载进程仍在运行则等待；若下载异常退出且未达 `398/398`，最多自动重启 20 次；达到 `398/398` 后自动运行：
+  - `prepare_bimcv_neg_dataset --bimcv-root /root/autodl-tmp/bimcv_neg_paired --output-dir /root/autodl-tmp/JDCNET/src/data/bimcv --slice-dir /root/autodl-tmp/bimcv_neg_ct_slices`
+  - `data_readiness_gate --manifest /root/autodl-tmp/JDCNET/src/data/bimcv/bimcv_neg_manifest.csv --dataset-name bimcv_negative_only`
+- 最新日志显示已枚举出 `63 archive(s)`、`398 unique subjects`，并开始继续下载 `covid19_neg_subjects_partab.tar.gz`；当前 subject count 仍为 `323/398`，预计需等后续 archive 解包后继续上涨。
+- 后续检查：
+  - `pgrep -af 'download_bimcv_neg_paired|h800_resume_bimcv_neg_pipeline'`
+  - `tail -80 /root/autodl-tmp/logs_neg.log`
+  - `tail -80 /root/autodl-tmp/h800_bimcv_neg_pipeline.log`
+  - `find /root/autodl-tmp/bimcv_neg_paired -maxdepth 1 -type d -name 'sub-S*' | wc -l`
+
+## 2026-05-06 H800 下载已暂停（扩容前）
+
+- 已按用户要求暂停 H800 上的 BIMCV negative 下载，便于临时关机扩容。
+- 远端时间记录：`2026-05-06T20:17:15+08:00`。
+- 已确认无 `python3`、`wget`、`curl`、`aria2c` 下载相关进程残留。
+- 当前 BIMCV negative 已落地 subject 数：`323/398`。
+- 日志文件：`/root/autodl-tmp/logs_neg.log`，暂停前大小 `56997` bytes，mtime `2026-05-06 17:57:58 +0800`。
+- 磁盘状态：`/root/autodl-tmp` 为 `50G`，已用 `45G`，可用 `5.3G`，使用率 `90%`。
+- 扩容后恢复前先检查：
+  - `find /root/autodl-tmp/bimcv_neg_paired -maxdepth 1 -type d -name 'sub-S*' | wc -l`
+  - `df -h /root/autodl-tmp`
+  - `tail -40 /root/autodl-tmp/logs_neg.log`
+- 恢复下载时沿用 `download_bimcv_neg_paired --output-dir /root/autodl-tmp/bimcv_neg_paired`；脚本会跳过已存在文件。
+
 ## 2026-05-06 3090 训练结果复核
 
 - 3090 上的 `bimcv_neg_teacher_xray_main` 已完成 10 epoch，但配置使用的是 `data/bimcv/bimcv_neg_manifest.csv`，训练/验证均为 label=0 的负例数据。

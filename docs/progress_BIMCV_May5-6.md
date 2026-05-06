@@ -1,5 +1,79 @@
 # JDCNET Download Progress - May 5/6 2026
 
+## Local Shutdown Handoff (May 6, 2026)
+
+Local shutdown is safe: both remote workflows are detached from the local SSH
+session.
+
+```text
+R3090:
+  worker: screen session jdcnet_pool
+  running_job: task_bimcv_xray_supervised_s42.sh
+  job_pid: 2950603
+  train_pid: 2950612
+  queued_jobs: task_bimcv_teacher_ct_s42.sh, task_bimcv_xray_cross_modal_kd_s42.sh
+  latest_best_epoch: 29
+  latest_best_balanced_accuracy: 0.6270
+
+H800:
+  watchdog_pid: 1173
+  download_pid: 920
+  negative_downloaded_subjects: 323/398
+  disk: /root/autodl-tmp 100G total, 46G used, 55G available
+```
+
+After reboot, check R3090 FIFO status and H800 download/watchdog logs before
+changing any parameters.
+
+## H800 Resumed After Disk Expansion (May 6, 2026)
+
+```text
+host: connect.westc.seetacloud.com:12437
+remote_time: 2026-05-06T20:23:55+08:00
+disk: /root/autodl-tmp 100G total, 45G used, 56G available, 45% used
+negative_downloaded_subjects: 323/398
+download_pid: 920
+watchdog_pid: 1173
+download_log: /root/autodl-tmp/logs_neg.log
+watchdog_log: /root/autodl-tmp/h800_bimcv_neg_pipeline.log
+remote_watchdog_script: /root/autodl-tmp/h800_resume_bimcv_neg_pipeline.sh
+local_watchdog_script: ops/h800_resume_bimcv_neg_pipeline.sh
+```
+
+The download was resumed with the explicit negative share token:
+
+```bash
+python3 -u -m jdcnet_exp.download_bimcv_neg_paired \
+  --output-dir /root/autodl-tmp/bimcv_neg_paired \
+  --share-token BIMCV-COVID19-cIter_1_2-Negative
+```
+
+The watchdog waits for any active download, restarts it if it exits before
+`398/398`, and then runs the negative manifest plus negative-only readiness gate.
+
+## H800 Pause Before Disk Expansion (May 6, 2026)
+
+```
+host: connect.westc.seetacloud.com:12437
+remote_time: 2026-05-06T20:17:15+08:00
+negative_downloaded_subjects: 323/398
+download_process_status: stopped
+residual_download_processes: none observed for python3/wget/curl/aria2c
+log_path: /root/autodl-tmp/logs_neg.log
+log_size_bytes: 56997
+log_mtime: 2026-05-06 17:57:58 +0800
+disk: /root/autodl-tmp 50G total, 45G used, 5.3G available, 90% used
+```
+
+Resume checklist after expansion:
+
+```bash
+find /root/autodl-tmp/bimcv_neg_paired -maxdepth 1 -type d -name 'sub-S*' | wc -l
+df -h /root/autodl-tmp
+tail -40 /root/autodl-tmp/logs_neg.log
+# Then resume download with the same output directory; existing files are skipped.
+```
+
 ## H800 (root@connect.westc.seetacloud.com:12437)
 
 ### Negative Cohort (BIMCV-COVID19-cIter_1_2-Negative)
