@@ -19,6 +19,15 @@ logs/
 
 src/results/
 
+# Temporary sync and data transfer directories
+src/tmp_sync/
+src/bimcv_transfer/
+
+# Large archive files
+*.tar
+*.tar.gz
+*.tar.bz2
+
 .claude/
 
 submit/
