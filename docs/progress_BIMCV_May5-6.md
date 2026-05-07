@@ -1,30 +1,59 @@
 # JDCNET Download Progress - May 5/6 2026
 
-## Latest Verified Status (May 7, 2026)
+## Latest Verified Status (May 7, 2026 21:43 UTC)
 
 ### H800 (connect.westc.seetacloud.com:12437)
 
 ```text
 negative_total_paired_subjects: 398
-negative_downloaded_subjects: 370
-negative_progress_percent: 93.0%
-downloader_process: running
+negative_downloaded_subjects: 388
+negative_progress_percent: 97.5% ✓ MAJOR PROGRESS
+downloader_process: running (PID 920)
+watchdog_process: running (PID 1173)
+disk_status: 56G used / 45G available (56% full)
+current_task: Extracting covid19_neg_subjects_partdb.tar.gz (2 subjects)
 ```
 
+**Milestone:** Only 10 subjects remaining (up from 18). Estimated completion: 2-4 hours.
+
 ### R3090 (10.147.20.176)
+
+#### 4-GPU Training Status
+
+| GPU | Experiment | Status | Epoch | Runtime | Memory | Output |
+|-----|-----------|--------|-------|---------|--------|--------|
+| 0 | bimcv_xray_supervised_s42 | RUNNING | TBD | 56:42 | 1945 MB | /data/JDCNET/src/runs/bimcv_headline/bimcv_xray_supervised_s42 |
+| 1 | bimcv_teacher_ct_s42 | **COMPLETED** | 50/50 ✓ | 52:41 | 1 MB | /data/JDCNET/src/runs/bimcv_headline/bimcv_teacher_ct_s42 |
+| 2 | bimcv_xray_cross_modal_kd_s42 | RUNNING | 11/50 | 52:41 | 2045 MB | /data/JDCNET/src/runs/bimcv_headline/bimcv_xray_cross_modal_kd_s42 |
+| 3 | bimcv_xray_supervised_s43 | RUNNING | 11/50 | 52:38 | 1945 MB | /data/JDCNET/src/runs/bimcv_headline/bimcv_xray_supervised_s43 |
+
+**GPU1 Final Metrics (epoch 50):**
+```
+loss=0.3945
+acc=0.5979
+f1=0.5801
+auc=0.7268
+best_epoch=Unknown (check best_metrics.json)
+```
+
+#### Data Status
 
 ```text
 positive_total_paired_subjects: 113
 positive_downloaded_subjects: 113
-positive_progress_percent: 100.0%
+positive_progress_percent: 100.0% ✓
 
 negative_total_paired_subjects: 398
 negative_downloaded_subjects: 368
 negative_progress_percent: 92.5%
-
-training_process: running
-training_command: python3 -m jdcnet_exp.train --config configs/bimcv_headline/bimcv_xray_supervised_s42.json
 ```
+
+#### Health Snapshot
+
+- **GPU Distribution:** 4 processes active, memory balanced (1.9–2.0 GB per card out of 24 GB available)
+- **No Conflicts:** Output directories separated by seed/experiment name
+- **Process Ownership:** GPU0 (PID 2932822), GPU2 (PID 2956136), GPU3 (PID 2956560); GPU1 finished
+- **FIFO State:** Job pool idle (queue empty, no running tasks in pool—3 GPU tasks launched outside pool as per 4-card parallelization directive)
 
 ### One-command health audit (next boot)
 

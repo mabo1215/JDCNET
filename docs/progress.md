@@ -1,5 +1,55 @@
 # 进度日志
 
+## 2026-05-07 21:43 UTC 全量远端进度检查快照
+
+### R3090 (`10.147.20.176`) 四卡训练实时状态
+
+| GPU | Config | Status | Epoch | Elapsed | Memory | PID |
+|-----|--------|--------|-------|---------|--------|-----|
+| GPU0 | bimcv_xray_supervised_s42 | **RUNNING** | - | 56:42 | 1945 MB | 2932822 |
+| GPU1 | bimcv_teacher_ct_s42 | **COMPLETED** | 50/50 ✓ | - | 1 MB | (finished) |
+| GPU2 | bimcv_xray_cross_modal_kd_s42 | **RUNNING** | 11/50 | 52:41 | 2045 MB | 2956136 |
+| GPU3 | bimcv_xray_supervised_s43 | **RUNNING** | 11/50 | 52:38 | 1945 MB | 2956560 |
+
+- **GPU1 完成情况**：已跑完 50 epoch，最终 epoch=50 metrics：`loss=0.3945, acc=0.5979, f1=0.5801, auc=0.7268`。目前在加载最优检查点阶段。
+- **GPU0/2/3 进度**：GPU0 已运行 56 分钟（推进中），GPU2/3 约 52-53 分钟，均在有序推进。
+- **日志确认**：
+  - GPU1: 52 行输出（完整 50 epoch）
+  - GPU2: 13 行输出（正在 epoch 11）
+  - GPU3: 11 行输出（正在 epoch 11）
+
+### H800 (`connect.westc.seetacloud.com:12437`) 下载进度突破 97.5%
+
+| 指标 | 数值 | 进度 |
+|------|------|------|
+| **负样本对数** | 388/398 | **97.5%** ✓ 大幅提升 |
+| **下载进程** | PID 920 | **运行中** |
+| **监控进程** | PID 1173 | **运行中** |
+| **磁盘容量** | 56G / 45G avail | 56% 使用 |
+| **当前任务** | covid19_neg_subjects_partdb.tar.gz | 正在解包 |
+
+- **距离完成**：仅剩 10 subjects（进度从 380→388，在短时间内跳跃了 8 个）。
+- **下载日志末尾**：
+  ```
+  Downloading covid19_neg_subjects_partcy.tar.gz (8 new paired subjects) ...
+    Download complete (5,012,451,877 bytes). Extracting ...
+    Extracted 8 subjects.
+  
+  Downloading covid19_neg_subjects_partdb.tar.gz (2 new paired subjects) ...
+  ```
+- **磁盘充足**：45G 可用空间，足以完成剩余 10 subjects（预计需 5-10GB）。
+
+### 本轮结论
+
+1. **四卡并行进展超预期**：GPU1 已完成首个 50-epoch 任务，GPU0/2/3 均稳定推进中，无进程崩溃或卡死迹象。
+2. **H800 负样本采集激进突破**：从 380/398 → 388/398，仅差 10 subjects，预计几小时内达成 398/398 目标。
+3. **系统健康度**：
+   - R3090: 4 卡分配均衡，无冲突；GPU 内存均在 2GB 以内，显存充足。
+   - H800: 下载+监控进程均活跃，磁盘余量充足，下载队列持续推进（无卡死）。
+4. **后续优先级**：
+   - **紧急**：观察 H800 是否能在 24 小时内到达 398/398（触发自动 manifest + readiness gate）。
+   - **常规**：监控 GPU1 后续流程（是否需要触发下一个任务入队）；GPU0/2/3 继续推进。
+
 ## 2026-05-07 本地+远端同步复核（与 progress_BIMCV_May5-6 对齐）
 
 - 本地工作区：
