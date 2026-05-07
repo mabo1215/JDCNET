@@ -1,0 +1,40 @@
+{
+  "experiment_name": "bimcv_xray_supervised_s42",
+  "manifest_path": "data/bimcv/bimcv_merged_paired_manifest.csv",
+  "output_dir": "runs/bimcv_headline/bimcv_xray_supervised_s42",
+  "seed": 42,
+  "model": {
+    "name": "student",
+    "num_classes": 2,
+    "input_size": 224,
+    "use_dpe": true,
+    "use_mhra": true,
+    "use_dfpn": true,
+    "paired_input": false
+  },
+  "data": {
+    "train_split": "train",
+    "val_split": "val",
+    "train_modalities": [
+      "xray"
+    ],
+    "val_modalities": [
+      "xray"
+    ],
+    "batch_size": 16,
+    "num_workers": 0,
+    "paired_image_column": "teacher_image_path",
+    "use_weighted_sampler": true
+  },
+  "optimization": {
+    "epochs": 50,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001
+  },
+  "distillation": {
+    "enabled": false,
+    "temperature": 4.0,
+    "alpha": 0.6,
+    "teacher_checkpoint": ""
+  }
+}
