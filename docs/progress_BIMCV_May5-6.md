@@ -1,5 +1,62 @@
 # JDCNET Download Progress - May 5/6 2026
 
+## Latest Verified Status (May 8, 2026 05:31 CST / May 7, 2026 21:31 UTC)
+
+### H800 (connect.westc.seetacloud.com:12437)
+
+```text
+positive_downloaded_subjects: 114 observed locally (download report target: 113)
+negative_downloaded_subjects: 398/398
+active_download_or_training_processes: none
+disk_status: /root/autodl-tmp 100G total, 71G used, 30G available
+merged_manifest: /root/autodl-tmp/data/bimcv/bimcv_merged_paired_manifest.csv
+merged_manifest_rows: 1251
+merged_manifest_patients: 512
+positive_patients: 114
+negative_patients: 398
+readiness_gate: START_TRAINING
+```
+
+The H800 direct-source positive and negative downloads have both completed.
+The merged readiness gate passed on the full H800 manifest. The old H800
+download/watchdog tasks are no longer active and no longer require monitoring.
+
+### R3090 (10.147.20.176)
+
+```text
+active_training_processes: none
+gpu_status: all four RTX 3090 cards idle
+job_pool_running_pid: none
+job_pool_queue_length: 0
+completed_training_batch: BIMCV headline s45/s46/s47 reached 50 epochs
+```
+
+Best balanced-accuracy snapshot from the completed R3090 engineering batch:
+
+| Experiment | Best balanced accuracy | ROC-AUC | Note |
+|---|---:|---:|---|
+| bimcv_xray_cross_modal_kd_s47 | 0.6809 | 0.7297 | Old 481-patient R3090 merged manifest |
+| bimcv_xray_cross_modal_kd_s45 | 0.6606 | 0.7006 | Old 481-patient R3090 merged manifest |
+| bimcv_xray_cross_modal_kd_s46 | 0.6442 | 0.7100 | Old 481-patient R3090 merged manifest |
+| bimcv_xray_supervised_s47 | 0.6305 | n/a | Old 481-patient R3090 merged manifest |
+| bimcv_xray_supervised_s46 | 0.6185 | n/a | Old 481-patient R3090 merged manifest |
+| bimcv_xray_supervised_s45 | 0.6104 | n/a | Old 481-patient R3090 merged manifest |
+
+### Current Decision
+
+The completed R3090 results should not be copied directly into the manuscript
+headline tables because they were trained on the older R3090 merged manifest
+(1182 rows / 481 patients; negative=368, positive=113), whereas H800 now has
+the fuller merged manifest (1251 rows / 512 patients; negative=398,
+positive=114). They are useful as an engineering validation that the BIMCV
+headline jobs run end-to-end.
+
+Next action: run the paper-facing BIMCV headline integration on the full H800
+manifest, either directly on H800 if GPU is available or after a deliberate
+data transfer to R3090.
+
+## Archived Earlier Snapshots
+
 ## Latest Verified Status (May 7, 2026 21:43 UTC)
 
 ### H800 (connect.westc.seetacloud.com:12437)

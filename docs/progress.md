@@ -1,5 +1,65 @@
 # 进度日志
 
+## 2026-05-08 远端收口复核（当前有效状态）
+
+### 2026-05-08 H800 全量 BIMCV headline 训练已启动
+
+- H800 有卡模式已确认：`nvidia-smi` 可见 1 张 NVIDIA H800 PCIe，PyTorch `cuda_available=True`。
+- 已在 H800 创建并启动后台 screen：`1264.bimcv_h800_headline`。
+- 远端 runner：`/root/autodl-tmp/run_bimcv_h800_headline.sh`。
+- 日志目录：`/root/autodl-tmp/logs/bimcv_h800_headline/`。
+- 结果目录：`/root/autodl-tmp/runs/bimcv_h800_headline/`。
+- 配置目录：`/root/autodl-tmp/JDCNET/src/configs/bimcv_h800_headline/`。
+- 训练计划：3 个 seed（42/43/44），每个 seed 顺序执行 `CT teacher -> X-ray supervised -> cross-modal KD`，共 9 个 50-epoch 任务；每一步独立日志、`history.csv`、`best_metrics.json`。
+- 首个任务 `bimcv_h800_teacher_ct_s42` 已开始并完成 epoch 1 日志输出，说明 CUDA、全量 manifest、CT slice 路径和训练写盘链路已打通。
+- 当前监控文件：
+  - `/root/autodl-tmp/logs/bimcv_h800_headline/status.tsv`
+  - `/root/autodl-tmp/logs/bimcv_h800_headline/bimcv_h800_teacher_ct_s42.log`
+  - `/root/autodl-tmp/logs/bimcv_h800_headline/best_metrics_summary.csv`（所有任务完成后生成）
+
+### 2026-05-08 R3090 数据源直连补齐尝试已启动
+
+- R3090 当前已有 `POS=113`、`NEG=368/398`，无下载进程，`/data` 约 `260G` 可用。
+- 已创建并启动 screen：`3490822.r3090_bimcv_direct_neg`。
+- 远端脚本：`/data/JDCNET/src/ops/r3090_bimcv_direct_neg_resume.sh`。
+- 日志目录：`/data/logs/r3090_bimcv_direct_neg/`。
+- 当前状态：第 1 次 direct-source negative 下载尝试已启动；已成功进入 B2Drop WebDAV archive manifest 枚举阶段，说明 3090 当前能读到数据源目录；subject 计数暂未增长，仍为 `368/398`，需等进入 archive 下载/解包阶段后继续观察。
+- 监控文件：
+  - `/data/logs/r3090_bimcv_direct_neg/status.tsv`
+  - `/data/logs/r3090_bimcv_direct_neg/download.log`
+  - `/data/logs/r3090_bimcv_direct_neg/runner.log`
+
+### R3090 (`10.147.20.176`)
+
+- 当前无训练进程；四张 RTX 3090 均空闲（`nvidia-smi` 显存约 1 MB/卡）。
+- `job_pool` 当前空闲：`RUNNING_PID=none`，`QUEUE_LENGTH=0`。
+- 已完成的 BIMCV headline 训练批次：`s45/s46/s47` 的 X-ray supervised、CT teacher、cross-modal KD 均已跑到 50 epoch 并写出 `best_metrics.json`。
+- 当前可用 best 结果摘要（旧 3090 merged manifest：1182 rows / 481 patients；negative=368、positive=113）：
+  - `bimcv_xray_cross_modal_kd_s47`: balanced_accuracy `0.6809`, roc_auc `0.7297`
+  - `bimcv_xray_cross_modal_kd_s45`: balanced_accuracy `0.6606`, roc_auc `0.7006`
+  - `bimcv_xray_cross_modal_kd_s46`: balanced_accuracy `0.6442`, roc_auc `0.7100`
+  - `bimcv_xray_supervised_s47`: balanced_accuracy `0.6305`
+  - `bimcv_xray_supervised_s46`: balanced_accuracy `0.6185`
+  - `bimcv_xray_supervised_s45`: balanced_accuracy `0.6104`
+- 论文回填判断：这些结果可作为远端训练完成记录和下一轮统计输入，但**暂不建议直接回填论文 headline tables**，因为它们基于 3090 旧 merged manifest（481 patients），不是 H800 刚完成的全量 merged manifest（512 patients）。
+
+### H800 (`connect.westc.seetacloud.com:12437`)
+
+- 当前无 positive/negative 下载、manifest、gate 或训练相关进程残留。
+- BIMCV positive 直连数据源下载完成：本地目录统计 `114` subjects；下载报告目标 `113` subjects。
+- BIMCV negative 下载完成：`398/398` subjects。
+- 已生成 H800 全量 merged manifest：`1251 rows / 512 patients`，其中 positive `266 rows / 114 patients`，negative `985 rows / 398 patients`。
+- readiness gate 已通过：`decision=START_TRAINING`，`ready_for_training=true`。
+- 磁盘状态：`/root/autodl-tmp` 约 `100G total / 71G used / 30G avail`。
+
+### 当前结论与下一步
+
+- 已完成并可清理：H800 negative/positive 下载、manifest、merged readiness gate；3090 s45-s47 训练批次；旧的“下载未完成 / 进程运行中 / FIFO 分叉”阻塞项。
+- 3090 仍需要完成的任务：把 H800 全量 merged manifest 与必要切片/数据同步或在 H800 直接开训，然后基于同一份 `512-patient` merged manifest 重新跑论文可用的 headline integration（至少 supervised、CT teacher、cross-modal KD；最好按多 seed / resampling 口径汇总）。
+- 论文能否回填：当前可以回填“BIMCV 数据准备与 readiness 已完成”的进度与附录资源状态；不能把 3090 旧 manifest 上的 s45-s47 best metrics 直接写入主文 headline tables，除非明确标注为旧数据快照/工程验证。
+
+## 历史快照（保留审计，不作为当前待办）
+
 ## 2026-05-07 21:43 UTC 全量远端进度检查快照
 
 ### R3090 (`10.147.20.176`) 四卡训练实时状态
@@ -333,7 +393,7 @@ plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XX
 - **M4 Baseline coverage — PARTIAL**：仍缺 Gupta 2016 named baseline、MedCLIP/GLoRIA frozen-feature、CheXNet/ConvNeXt-Tiny same-modality teacher 实验。
 - **M5 Architecture practice gap — PARTIAL**：仍缺 cosine LR + warmup、224×224 训练、RadImageNet 对比、10-resample 统计。
 - **M10 Single dataset — NOT DONE**：仍缺第二独立 thoracic dataset 的完整同协议结果。
-- **E1 BIMCV-COVID19+ headline integration — PARTIAL**：3090 端 headline 配置与训练流水线已落地并运行过；待 H800 negative 完整收敛后补齐统一主表回填与复核报告。
+- **E1 BIMCV-COVID19+ headline integration — PARTIAL**：H800 positive/negative 全量下载、merged manifest 与 readiness gate 已完成；3090 端旧 merged manifest 的 s45-s47 工程验证已跑完。仍需基于 H800 全量 `512-patient` merged manifest 重新跑论文口径 headline integration 并形成可回填汇总。
 - **E3 ImageNet/RadImageNet + cosine LR — PARTIAL**：ImageNet 4 seeds 已完成；仍缺 cosine/warmup、224 训练、RadImageNet、10-resample。
 - **E10 Non-medical paired-modality demo — NOT DONE**：需引入新数据集并运行额外实验。
 
@@ -346,7 +406,7 @@ plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XX
 
 ### 2) GPU窗口期执行（实验项）
 
-- [ ] **E1 / M2 / M10**：在 BIMCV 完成 same-patient 阴性配对后，跑 headline integration（Task #23）并回填主文 headline tables。
+- [ ] **E1 / M2 / M10**：基于 H800 全量 `512-patient` merged manifest 重新跑 headline integration（Task #23）并回填主文 headline tables；旧 3090 `481-patient` 结果仅作工程验证，不直接作为论文主结果。
 - [ ] **M1 效率证据补齐**：补 GPU latency 测量（与 CPU latency 同口径），形成 TCSVT 叙事闭环证据。
 - [ ] **M4 baseline 扩展**：补 Gupta 2016 named baseline、MedCLIP/GLoRIA frozen-feature、CheXNet/ConvNeXt-Tiny same-modality teacher。
 - [ ] **M5 / E3 扩展**：补 cosine LR + warmup、224×224 训练、RadImageNet 权重对比，并进入 10-resample 统计。
@@ -362,10 +422,11 @@ plink -ssh -batch -hostkey "ssh-ed25519 255 SHA256:Jj7AizwqBqF1buL3ZBUiE5P37N9XX
 - [ ] **MIDRC RICORD（备线）**：
   - 提交访问申请（预估 1–2 周）。
   - 申请获批后制定最小可运行配对筛选方案（仅作为 BIMCV 风险兜底）。
-- [ ] **BIMCV-neg 数据落地**：
-  - 执行 `python -m jdcnet_exp.download_bimcv_neg_paired --output-dir /data/bimcv_neg_paired`。
-  - 执行 `python -m jdcnet_exp.prepare_bimcv_neg_dataset --bimcv-root /data/bimcv_neg_paired --output-dir src/data/bimcv`。
-  - 将产出的 manifest 与 E1 训练计划绑定（记录可用样本量与 split 可行性）。
+- [x] **BIMCV 数据落地与 gate**：
+  - H800 已完成 positive `114` subjects、negative `398/398` subjects。
+  - 已生成 merged manifest：`1251 rows / 512 patients`。
+  - merged readiness gate 已通过：`START_TRAINING`。
+  - 下一步不再是下载/manifest，而是将全量 manifest 绑定到 E1 训练计划。
 
 ## E3/E4 多种子对比表（2026-05-04）
 
@@ -401,8 +462,9 @@ E4 = BiomedCLIP frozen-feature linear-probe（paired cohort, 50 epochs）
 
 ### A. 当前运行阻塞（本周）
 
-1. **H800 negative 尚未全量完成**：当前 `380/398`，需继续跑到 `398/398` 后再触发最终 manifest/readiness 的完整复核。
-2. **3090 主训练与 FIFO 需统一调度口径**：当前 active 训练进程存在，但 FIFO 显示 `RUNNING_PID=none`、`QUEUE_LENGTH=0`；后续批处理任务应统一通过 job pool 入队，避免状态分叉。
+1. **E1 训练口径待统一**：H800 已有全量 `512-patient` merged manifest；3090 已完成的是旧 `481-patient` manifest 上的工程验证结果。需要决定是在 H800 直接开训，还是把 H800 全量数据同步到 3090 后重跑。
+   - 需要作者决策：优先使用 H800 直接训练，还是同步到 3090 再训练？
+   - 推荐：若 H800 GPU 可用，优先在 H800 直接跑，避免 3090 链路差导致大数据同步成本过高。
 
 ### B. 中期阻塞（需外部资源）
 
