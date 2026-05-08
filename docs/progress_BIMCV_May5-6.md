@@ -1,5 +1,91 @@
 # JDCNET Download Progress - May 5/6 2026
 
+## Paper-facing BIMCV wording update (May 9, 2026)
+
+- Updated `paper/main.tex` and `paper/appendix.tex` so the BIMCV 512-patient result is framed as a conservative stress test rather than a strengthened headline claim.
+- Main-text wording now emphasizes: CT teacher is feasible at larger scale; cross-modal KD is unstable across independent executions and can collapse to zero sensitivity.
+- Appendix now contains `BIMCV 512-Patient Paired Stress Test` and a table reporting CT teacher, X-ray supervised, and cross-modal logit KD for two independent executions.
+- Paper-facing conclusion: BIMCV is useful as boundary evidence, but not as a strong positive CT-to-X-ray transfer claim.
+- `paper/build.bat` completed and regenerated main/appendix PDFs.
+
+
+## Latest Verified Status (May 9, 2026 06:26 CST / May 8, 2026 22:26 UTC)
+
+### H800 full 512-patient run completed and archived
+
+- H800 headline status: `9/9` jobs completed.
+- Final completion timestamp in `status.tsv`: `2026-05-09T06:10:35+08:00`
+  for `bimcv_h800_xray_cross_modal_kd_s44`.
+- Summary file exists with 9 rows:
+  `/root/autodl-tmp/logs/bimcv_h800_headline/best_metrics_summary.csv`.
+- Result integrity check:
+  - `best_metrics.json` count: `9`
+  - `history.csv` count: `9`
+  - status counts: `START=9`, `DONE=9`
+- GPU is idle: H800 memory `0 / 81559 MiB`, utilization `0%`.
+- No active `jdcnet_exp.train` or `run_bimcv_h800_headline` process remains.
+- Disk: `/root/autodl-tmp` `100G total / 71G used / 30G available`.
+- Local artifact copy created:
+  - `docs/tmp/h800_bimcv_headline_artifacts_20260509_0610CST.tgz`
+  - SHA256 `a00e21c0517c203bba8be5b88008acb2720aac980edd0f135588c81daac9c7a0`
+  - Includes H800 headline logs, run outputs, configs, and BIMCV CSV manifests.
+
+### H800 vs R3090 512-patient aggregate comparison
+
+Local comparison outputs:
+
+- `docs/tmp/h800_bimcv_512_best_metrics_summary.csv`
+- `docs/tmp/r3090_bimcv_512_best_metrics_summary.csv`
+- `docs/tmp/bimcv_512_h800_vs_r3090_per_seed.csv`
+- `docs/tmp/bimcv_512_h800_vs_r3090_aggregate.csv`
+
+| Host | Method | n | Balanced accuracy mean ± std | ROC-AUC mean ± std | Recall mean | Specificity mean |
+|---|---|---:|---:|---:|---:|---:|
+| H800 | CT teacher | 3 | 0.6858 ± 0.0552 | 0.6705 ± 0.0389 | 0.5918 | 0.7797 |
+| H800 | X-ray supervised | 3 | 0.5512 ± 0.0537 | 0.6162 ± 0.0347 | 0.3197 | 0.7826 |
+| H800 | Cross-modal KD | 3 | 0.4826 ± 0.0075 | 0.5882 ± 0.0411 | 0.0000 | 0.9652 |
+| R3090 | CT teacher | 3 | 0.6960 ± 0.0283 | 0.6819 ± 0.0477 | 0.7007 | 0.6913 |
+| R3090 | X-ray supervised | 3 | 0.5973 ± 0.0133 | 0.6111 ± 0.0113 | 0.7279 | 0.4667 |
+| R3090 | Cross-modal KD | 3 | 0.5991 ± 0.0215 | 0.6344 ± 0.0060 | 0.6054 | 0.5928 |
+
+Interpretation:
+
+- CT teacher is consistent across hosts and remains the strongest overall arm
+  (`~0.69` mean balanced accuracy).
+- R3090 X-ray supervised and R3090 cross-modal KD are close around `0.60` mean
+  balanced accuracy.
+- H800 cross-modal KD collapsed to all/near-all negative-positive imbalance
+  behavior with mean recall `0.0000`; this run should be treated as an
+  instability warning rather than a positive transfer result.
+- Because R3090 and H800 manifests have matching patient/label/split hashes,
+  the host discrepancy is more likely due to training nondeterminism/runtime
+  differences or config/runtime drift than to sample-support mismatch.
+
+### Remaining H800 tasks before shutdown
+
+No additional GPU training is required on H800 for the current 512-patient
+BIMCV headline batch. Remaining actions are operational only:
+
+1. Keep the local artifact tarball and CSV summaries as the durable record.
+2. Optionally copy the same tarball to another persistent remote location
+   (for example R3090) if another backup is desired.
+3. The H800 shutdown watcher is still running but will not auto-shutdown because
+   `runner.log` lacks the `runner_done` marker even though `best=9`,
+   `history=9`, and `summary_rows=9`.
+4. If the user wants H800 powered down, manually stop/ignore that watcher and
+   shut down the instance after confirming no unrelated screen session is needed.
+
+### Shutdown pre-check result
+
+H800 is safe to shut down from the JDCNET/BIMCV perspective:
+
+- Training finished.
+- GPU is idle.
+- Summary and per-run artifacts are present.
+- Local artifact archive has been copied and SHA256-verified.
+- Data remains on H800, but the training outputs needed for paper comparison
+  are now preserved locally.
+
 ## Latest Verified Status (May 9, 2026 05:44 CST / May 8, 2026 21:44 UTC)
 
 ### Completed actions from the May 9 R3090/B2Drop audit

@@ -1,5 +1,62 @@
 # 进度日志
 
+## 2026-05-09 Paper-facing BIMCV wording update
+
+- Updated `paper/main.tex` and `paper/appendix.tex` to present the BIMCV 512-patient results conservatively.
+- Main framing now states: BIMCV supports CT-teacher feasibility, but cross-modal KD remains unstable and is not used to strengthen the main transfer claim.
+- Added appendix subsection `BIMCV 512-Patient Paired Stress Test` with a 6-row table comparing two independent executions over CT teacher, X-ray supervised, and cross-modal logit KD.
+- The table keeps the two executions separate rather than averaging them into a single headline number, because cross-modal KD collapses to zero sensitivity in one execution.
+- Updated Data/Evaluation limitations to avoid claiming strong external validation or clinical readiness.
+- Ran `paper/build.bat`; main and appendix PDFs were generated. Existing LaTeX warnings remain, but no fatal compilation error occurred.
+
+
+## 2026-05-09 H800 completed: 512-patient comparison and shutdown pre-check
+
+- **H800 full 512-patient run completed.**
+  - Final H800 status: `9/9` jobs completed.
+  - Final completion timestamp: `2026-05-09T06:10:35+08:00` for `bimcv_h800_xray_cross_modal_kd_s44`.
+  - H800 summary: `/root/autodl-tmp/logs/bimcv_h800_headline/best_metrics_summary.csv`.
+  - Integrity counts: `best_metrics.json=9`, `history.csv=9`, `START=9`, `DONE=9`.
+  - H800 GPU idle: memory `0 / 81559 MiB`, utilization `0%`.
+  - No active `jdcnet_exp.train` or `run_bimcv_h800_headline` process remains.
+
+- **H800 artifacts preserved locally before shutdown.**
+  - Local archive: `docs/tmp/h800_bimcv_headline_artifacts_20260509_0610CST.tgz`.
+  - SHA256: `a00e21c0517c203bba8be5b88008acb2720aac980edd0f135588c81daac9c7a0`.
+  - Archive includes H800 headline logs, run outputs, configs, and BIMCV CSV manifests.
+
+- **H800 vs R3090 aggregate comparison files generated.**
+  - `docs/tmp/h800_bimcv_512_best_metrics_summary.csv`
+  - `docs/tmp/r3090_bimcv_512_best_metrics_summary.csv`
+  - `docs/tmp/bimcv_512_h800_vs_r3090_per_seed.csv`
+  - `docs/tmp/bimcv_512_h800_vs_r3090_aggregate.csv`
+
+| Host | Method | n | Balanced accuracy mean ? std | ROC-AUC mean ? std | Recall mean | Specificity mean |
+|---|---|---:|---:|---:|---:|---:|
+| H800 | CT teacher | 3 | 0.6858 ? 0.0552 | 0.6705 ? 0.0389 | 0.5918 | 0.7797 |
+| H800 | X-ray supervised | 3 | 0.5512 ? 0.0537 | 0.6162 ? 0.0347 | 0.3197 | 0.7826 |
+| H800 | Cross-modal KD | 3 | 0.4826 ? 0.0075 | 0.5882 ? 0.0411 | 0.0000 | 0.9652 |
+| R3090 | CT teacher | 3 | 0.6960 ? 0.0283 | 0.6819 ? 0.0477 | 0.7007 | 0.6913 |
+| R3090 | X-ray supervised | 3 | 0.5973 ? 0.0133 | 0.6111 ? 0.0113 | 0.7279 | 0.4667 |
+| R3090 | Cross-modal KD | 3 | 0.5991 ? 0.0215 | 0.6344 ? 0.0060 | 0.6054 | 0.5928 |
+
+- **Current interpretation.**
+  - CT teacher is consistent across hosts and remains the strongest overall arm at about `0.69` mean balanced accuracy.
+  - R3090 X-ray supervised and R3090 cross-modal KD are close around `0.60` mean balanced accuracy.
+  - H800 cross-modal KD collapsed with mean recall `0.0000`; this should be treated as an instability warning rather than evidence of positive transfer.
+  - Because H800/R3090 manifests have matching patient/label/split hashes, the host discrepancy is not due to sample-support mismatch.
+
+- **Remaining H800 tasks.**
+  - No more H800 GPU training is required for the current BIMCV 512-patient batch.
+  - Optional only: copy the local artifact archive to another persistent remote if a second backup is desired.
+  - The shutdown watcher is still running but will not auto-shutdown because `runner.log` lacks `runner_done`; watcher logs show `best=9`, `history=9`, `summary_rows=9`, `runner_done=0`.
+  - From the JDCNET/BIMCV perspective H800 is safe to shut down after user confirmation, provided no unrelated screen session is needed.
+
+- **Paper backfill status.**
+  - Still pending. Do not blindly backfill all BIMCV numbers.
+  - Recommended paper-facing use: report BIMCV 512-patient as an additional evidence layer emphasizing CT-teacher feasibility and cross-modal KD instability, not as a strong positive transfer claim.
+
+
 ## 2026-05-09 R3090 512-patient BIMCV and B2Drop audit closure
 
 - **R3090 now has complete path-valid 512-patient BIMCV training inputs.**
