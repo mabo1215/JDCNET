@@ -1,5 +1,57 @@
 # 进度日志
 
+## 2026-05-09 R3090 512-patient BIMCV and B2Drop audit closure
+
+- **R3090 now has complete path-valid 512-patient BIMCV training inputs.**
+  - Manifest: `/data/JDCNET/src/data/bimcv/bimcv_merged_paired_manifest.csv`.
+  - `1251 rows / 512 patients`.
+  - Patient labels: negative `398`, positive `114`.
+  - Split labels: train `318 neg / 91 pos`; val `80 neg / 23 pos`.
+  - Path audit: missing `image_path` = `0`; missing `teacher_image_path` = `0`.
+  - Current R3090 state: all four RTX 3090 GPUs idle; job pool `RUNNING_PID=none`, `QUEUE_LENGTH=0`.
+
+- **R3090 completed the new full 512-patient engineering/headline batch.**
+  - Run directory: `/data/JDCNET/src/runs/r3090_bimcv_512/`.
+  - Log/summary directory: `/data/logs/r3090_bimcv_512/`.
+  - Scheduler: `2026-05-08T19:45:15+00:00 DONE all all summary_written`.
+  - Completed `9/9`: CT teacher, X-ray supervised, and cross-modal KD for seeds `42/43/44`.
+  - Summary file: `/data/logs/r3090_bimcv_512/best_metrics_summary.csv`.
+
+| Experiment | Balanced accuracy | ROC-AUC | Note |
+|---|---:|---:|---|
+| `r3090_bimcv_512_teacher_ct_s43` | 0.7269 | 0.7353 | full 512-patient R3090 manifest |
+| `r3090_bimcv_512_teacher_ct_s44` | 0.6898 | 0.6668 | full 512-patient R3090 manifest |
+| `r3090_bimcv_512_teacher_ct_s42` | 0.6713 | 0.6437 | full 512-patient R3090 manifest |
+| `r3090_bimcv_512_xray_cross_modal_kd_s43` | 0.6158 | 0.6311 | full 512-patient R3090 manifest |
+| `r3090_bimcv_512_xray_cross_modal_kd_s44` | 0.6067 | 0.6308 | full 512-patient R3090 manifest |
+| `r3090_bimcv_512_xray_cross_modal_kd_s42` | 0.5748 | 0.6413 | full 512-patient R3090 manifest |
+| `r3090_bimcv_512_xray_supervised_s43` | 0.6056 | 0.5988 | full 512-patient R3090 manifest |
+| `r3090_bimcv_512_xray_supervised_s44` | 0.6043 | 0.6136 | full 512-patient R3090 manifest |
+| `r3090_bimcv_512_xray_supervised_s42` | 0.5819 | 0.6209 | full 512-patient R3090 manifest |
+
+- **H800/R3090 manifest alignment check.**
+  - Both hosts have the same support: `1251 rows / 512 patients`, negative `398` / positive `114`, and identical train/val label counts.
+  - Normalized patient/label/split hash matches: `6b660a6c145be39a9148268a20f9b184dd762f65f4a8455ebf4007f9b7bf8175`.
+  - Normalized patient/label/split/finding/view/offset hash matches: `b15ccdd6a8ae6f96937ec30cedc41229f18b0ec88af627472d88ff37ddeff483`.
+  - Full path hash differs only because the two machines use different absolute path roots.
+  - H800 was still running the final job at the 2026-05-09 05:43 CST check: `bimcv_h800_xray_cross_modal_kd_s44`, epoch `44/50`; no H800 `best_metrics_summary.csv` yet.
+
+- **B2Drop/WebDAV audit download completed on R3090.**
+  - Audit root: `/data/bimcv_b2drop_audit/`.
+  - Inventory: `/data/bimcv_b2drop_audit/audit_inventory.tsv` and `/data/bimcv_b2drop_audit/audit_inventory.json`.
+  - Downloaded/verified `106` logical items (`108` files including inventory outputs), about `13 MB`.
+  - Positive share `BIMCV-COVID19`: README plus `35` `.tar-tvf.txt` manifests.
+  - Negative share `BIMCV-COVID19-cIter_1_2-Negative`: `67` manifest/readme-style files plus three small auxiliary archives:
+    - `covid19_neg_derivative.tar.gz`, `1,787,838` bytes, SHA256 `957f3afe5e036f3f5048ca401b71904c9031d80c875723773d4e5aa7c0a626f0`.
+    - `covid19_neg_metadata.tar.gz`, `36,753` bytes, SHA256 `cf5ed63297fcbbdf8ddc1f948923daa9d60e11d07075f17c6a3323e4c8b78834`.
+    - `covid19_neg_sessions_tsv.tar.gz`, `1,349,377` bytes, SHA256 `bd9794027c47e01274ef6369b20a65f60897bd06fb530d871eb4ffdc7c984fc3`.
+  - Full original subject archives were not downloaded: positive archives are about `70 GB`, negative archives are about `304 GB`, while R3090 `/data` is about `93%` used with only about `255 GB` free.
+
+- **Manuscript backfill decision.**
+  - The old R3090 `481-patient` results still must not be backfilled into manuscript headline tables.
+  - The new R3090 `512-patient` results are valid candidate evidence, but remain **pending paper backfill** until the H800 full run finishes, H800/R3090 summaries are compared under the same manifest/split/config assumptions, and a paper-facing seed aggregation table is generated.
+
+
 ## 2026-05-08 远端收口复核（当前有效状态）
 
 ### 2026-05-08 H800 全量 BIMCV headline 训练已启动
