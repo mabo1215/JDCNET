@@ -152,6 +152,69 @@ def dkd_loss(
     return alpha * tckd + beta * nckd
 
 
+def prototype_distill_loss(
+    student_embedding: torch.Tensor,
+    teacher_embedding: torch.Tensor,
+    labels: torch.Tensor,
+    prototypes: torch.Tensor,
+    num_classes: int,
+    ema: float = 0.95,
+    temperature: float = 0.1,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Tier-B class-prototype distillation.
+
+    Maintain an EMA estimate of the teacher's class centroids in the shared
+    embedding space and minimise the cross-entropy of the student's
+    cosine-similarity-to-prototype distribution against the true labels.
+    Returns the per-step loss and the updated prototypes (so the caller can
+    persist them across batches).
+
+    student_embedding / teacher_embedding: [B, D] (e.g., 512 for ResNet-18).
+    prototypes: [num_classes, D] (initialised to zero on first call).
+    """
+    teacher_emb = teacher_embedding.detach()
+    new_prototypes = prototypes.clone()
+    for c in range(num_classes):
+        mask = labels == c
+        if mask.any():
+            class_mean = teacher_emb[mask].mean(dim=0)
+            class_mean = F.normalize(class_mean, dim=0)
+            if (prototypes[c].abs().sum() > 0).item():
+                updated = ema * prototypes[c] + (1.0 - ema) * class_mean
+            else:
+                updated = class_mean
+            new_prototypes[c] = F.normalize(updated, dim=0)
+
+    if (new_prototypes.abs().sum() == 0).item():
+        # First batch where no class has been observed yet.
+        return student_embedding.sum() * 0.0, new_prototypes
+
+    student_norm = F.normalize(student_embedding, dim=1)
+    logits_proto = student_norm @ new_prototypes.t() / temperature
+    return F.cross_entropy(logits_proto, labels), new_prototypes
+
+
+def lung_mask_distill_loss(
+    student_spatial_feature: torch.Tensor,
+    lung_mask: torch.Tensor,
+) -> torch.Tensor:
+    """Tier-B anatomical-mask distillation.
+
+    Encourage the student's deepest spatial activation map (mean of squared
+    channels) to peak inside the lung region predicted by a frozen external
+    chest segmentation model. Both signals are spatially pooled to the
+    student feature resolution and L2-normalised before MSE.
+
+    student_spatial_feature: [B, C, h, w].
+    lung_mask: [B, 1, H, W] in [0, 1] from a frozen lung-segmentation network.
+    """
+    target = F.adaptive_avg_pool2d(lung_mask, student_spatial_feature.shape[-2:])
+    student_attn = student_spatial_feature.pow(2).mean(dim=1, keepdim=True)
+    student_attn = F.normalize(student_attn.flatten(1), dim=1)
+    target = F.normalize(target.flatten(1), dim=1)
+    return F.mse_loss(student_attn, target)
+
+
 def dist_loss(
     student_logits: torch.Tensor,
     teacher_logits: torch.Tensor,

@@ -213,8 +213,24 @@ class ResNet18Classifier(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x)
 
-    def forward_with_features(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
-        return {"logits": self.forward(x)}
+    def forward_with_features(self, x: torch.Tensor) -> dict[str, torch.Tensor | list[torch.Tensor]]:
+        net = self.net
+        x = net.conv1(x)
+        x = net.bn1(x)
+        x = net.relu(x)
+        x = net.maxpool(x)
+        s1 = net.layer1(x)
+        s2 = net.layer2(s1)
+        s3 = net.layer3(s2)
+        s4 = net.layer4(s3)
+        embedding = torch.flatten(net.avgpool(s4), 1)
+        logits = net.fc(embedding)
+        return {
+            "logits": logits,
+            "stage_features": [s1, s2, s3, s4],
+            "deepest_feature": s4,
+            "embedding": embedding,
+        }
 
 
 class BiomedCLIPClassifier(nn.Module):

@@ -19,7 +19,9 @@ from .distillation import (
     dist_loss,
     dkd_loss,
     feature_hint_loss,
+    lung_mask_distill_loss,
     modality_hallucination_loss,
+    prototype_distill_loss,
 )
 from .metrics import compute_metrics
 from .models import build_model
@@ -154,6 +156,29 @@ def run_training(config: ExperimentConfig) -> None:
         student_crd_adapter = None
         teacher_crd_adapter = None
 
+    # Tier-B-lite: anatomical-mask predictor (frozen) and EMA class prototypes.
+    lung_mask_predictor = None
+    if config.distillation.enabled and config.distillation.lung_mask_weight > 0.0:
+        try:
+            import torchxrayvision as xrv  # type: ignore
+
+            lung_mask_predictor = xrv.baseline_models.chestx_det.PSPNet().to(device)
+            lung_mask_predictor.eval()
+            for param in lung_mask_predictor.parameters():
+                param.requires_grad_(False)
+        except Exception as exc:
+            raise RuntimeError(
+                "torchxrayvision is required when lung_mask_weight > 0. "
+                "Install with `pip install torchxrayvision` or set the weight "
+                "to 0 to disable the anatomical-mask term."
+            ) from exc
+
+    prototypes: torch.Tensor | None = None
+    if config.distillation.enabled and config.distillation.prototype_weight > 0.0:
+        prototypes = torch.zeros(
+            config.model.num_classes, 1, device=device
+        )  # placeholder; correct shape allocated on first batch.
+
     optimization_parameters: list[nn.Parameter] = list(model.parameters())
     if student_hint_adapter is not None and teacher_hint_adapter is not None:
         optimization_parameters.extend(student_hint_adapter.parameters())
@@ -255,6 +280,48 @@ def run_training(config: ExperimentConfig) -> None:
                         temperature=config.distillation.temperature,
                         beta=config.distillation.dist_beta,
                         gamma=config.distillation.dist_gamma,
+                    )
+                if config.distillation.prototype_weight > 0.0 and prototypes is not None:
+                    student_emb = student_outputs["embedding"]
+                    teacher_emb = teacher_outputs["embedding"]
+                    if prototypes.shape[-1] != student_emb.shape[-1]:
+                        prototypes = torch.zeros(
+                            config.model.num_classes,
+                            student_emb.shape[-1],
+                            device=device,
+                        )
+                    proto_loss, prototypes = prototype_distill_loss(
+                        student_embedding=student_emb,
+                        teacher_embedding=teacher_emb,
+                        labels=labels,
+                        prototypes=prototypes,
+                        num_classes=config.model.num_classes,
+                        ema=config.distillation.prototype_ema,
+                        temperature=config.distillation.prototype_temperature,
+                    )
+                    loss = loss + config.distillation.prototype_weight * proto_loss
+                if (
+                    config.distillation.lung_mask_weight > 0.0
+                    and lung_mask_predictor is not None
+                ):
+                    with torch.no_grad():
+                        gray = images.mean(dim=1, keepdim=True)
+                        xrv_in = gray * 2048.0 - 1024.0
+                        if xrv_in.shape[-1] != config.distillation.lung_mask_input_size:
+                            xrv_in = nn.functional.interpolate(
+                                xrv_in,
+                                size=config.distillation.lung_mask_input_size,
+                                mode="bilinear",
+                                align_corners=False,
+                            )
+                        seg_logits = lung_mask_predictor(xrv_in)
+                        # PSPNet target order: ['Left Clavicle', 'Right Clavicle',
+                        # 'Left Scapula', 'Right Scapula', 'Left Lung', 'Right Lung',
+                        # ...]; channels 4 and 5 are the two lungs.
+                        lung = torch.sigmoid(seg_logits[:, 4:6]).sum(dim=1, keepdim=True).clamp(0.0, 1.0)
+                    loss = loss + config.distillation.lung_mask_weight * lung_mask_distill_loss(
+                        student_spatial_feature=student_outputs["deepest_feature"],
+                        lung_mask=lung,
                     )
             else:
                 loss = nn.functional.cross_entropy(student_logits, labels, weight=class_weights)

@@ -57,6 +57,13 @@ class DistillationConfig:
     dist_weight: float = 0.0
     dist_beta: float = 1.0
     dist_gamma: float = 1.0
+    # Tier-B-lite: multi-target distillation (prototype + lung-mask).
+    prototype_weight: float = 0.0
+    prototype_ema: float = 0.95
+    prototype_temperature: float = 0.1
+    lung_mask_weight: float = 0.0
+    lung_mask_model: str = "torchxrayvision_pspnet"
+    lung_mask_input_size: int = 224
 
 
 @dataclass
