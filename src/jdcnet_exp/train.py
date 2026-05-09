@@ -122,6 +122,7 @@ def run_training(config: ExperimentConfig) -> None:
                 use_mhra=config.model.use_mhra,
                 use_dfpn=True,
                 paired_input=False,
+                backbone=getattr(config.model, "backbone", "custom"),
             )
         ).to(device)
         teacher_checkpoint = Path(config.distillation.teacher_checkpoint)

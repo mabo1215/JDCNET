@@ -33,18 +33,57 @@ decision between Tier-A (small upgrade) and Tier-B (architectural rebuild).
 | `r3090_bimcv_512_xray_supervised_s44`  | 0.6043        | 0.6136  |
 | **Mean (s42, s43)**                     | **0.5938**    | 0.6099  |
 
-## ResNet-18 runs (in progress, all 4 GPUs)
+## ResNet-18 runs (4 GPUs)
 
 | Run                                            | Status      | Best BA | ROC-AUC |
 |-----------------------------------------------|-------------|---------|---------|
-| `bimcv_phase1_diag/bimcv_resnet18_xray_supervised_s42` | running GPU0 | partial: 0.651 @ ep15 | 0.640 |
-| `bimcv_phase1_diag/bimcv_resnet18_xray_supervised_s43` | running GPU1 | partial: 0.665 @ ep16 | 0.666 |
-| `bimcv_phase1_diag/bimcv_resnet18_teacher_ct_s42`      | running GPU2 | TBD | TBD |
-| `bimcv_phase1_diag/bimcv_resnet18_teacher_ct_s43`      | running GPU3 | TBD | TBD |
+| `bimcv_phase1_diag/bimcv_resnet18_xray_supervised_s42` | running GPU0 (~ep23) | partial: 0.651 @ ep15 | 0.640 |
+| `bimcv_phase1_diag/bimcv_resnet18_xray_supervised_s43` | running GPU1 (~ep23) | partial: 0.665 @ ep16 | 0.666 |
+| `bimcv_phase1_diag/bimcv_resnet18_teacher_ct_s42`      | **done** | **0.6827** @ best | 0.6946 |
+| `bimcv_phase1_diag/bimcv_resnet18_teacher_ct_s43`      | **done** | **0.7028** @ best | 0.6808 |
 
-CT teacher runs added 2026-05-09 to fill GPU2/GPU3 — they produce the
-checkpoints required by the next-wave ResNet-18 cross-modal logit KD
-experiments, which can be launched as soon as GPU0/GPU1 free up.
+### Teacher-side observation
+
+ResNet-18 CT teacher mean BA = **0.693**, custom-CNN CT teacher mean BA = **0.696**.
+Backbone change does **not** improve the teacher under the current data
+pipeline (single central CT slice). Final-epoch train loss for ResNet-18
+teacher s42 hit 0.005 with val AUC declining from peak 0.71 (ep30) to 0.69
+(ep50): clear overfitting on small CT support (~409 train slices).
+
+Implication for Tier-A: keep custom-CNN teacher as default OR add early
+stopping at epoch ~30 / smaller LR / stronger weight decay for ResNet-18
+teacher. Best-checkpoint criterion already saves the peak; only matters if we
+later want to compare teacher behavior across the full training trajectory.
+
+### Supervised-side observation (partial, will update at completion)
+
+ResNet-18 supervised X-ray partial mid-run best BA ≈ 0.658 (s42=0.651 @ep15,
+s43=0.665 @ep16) versus custom-CNN supervised X-ray final mean BA ≈ 0.594.
+ΔBA so far ≈ **+0.064**, above the 0.05 decision threshold even before the
+runs finish. Final BA may rise further if epoch >25 produces a new best.
+
+## H800 readiness (CPU mode, 2026-05-09)
+
+H800 prepared so the moment GPU mode is enabled, training can start
+immediately:
+
+- Code aligned to `origin/main` (8538daa) on `https://github.com/mabo1215/JDCNET.git`.
+  AutoDL `network_turbo` proxy lets the container reach GitHub.
+- Python 3.12 / torch 2.8.0+cu128 / torchvision 0.23.0+cu128.
+  ResNet-18 ImageNet weights pre-cached at
+  `~/.cache/torch/hub/checkpoints/resnet18-f37072fd.pth`.
+- 9 ResNet-18 configs uploaded to
+  `/root/autodl-tmp/JDCNET/src/configs/bimcv_h800_headline/`:
+  - `bimcv_h800_resnet18_xray_supervised_s{42,43,44}.json`
+  - `bimcv_h800_resnet18_teacher_ct_s{42,43,44}.json` (epochs=30 to mitigate
+    overfitting)
+  - `bimcv_h800_resnet18_xray_cross_modal_kd_s{42,43,44}.json` (depends on
+    teacher checkpoints from the second config family)
+- Output and log dirs created: `/root/autodl-tmp/runs/bimcv_h800_phase1/`,
+  `/root/autodl-tmp/logs/bimcv_h800_phase1/`.
+- BIMCV manifest 1252 lines / 512 patients verified at
+  `/root/autodl-tmp/data/bimcv/bimcv_merged_paired_manifest.csv`.
+- CPU smoke test: see Section "Smoke test outcome" once it completes.
 
 ## Decision rules
 
