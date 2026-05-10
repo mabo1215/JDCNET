@@ -298,7 +298,7 @@ Final paper-grade evidence requires:
   prototype / memory-bank) reports its leave-one-out BA delta and an FDR-
   adjusted p-value.
 
-## 6. Status tracking (updated 2026-05-10)
+## 6. Status tracking (updated 2026-05-10 04:45 UTC)
 
 - [x] Phase 1 diagnostic ablation queued on R3090 (done 2026-05-09 11:45 UTC)
 - [x] Phase 1 results recorded in `docs/progress.md` (2026-05-09)
@@ -308,9 +308,24 @@ Final paper-grade evidence requires:
       runs (3 weights × 4 seeds) executed; resample eval ran 2026-05-10 00:52 UTC
 - [x] Paper backfill (2026-05-10): Execution D in `paper/appendix.tex`,
       H1/Limitations/Conclusion in `paper/main.tex`
-- [ ] **DRR pre-step**: implement `build_drr.py`, generate 512 DRRs offline
-- [ ] **Tier-B Full code**: `drr_anchor_loss` + data pipeline + train.py wiring
-- [ ] **Tier-B Full sweep**: 4 configs × 4 seeds on R3090 (~8 GPU-hours)
+- [x] **DRR pre-step**: `build_drr.py` written, 510/512 DRRs generated, visual
+      inspection shows X-ray-like quality (lungs, ribs, heart silhouette
+      all anatomically correct). 1 patient missing NIfTI, filtered out.
+- [x] **Tier-B Full design**: simplified — instead of new `drr_anchor_loss`,
+      reuse existing `attention_transfer_loss` with `paired_image_column = drr_path`.
+      DRR is in same coord frame as X-ray, so AT alignment becomes geometrically
+      valid for free.
+- [x] **DRR teachers** (4 seeds): trained 2026-05-10 01:51-02:15 UTC.
+      Mean BA = 0.752 ± 0.042 (s44 = 0.801 best). **+0.06 above CT teacher**
+      (which was 0.715), confirming DRR aggregates real diagnostic signal that
+      single CT axial slices fragment.
+- [x] **Tier-B Full sweep started** (2026-05-10 04:42 UTC, restarted from 50→30
+      epochs after Wave 1 was killed at epoch 2/50 to save ~5h wall time):
+      - 12 student runs (3 variants × 4 seeds, 30 epochs each on ResNet-18)
+      - Variants: logit_kd, at_kd (KD + AT geometric anchor),
+        at_proto_kd (KD + AT + Proto w=1.0 kitchen sink)
+      - Orchestrator screen `879488.tier_b_full_resume` on R3090
+      - ETA ~12:30 UTC for all 3 waves + resample eval to complete (~8 GPU-hours total)
 - [ ] **Decision and paper revision**: per Section 4.3 decision rule
 
 ## 7. What goes wrong if Tier-B Full also fails
