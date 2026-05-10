@@ -1,5 +1,62 @@
 # 进度日志
 
+## 2026-05-10 Execution E（DRR 几何锚点）完成 + 论文回填（11:10 UTC）
+
+### Execution E 结果：最大 Δ，但仍未达 p<0.05
+
+**Fixed-val BA（4 seeds 均值±标准差）：**
+| 方法 | Fixed-val BA | Δ vs sup |
+|---|---|---|
+| DRR-KD（logit） | 0.709 ± 0.008 | +0.017 |
+| DRR-KD+AT | 0.706 ± 0.018 | +0.014 |
+| DRR-KD+AT+Proto† | 0.630 ± 0.014 | −0.062 |
+
+†DataLoader 死锁，训练在 ep 4-7 截断（best.pt 已保存，但未充分收敛）。
+
+**重采样 Wilcoxon（n=40 paired observations，与 supervised 比较）：**
+| 方法 | mean Δ | std | 双侧 p | 单侧 p |
+|---|---|---|---|---|
+| DRR-KD（logit） | **+0.043** | 0.185 | **0.291** | **0.145** |
+| DRR-KD+AT | +0.009 | 0.209 | 0.304 | 0.152 |
+| DRR-KD+AT+Proto† | −0.041 | — | 0.165 | 0.917 |
+
+**关键比较：DRR-KD vs CT-KD（Execution C）**
+- DRR-KD mean Δ vs supervised = +0.043（vs CT-KD +0.025），提升 +0.018
+- DRR-KD two-sided p = 0.291（vs CT-KD p = 0.668），大幅改善
+- DRR-KD vs CT-KD 配对测试：mean Δ = +0.017，22 胜 / 6 平 / 12 负，p=0.116（单侧）
+
+**结论：** DRR 几何锚点是迄今最强的转移信号，但 p=0.291 仍未越过 0.05 门槛。瓶颈已从"机制不足"转移到"验证集方差过大"（σ≈0.22，由 80 neg / 23 pos 验证集规模决定）。
+
+### 角色级重采样均值（n=40 each，更新后全量）
+| 角色 | mean BA | std |
+|---|---|---|
+| CT teacher | 0.815 | 0.131 |
+| DRR-KD (logit) | **0.734** | 0.221 |
+| Proto-KD w=1.0 | 0.719 | 0.207 |
+| Cross-modal logit KD | 0.717 | 0.199 |
+| DRR-KD+AT | 0.700 | 0.229 |
+| Proto-KD w=2.0 | 0.700 | 0.227 |
+| X-ray supervised | 0.691 | 0.223 |
+| Proto-KD w=0.5 | 0.675 | 0.244 |
+| DRR-KD+AT+Proto† | 0.650 | 0.226 |
+
+### Wave 执行时间线
+- Wave 1 (logit_kd): 05:10–07:38 UTC（2h28m，30 epochs × 4 seeds × GPU 时间分片）
+- Wave 2 (at_kd): 07:38–10:06 UTC（2h28m）
+- Wave 3 (at_proto_kd): 10:06–10:52 UTC（46m，因 DataLoader 死锁在 ep9 截断，手动 kill 触发 orchestrator 继续）
+- Resample eval (GPU2): 10:52–11:10 UTC（18m）
+
+### 论文回填（paper/appendix.tex + paper/main.tex）
+- Section intro：从 "four configurations" 改为 "five configurations"，新增 Execution E 描述
+- 表格 caption：更新说明 Execution E + 截断标注
+- 新增三行 Execution E 数据行（DRR-KD / DRR-KD+AT / DRR-KD+AT+Proto†）
+- 新增 Execution E 解释段落（Δ=+0.043，p=0.291，方差瓶颈分析）
+- Minimum Next Experiment 段：从 "three levers failed" 到 "four levers exhausted"，指向更大配对队列 + DRR 锚点
+- main.tex H1 行：新增 DRR-KD Δ=+0.043，p=0.291
+- main.tex Limitations/Conclusion：更新 Execution E 叙述 + 方差瓶颈诊断
+
+---
+
 ## 2026-05-10 Tier-B-lite 原型权重扫描完成 + 论文回填
 
 ### 总体结论
@@ -69,6 +126,23 @@ CT teacher 仍然是绝对最强的（0.815），但 student 端任何方法（K
 3. **更宽蒸馏通道**（Execution D 三个 proto 权重）也未达到显著性
 
 下一个决定性实验只能是 **DRR 几何锚点 + 多切片 teacher** 或者 **更大配对队列**（详见更新后的 `docs/tmp/jdcnet_upgrade_plan.md`）。
+
+### 同日（2026-05-10 01:18+ UTC）启动 Tier-B Full 实验
+- DRR 生成脚本完成：`/data/JDCNET/src/jdcnet_exp/build_drr.py`，使用 nibabel 平行投影（沿 AP 轴线积分，HU 截断到 [-1000, 400]，归一化输出 224×224 PNG）
+- 视觉验证（`docs/tmp/drr_smoke/bimcv_S04529.png`）：肺部、肋骨、心影、横膈膜结构清晰，符合 X-ray 视觉规律
+- 全 512 患者 DRR 缓存生成中：`/data/bimcv/drr_cache/`（仅 1 患者缺 NIfTI，被自动过滤）
+- 16 个新配置文件（4 DRR teacher + 12 学生：3 变体 × 4 seeds）已生成于 `configs/bimcv_headline/`
+- 学生配置使用 `paired_image_column="drr_path"`：teacher 输入 DRR，学生输入真 X-ray
+- 因 DRR 与 X-ray 同坐标系，**复用现有 `attention_transfer_loss`** 即可作为几何锚点（无需新 loss）
+- Tier-B Full orchestrator 序列化执行：
+  - Wave T (DRR teachers, 50 epochs): 完成于 02:15 UTC，**Mean BA = 0.752 ± 0.042**（s44 = 0.801 最高），**+0.06 vs CT teacher** (0.715)，确认 DRR 含有比 CT 单切片更强的诊断信号
+  - Wave 1: tier_b_full_logit_kd（DRR teacher + 普通 logit KD）
+  - Wave 2: tier_b_full_at_kd（DRR teacher + AT，几何锚点）
+  - Wave 3: tier_b_full_at_proto_kd（DRR teacher + AT + Proto w=1.0，kitchen sink）
+  - 全部完成后自动触发 resample eval，写入 `AUTOPILOT_DONE_TIER_B_FULL`
+- `phase1_resample_eval.py` 已升级以识别 4 个新角色名 + 增加 FULL_LOGIT_KD / FULL_AT_KD / FULL_AT_PROTO_KD vs sup/KD/PROTO_W1 的 Wilcoxon 比较
+- **2026-05-10 04:41 UTC**: Wave 1 在 epoch 2/50 时被 kill 重启，因为 50 epoch × 5 min/epoch × 3 waves = 12h 太长。配置改为 30 epochs（Tier-B-lite 数据显示最佳 BA 在 ep 17-20，30 充分覆盖），新 orchestrator screen `879488.tier_b_full_resume`，预计 ~12:30 UTC 完成全部 3 wave + eval（~8 小时）
+- **决策规则**: 任一变体 p<0.05 vs sup → H1 "Supported" → 论文升级为 validated architecture
 
 
 ## 2026-05-09 Paper-facing BIMCV wording update
