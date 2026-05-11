@@ -12,20 +12,82 @@ def distillation_loss(
     temperature: float,
     alpha: float,
     class_weights: torch.Tensor | None = None,
+    sample_weights: torch.Tensor | None = None,
 ) -> torch.Tensor:
     hard_loss = F.cross_entropy(student_logits, labels, weight=class_weights)
-    soft_loss = F.kl_div(
-        F.log_softmax(student_logits / temperature, dim=1),
-        F.softmax(teacher_logits / temperature, dim=1),
-        reduction="batchmean",
-    ) * (temperature ** 2)
+    log_student = F.log_softmax(student_logits / temperature, dim=1)
+    teacher_prob = F.softmax(teacher_logits / temperature, dim=1)
+    if sample_weights is None:
+        soft_loss = F.kl_div(
+            log_student,
+            teacher_prob,
+            reduction="batchmean",
+        ) * (temperature ** 2)
+    else:
+        weights = sample_weights.detach().to(student_logits.device).float().clamp_min(0.0)
+        per_sample = F.kl_div(
+            log_student,
+            teacher_prob,
+            reduction="none",
+        ).sum(dim=1) * (temperature ** 2)
+        soft_loss = (per_sample * weights).sum() / weights.sum().clamp_min(1.0)
     return alpha * soft_loss + (1.0 - alpha) * hard_loss
+
+
+def teacher_confidence_gate(
+    teacher_logits: torch.Tensor,
+    labels: torch.Tensor,
+    threshold: float = 0.0,
+    floor: float = 0.0,
+    power: float = 1.0,
+    requires_correct: bool = True,
+) -> torch.Tensor:
+    """Return detached per-sample weights for confidence-gated KD.
+
+    The gate suppresses harmful transfer when the CT teacher is uncertain or
+    predicts the wrong class. It is intentionally conservative: the hard
+    supervised loss remains active for every sample, while only the soft KD
+    channel is reweighted.
+    """
+    teacher_prob = F.softmax(teacher_logits.detach(), dim=1)
+    confidence, prediction = teacher_prob.max(dim=1)
+    gate = confidence.clamp(0.0, 1.0).pow(max(power, 0.0))
+    if threshold > 0.0:
+        gate = gate * (confidence >= threshold).float()
+    if requires_correct:
+        gate = gate * (prediction == labels).float()
+    if floor > 0.0:
+        positive = gate > 0.0
+        gate = torch.where(positive, gate.clamp_min(floor), gate)
+    return gate.detach()
 
 
 def attention_transfer_loss(
     student_feature: torch.Tensor,
     teacher_feature: torch.Tensor,
 ) -> torch.Tensor:
+    return projected_attention_loss(
+        student_feature=student_feature,
+        teacher_feature=teacher_feature,
+    )
+
+
+def projected_attention_loss(
+    student_feature: torch.Tensor,
+    teacher_feature: torch.Tensor,
+    anatomical_mask: torch.Tensor | None = None,
+    confidence_weights: torch.Tensor | None = None,
+) -> torch.Tensor:
+    """Projection-compatible spatial attention alignment.
+
+    This loss aligns the student's X-ray attention map to the teacher's
+    projected or resized spatial evidence map. If the teacher input is already
+    an X-ray-like DRR/MIP projection, this operation preserves that geometry.
+    If the teacher feature is a 2-D CT slice feature, the operation degrades to
+    conservative spatial resizing and should be interpreted only as a weak
+    alignment bridge. An optional lung/anatomy mask can suppress extra-thoracic
+    attention when such masks are available.
+    """
     student_attention = student_feature.pow(2).mean(dim=1, keepdim=True)
     teacher_attention = teacher_feature.pow(2).mean(dim=1, keepdim=True)
     if teacher_attention.shape[-2:] != student_attention.shape[-2:]:
@@ -35,9 +97,24 @@ def attention_transfer_loss(
             mode="bilinear",
             align_corners=False,
         )
+    if anatomical_mask is not None:
+        mask = anatomical_mask.to(student_attention.device).float().clamp(0.0, 1.0)
+        if mask.shape[-2:] != student_attention.shape[-2:]:
+            mask = F.interpolate(
+                mask,
+                size=student_attention.shape[-2:],
+                mode="bilinear",
+                align_corners=False,
+            )
+        student_attention = student_attention * mask
+        teacher_attention = teacher_attention * mask
     student_attention = F.normalize(student_attention.flatten(1), dim=1)
     teacher_attention = F.normalize(teacher_attention.flatten(1), dim=1)
-    return F.mse_loss(student_attention, teacher_attention)
+    per_sample = (student_attention - teacher_attention).pow(2).mean(dim=1)
+    if confidence_weights is None:
+        return per_sample.mean()
+    weights = confidence_weights.detach().to(per_sample.device).float().clamp_min(0.0)
+    return (per_sample * weights).sum() / weights.sum().clamp_min(1.0)
 
 
 def feature_hint_loss(

@@ -64,6 +64,13 @@ class DistillationConfig:
     lung_mask_weight: float = 0.0
     lung_mask_model: str = "torchxrayvision_pspnet"
     lung_mask_input_size: int = 224
+    # GAP-KD/JDCNet-v2: confidence-gated and projection-compatible transfer.
+    confidence_gate_enabled: bool = False
+    confidence_gate_threshold: float = 0.0
+    confidence_gate_floor: float = 0.0
+    confidence_gate_power: float = 1.0
+    confidence_gate_requires_correct: bool = True
+    projected_attention_weight: float = 0.0
 
 
 @dataclass

@@ -37,6 +37,25 @@ this cohort:
 - Memory-bank or contrastive extensions on the same cohort.
 - Lung-mask attention as a current-submission requirement.
 
+## New code path opened for the next algorithm
+
+GAP-KD/JDCNet-v2 replaces the failed DPE/MHRA/DFPN upgrade path with a
+geometry-aware, anatomy-constrained, confidence-gated distillation route. The
+current repository now includes CPU-testable primitives for:
+
+- confidence-gated soft KD;
+- projection-compatible attention alignment;
+- one-step synthetic GAP-KD training smoke tests.
+
+The local smoke test passed and wrote its report to
+`src/results/gapkd_cpu_smoke_local/smoke_gapkd.json`. The H800 no-card CPU
+smoke test also passed and wrote its report to
+`src/results/h800_gapkd_cpu_smoke/smoke_gapkd.json`.
+
+This is an implementation readiness step, not paper evidence. No manuscript
+result should claim GAP-KD effectiveness until it is evaluated on a valid
+paired cohort.
+
 ## Conditional next experiment only if a new paired cohort is available
 
 A new experiment is worth starting only if it adds genuinely new same-patient
@@ -50,8 +69,9 @@ Minimum comparison set:
 1. X-ray supervised student.
 2. CT teacher feasibility row.
 3. Plain CT-to-X-ray logit KD.
-4. One stronger representation-transfer baseline only if the cohort is large
-   enough to support interpretable paired statistics.
+4. Confidence-gated KD.
+5. Confidence-gated projection/anatomy-constrained KD, only if the cohort is
+   large enough to support interpretable paired statistics.
 
 Primary metrics:
 
@@ -63,7 +83,9 @@ Primary metrics:
 
 ## Current manuscript action
 
-No additional experiment is required before the current paper-facing revision.
-The manuscript should present Path C as a negative split-sensitivity check:
-CT teacher remains feasible, but cross-modal logit KD remains effectively tied
-with supervised learning.
+No additional result-bearing experiment is required before the current
+paper-facing revision. The manuscript should present Path C as a negative
+split-sensitivity check: CT teacher remains feasible, but cross-modal logit KD
+remains effectively tied with supervised learning. GAP-KD is a new
+pre-specified next-framework route and must remain separate from the current
+paper's validated evidence claims until run on a suitable cohort.

@@ -21,7 +21,9 @@ from .distillation import (
     feature_hint_loss,
     lung_mask_distill_loss,
     modality_hallucination_loss,
+    projected_attention_loss,
     prototype_distill_loss,
+    teacher_confidence_gate,
 )
 from .metrics import compute_metrics
 from .models import build_model
@@ -218,6 +220,16 @@ def run_training(config: ExperimentConfig) -> None:
                     teacher_inputs = teacher_images if teacher_images is not None else images
                     teacher_outputs = _forward_model_outputs(teacher_model, teacher_inputs, None)
                 teacher_logits = teacher_outputs["logits"]
+                kd_sample_weights = None
+                if config.distillation.confidence_gate_enabled:
+                    kd_sample_weights = teacher_confidence_gate(
+                        teacher_logits=teacher_logits,
+                        labels=labels,
+                        threshold=config.distillation.confidence_gate_threshold,
+                        floor=config.distillation.confidence_gate_floor,
+                        power=config.distillation.confidence_gate_power,
+                        requires_correct=config.distillation.confidence_gate_requires_correct,
+                    )
                 loss = distillation_loss(
                     student_logits=student_logits,
                     teacher_logits=teacher_logits,
@@ -225,11 +237,18 @@ def run_training(config: ExperimentConfig) -> None:
                     temperature=config.distillation.temperature,
                     alpha=config.distillation.alpha,
                     class_weights=class_weights,
+                    sample_weights=kd_sample_weights,
                 )
                 if config.distillation.attention_transfer_weight > 0.0:
                     loss = loss + config.distillation.attention_transfer_weight * attention_transfer_loss(
                         student_feature=student_outputs["deepest_feature"],
                         teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                    )
+                if config.distillation.projected_attention_weight > 0.0:
+                    loss = loss + config.distillation.projected_attention_weight * projected_attention_loss(
+                        student_feature=student_outputs["deepest_feature"],
+                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                        confidence_weights=kd_sample_weights,
                     )
                 if (
                     config.distillation.feature_hint_weight > 0.0

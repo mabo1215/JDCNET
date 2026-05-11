@@ -7,49 +7,33 @@
 - **实验计划已收口**：`docs/tmp/experiment_plan.md` 和 `docs/tmp/jdcnet_upgrade_plan.md` 已更新为“当前投稿不再追加同 cohort 微调实验；validated architecture 升级未成立；未来需要真正新增 paired cohort”。
 - **两组评审意见已合并**：`docs/revision_suggestions.tex` 已整理为单一综合修改意见，重复项已合并，主线转向 evidence-bounded negative-result / protocol contribution。
 - **本轮 manuscript narrative revision 已完成**：`paper/main.tex` 已把标题改为 evidence-bounded evaluation 叙事，压缩 abstract，强化 TCSVT visual-systems framing，更新 H1/H5 claim-status，重写 contributions，demote DPE/MHRA/DFPN 为 optional stress-test modules，并把 limitations/conclusion 改为“CT teacher feasible + cross-modal KD unvalidated”。
-- **统计口径已降调**：主文已明确 mean±SD 为描述性统计，提示每个 resample 只有一个 negative validation patient，robust median/IQR/bootstrap 结果放在 appendix；Wilcoxon 表已标注为 uncorrected failure-mode diagnosis，不作为 family-wise positive-transfer 证明。
-- **构建检查已完成**：已运行 `paper/build.bat`，`paper/main.pdf` 和 `paper/appendix.pdf` 均生成成功；剩余为既有排版/LaTeX warnings（如 appendix 大表 float too large、standalone appendix multiply-defined labels），无 fatal error。
+- **统计口径已降调**：主文已明确小样本 specificity 退化问题，主结果表已切换为 median (Q1,Q3) + 95% bootstrap CI；mean±SD 仅保留在 appendix extended descriptive table。
+- **目标 venue 当前决策已消费**：按用户回答，当前继续按 TCSVT visual-systems / deployment-only inference framing 推进，但保留 scope risk 的文字降调。
+- **Appendix 大表排版决策已消费**：按用户回答，BIMCV stress-test 大表压缩放到最终投稿排版阶段处理；当前仅记录 existing float-too-large warning，不作为本轮算法修改阻挡项。
+- **GAP-KD/JDCNet-v2 代码框架已启动**：已新增 confidence-gated KD、projection-compatible attention loss、CPU synthetic smoke test 和 H800 no-card 启动脚本；本地 CPU smoke test 通过，结果在 `src/results/gapkd_cpu_smoke_local/smoke_gapkd.json`。
+- **H800 无卡 smoke 实验已完成**：已把 GAP-KD/JDCNet-v2 最小代码同步到 H800，在无卡/CPU 环境运行 synthetic smoke test 并拉回结果；`src/results/h800_gapkd_cpu_smoke/smoke_gapkd.json` 显示 5/5 checks passed。
+- **构建检查已完成**：已运行 `paper/build.bat`，`paper/main.pdf` 和 `paper/appendix.pdf` 均生成成功；剩余为既有排版/LaTeX warnings（如 appendix 大表 float too large、standalone appendix labels/bib warning），无 fatal error。
 
 ## 未修改或部分修改
 
-1. **主文主结果表是否彻底改成 median/IQR 口径**：当前已在 caption 中说明 mean±SD 仅为描述性统计，并引用 appendix robust statistics；但尚未把主文 Table 的数值列直接替换为 median/IQR。
-   - 推进状态：部分完成。
-   - 仍需作者决策：是否为了更强统计保守性，把主文主表从 mean±SD 改为 median [Q1,Q3]，把 mean±SD 完全移到 appendix？
+1. **Related work / BibTeX 进一步扩展**：用户已确认需要做 bibliography pass；当前 related work 已覆盖 privileged information、modality hallucination、cross-modal distillation、BiomedCLIP/MedCLIP、RadImageNet 与 evidence robustness，但尚未系统加入更多 RGB-D/action/audio-visual cross-modal distillation 与 2023 以后 KD 文献。
+   - 推进状态：等待执行。
+   - 当前不需要新的作者输入；下一步可直接补充文献和 BibTeX。
 
-2. **TCSVT venue-fit 最终路线**：当前 manuscript 已按 TCSVT 保留 visual-systems / deployment-only inference framing，但综合评审仍认为 TCSVT 存在 scope risk。
-   - 推进状态：部分完成。
-   - 仍需作者决策：继续冲 TCSVT，还是转向 IEEE TMI / MIA / IEEE JBHI / negative-results venue？
+2. **MIDRC 新 paired cohort 证据层**：用户已确认下一轮以 MIDRC 作为真正新增 cohort，NLST 暂不推进；当前 GAP-KD/JDCNet-v2 只有代码和 CPU smoke，不应写成论文有效性结果。
+   - 推进状态：等待 MIDRC 数据审计/下载/筛选。
+   - 仍需作者提供或确认：MIDRC 下载继续可用、目标样本量、是否允许后续 GPU 训练预算。
 
-3. **Related work / BibTeX 进一步扩展**：当前 related work 已覆盖 privileged information、modality hallucination、cross-modal distillation、BiomedCLIP/MedCLIP、RadImageNet 与 evidence robustness；但尚未系统加入更多 RGB-D/action/audio-visual cross-modal distillation 与 2023 以后 KD 文献。
-   - 推进状态：部分完成。
-   - 仍需作者决策：是否要为下一版做一次专门 bibliography pass，加入更宽的 cross-modal / post-2023 KD 文献？
-
-4. **Appendix 大表排版与 caption 收口**：appendix BIMCV stress-test 表仍然较大，构建时有 float-too-large warning；当前不影响 PDF 生成，但投稿前最好压缩表格或拆分解释文字。
-   - 推进状态：部分完成。
-   - 仍需作者决策：是否现在投入时间压缩 appendix 表格，还是投稿前最终排版阶段再处理？
-
-5. **新 paired cohort 证据层**：MIDRC/NLST 等新 CT+X-ray paired cohort 仍是 future-work / post-submission evidence layer；当前论文不再用同一 BIMCV cohort 继续尝试把结论推成 validated architecture。
-   - 推进状态：等待新数据源决策。
-   - 仍需作者决策：是否继续下载/筛选 MIDRC/NLST 作为下一轮真正新增 cohort？
+3. **GAP-KD/JDCNet-v2 结果性实验**：代码框架已通过本地和 H800 CPU smoke，但还没有在真实 paired cohort 上训练/评估，因此不能解决论文 validated architecture 的证据问题。
+   - 推进状态：代码就绪，实验阻塞于新 cohort。
+   - 仍需作者决策：是否在 MIDRC 审计通过后，把最小矩阵设为 X-ray supervised、CT teacher、plain CT logit KD、confidence-gated KD、confidence-gated projection/anatomy KD。
 
 ## 遗留问题
 
-1. **目标 venue 决策**
-   - 需要你决策：继续按 TCSVT 投稿，还是切换到更匹配 negative-result / medical-imaging methodology 的 venue？
-   - A: 是
+1. **MIDRC 新 cohort 路线**
+   - 需要你确认：继续以 MIDRC 作为下一轮真正新增 cohort，并暂停 NLST；是否允许后续在 MIDRC 审计通过后启动 GPU 训练？
+   - A: MIDRC，允许后续 GPU 训练 / MIDRC，但先只做数据审计 / 暂停
 
-2. **主结果统计表口径**
-   - 需要你决策：主文 Table 是否从 mean±SD 改成 median [Q1,Q3] + bootstrap CI？
-   - A:  是，第二种
-
-3. **Related work 扩展强度**
-   - 需要你决策：是否现在做一轮系统 bibliography pass，补充更多 cross-modal distillation / post-2023 KD / biomedical foundation model 文献？
-   - A: 是
-
-4. **Appendix 排版投入时间**
-   - 需要你决策：是否现在压缩 BIMCV stress-test 大表和长解释，还是最终投稿排版阶段处理？
-   - A: 最终投稿排版阶段处理
-
-5. **新 paired cohort 路线**
-   - 需要你决策：MIDRC/NLST 是否作为下一轮真正新增 cohort 继续推进，还是当前投稿只保留为 future work？
-   - A:  MIDRC为下一轮真正新增 cohort 继续推进 不要 NLST.
+2. **GAP-KD/JDCNet-v2 最小实验矩阵**
+   - 需要你确认：MIDRC 审计通过后，是否采用最小矩阵：X-ray supervised、CT teacher、plain CT logit KD、confidence-gated KD、confidence-gated projection/anatomy KD？
+   - A: 是的  

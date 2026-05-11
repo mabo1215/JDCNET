@@ -77,7 +77,33 @@ Recommended wording: **"CT teacher feasible + cross-modal KD not yet validated"*
 Avoid wording such as **"validated architecture"**, **"confirmed positive
 transfer"**, or **"DRR solves the modality gap"**.
 
-## Only remaining high-value future route
+## New algorithm route: GAP-KD / JDCNet-v2
+
+The next architecture should not extend the failed DPE/MHRA/DFPN stack. The
+new route is **GAP-KD: geometry-aware, anatomy-constrained, confidence-gated
+CT-to-X-ray distillation**. Its central rule is:
+
+> Transfer CT supervision only when the teacher is reliable and the CT evidence
+> can be expressed in the deployed X-ray view.
+
+Minimum components:
+
+1. **Confidence-gated KD**: reweight the soft KD term per sample using teacher
+   confidence and optional teacher-correctness filtering, while keeping the
+   hard supervised X-ray loss active for every sample.
+2. **Projection-compatible attention**: align the student X-ray attention to a
+   projected CT evidence map, preferably DRR/MIP-derived rather than raw axial
+   CT feature maps.
+3. **Anatomy-constrained transfer**: when lung masks are available, suppress
+   extra-thoracic attention and make shortcut transfer auditable.
+4. **Source-bias controls**: retain cross-source non-COVID controls and
+   source-stratified validation when a new dataset supports them.
+
+The initial implementation now supports confidence-gated KD and
+projection-compatible attention as code-level primitives. The local CPU smoke
+test is stored under `src/results/gapkd_cpu_smoke_local/`.
+
+## Only remaining high-value evidence route
 
 A new paired thoracic cohort is required. It must add new patients rather than
 re-splitting BIMCV. A reasonable next-cohort protocol should include:
@@ -87,8 +113,8 @@ re-splitting BIMCV. A reasonable next-cohort protocol should include:
    resampling;
 3. X-ray supervised, CT teacher, and plain CT-to-X-ray logit KD as mandatory
    rows;
-4. stronger representation alignment only after the simple CT logit KD row is
-   interpretable.
+4. confidence-gated KD and projection/anatomy-constrained KD only after the
+   simple CT logit KD row is interpretable.
 
 MIDRC or NLST may be useful only if the downloaded data can provide valid
 same-patient CT/X-ray pairs with labels that match the binary thoracic target.
@@ -101,5 +127,8 @@ available negative-evidence stack rather than launching more BIMCV variants.
 - [x] RTX 3090 Path C numerical artifacts moved under `src/results/`.
 - [x] Path C result backfilled into the manuscript.
 - [x] DRR/prototype/re-split routes removed from the current experiment plan.
+- [x] GAP-KD/JDCNet-v2 code primitives added and locally smoke-tested on CPU.
+- [x] H800 CPU/no-card smoke test launched and result pulled back under
+      `src/results/h800_gapkd_cpu_smoke/`.
 - [ ] Optional only: audit a new paired data source if the authors want a future
       post-submission or next-paper experiment.
