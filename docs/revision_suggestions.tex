@@ -1,4 +1,3 @@
-
 \documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -14,248 +13,1157 @@
 \titleformat{\section}{\large\bfseries}{\thesection.}{0.6em}{}
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
 
-\title{\textbf{Integrated Revision Suggestions}\\[4pt]
+\title{\textbf{Peer Review Report}\\[4pt]
 \large Manuscript: ``JDCNet: Cross-Modal CT-to-X-ray Knowledge Distillation
 with Evidence-Bounded Evaluation on Patient-Level Paired Cohorts''\\[4pt]
 \normalsize Target Journal: IEEE Transactions on Circuits and Systems for
 Video Technology (TCSVT)}
-\author{Consolidated Reviewer Synthesis}
+\author{Reviewer Report}
 \date{}
 
 \begin{document}
 \maketitle
 
-\section*{Purpose of This Integrated Report}
-This document consolidates two prior reviewer-style assessments into one
-non-redundant revision roadmap. Repeated observations have been merged rather
-than restated. The resulting guidance treats the manuscript as a transparent
-negative-result and evidence-bounded evaluation study, while identifying the
-changes needed to make that framing scientifically coherent and venue-aware.
+%==============================================================
+\section*{Summary of Submission}
+The manuscript investigates whether chest computed tomography (CT) can serve
+as a training-only privileged-information signal for an X-ray-only deployed
+binary COVID-19 classifier. The authors deliberately frame the paper as a
+``falsification-oriented'' pilot study: they design an eleven-method
+comparison matrix (student-only, late fusion, same-modality KD, plain cross-modal
+logit KD, attention transfer, feature hint, Full JDCNet with three optional
+modules DPE/MHRA/DFPN, plus four published KD baselines--CRD, DKD, DIST,
+modality-hallucination KD), and evaluate them under (i) a fixed-split
+feasibility screen on a 4-image paired validation cohort and (ii) a primary
+ten-resample patient-level Monte Carlo protocol. They report that plain
+cross-modal logit KD and attention transfer attain the highest mean balanced
+accuracy ($0.900\pm0.211$, $+0.100$ over the X-ray-only baseline, Wilcoxon
+$p=0.625$, $n=10$), significantly outperform DKD/DIST/MH ($p=0.031$) and
+directionally outperform CRD ($p=0.063$), while the full JDCNet module stack
+reaches only $0.750$ and is therefore \emph{not} validated. A 512-patient
+BIMCV paired stress test and several follow-up executions (ResNet-18 backbone,
+prototype-augmented KD, DRR-teacher sweep, protocol correction, balanced
+Path-C re-split) are reported in the appendix and consistently fail to
+produce statistically significant cross-modal gains.
 
-\section*{Executive Synthesis}
-The two assessments converge on several central points. First, the manuscript's
-strongest contribution is not the named architecture, but its unusually careful
-patient-level evaluation protocol, reproducibility package, and transparent
-reporting of failed or unstable cross-modal transfer. Second, the empirical
-record does not validate JDCNet as an architecture: the module-augmented variant
-is weaker than the simplest logit-transfer control and, in several stress tests,
-cross-modal knowledge distillation is effectively tied with or worse than
-supervised X-ray training. Third, the primary paired cohort is too small and too
-imbalanced to support specificity-sensitive positive claims. Fourth, the larger
-BIMCV follow-up strengthens the paper as a falsification audit but does not turn
-the method into a validated architecture.
+\section*{Overall Recommendation}
+\textbf{Reject (with strong encouragement to resubmit elsewhere, or to redirect
+to a venue more aligned with the contribution).}
 
-The main revision target should therefore be to remove any residual impression
-that the paper proves a new CT-to-X-ray distillation method, and instead present
-it as a rigorous evidence-boundary study: CT teachers are feasible, but
-cross-modal KD remains unstable and unvalidated at the tested cohort scales.
-For TCSVT, this is a high-risk positioning because the paper lacks a clear
-circuits/systems/video contribution. If the authors keep TCSVT as the target,
-the manuscript must explicitly articulate a visual-systems contribution such as
-reproducible evaluation of deployment-only visual inference under privileged
-training modalities. If that cannot be done convincingly, a medical-imaging,
-biomedical-informatics, or negative-results venue is more appropriate.
+\medskip
+The manuscript is unusually transparent and methodologically self-aware---the
+authors themselves repeatedly state that no claim reaches statistical
+significance and that the proposed modules are not validated. As a piece of
+\emph{evidence-bounded reporting} it is admirable. However, TCSVT publishes
+``general, theoretical, and application-oriented papers with a circuits and
+systems perspective \ldots\ on or related to image/video acquisition,
+representation, presentation and display; processing, filtering and
+transforms; analysis and synthesis; learning and understanding; \ldots''.
+Measured against that scope and the journal's expectation that submissions
+report ``important research results,'' the present manuscript faces two
+fundamental problems: (1) a \textbf{scope mismatch}---it is a medical-imaging
+pilot study with no circuits/systems contribution, no video component, and
+no architectural innovation that has been validated; (2) a \textbf{null-result
+problem}---every primary hypothesis (H1--H4) is either ``directional, not
+significant'' or ``not supported,'' and the proposed JDCNet architecture is
+explicitly shown to be worse than the simplest control. There is no positive
+methodological or empirical claim that survives the authors' own evaluation
+protocol.
 
-\section{Consolidated Strengths to Preserve}
+Detailed comments follow.
+
+%==============================================================
+\section{Major Issues}
+
+\subsection{No positive validated claim}
+Table 2 (the authors' own ``claim-status summary'') tells the reader on
+page 3 that:
+\begin{itemize}[leftmargin=*]
+  \item H1 (cross-modal KD $>$ student-only): \emph{directional, not significant} ($p=0.625$);
+  \item H2 (gain not reducible to same-modality KD): \emph{directional, not significant} ($p=0.250$);
+  \item H3 (gain not reducible to late fusion): \emph{not supported};
+  \item H4 (DPE/MHRA/DFPN improve over plain control): \emph{not supported};
+  \item H5 (gain survives imbalance/threshold checks): only \emph{partially supported}.
+\end{itemize}
+In other words, the authors themselves declare that none of the five
+hypotheses around which the paper is organised reach significance. The
+single significant finding---that plain logit KD/AT outperforms DKD, DIST,
+and MH at $p=0.031$---rests on $n=10$ resamples drawn from a paired cohort
+with \textbf{only four COVID-negative patients in total} and \emph{one
+negative validation patient per resample}. Sign-test power at $n=10$ with
+binary outcomes is so low that the reported $p=0.031$ is a near-floor value
+of the test, not evidence of a robust effect.
+
+The appendix's BIMCV stress test (Executions A--F, Table 23) confirms this:
+on a 512-patient cohort and a corrected 33-patient holdout protocol, plain
+CT logit KD gives $\Delta=+0.014$, two-sided $p=0.106$, and the
+balanced-validation Path-C re-split reduces $\Delta$ to $+0.002$ (essentially
+tied). \emph{Every} variant (prototype-KD, DRR-KD, DRR-KD+AT,
+DRR-KD+AT+Proto) either fails to reach significance or is significantly
+\emph{worse} than supervised. The honest conclusion the manuscript reaches is
+that ``CT-to-X-ray distillation does not work at currently achievable
+paired-cohort scales.'' That is a legitimate negative result, but it is not
+a contribution that meets the bar of a TCSVT regular paper.
+
+\subsection{The architectural contribution is explicitly falsified by the authors}
+JDCNet is presented as the named architecture in the title and Figure 1, yet
+Section 4.5 and Table 6 show that the full module stack
+(DPE+MHRA+DFPN) achieves $0.750$ balanced accuracy---\emph{lower} than the
+stripped-down plain logit KD control ($0.900$) and lower than the X-ray-only
+supervised baseline ($0.800$). The progressive-complexity experiment in
+Table 21 shows balanced accuracy degrades monotonically as modules are added:
+$0.750 \to 0.625 \to 0.625 \to 0.500 \to 0.500$. The authors describe DPE,
+MHRA, and DFPN as ``optional, auditable complexity increments'' rather than
+validated contributions. \textbf{A paper whose named architecture is, by the
+authors' own demonstration, strictly dominated by a much simpler baseline
+cannot reasonably be published under that architecture's name.} If the
+authors wish to retain the falsification-oriented framing, the paper should
+be retitled and reorganised so that the \emph{protocol} (not JDCNet) is the
+contribution; in its current form, the title misrepresents the actual
+findings.
+
+\subsection{Evidence scale: the cohort is too small to support any positive claim}
+The paired cohort contains:
+\begin{itemize}[leftmargin=*]
+  \item 26 X-ray images from 19 patients (22 positive, 4 negative);
+  \item a fixed validation split of \textbf{4 images / 4 patients (3 positive, 1 negative)};
+  \item 10 resamples, each with \textbf{1 negative validation patient by construction}.
+\end{itemize}
+With $N_{\text{neg}}=4$ \emph{in the entire cohort}, the specificity in any
+resample is a single Bernoulli draw, and the SD column for specificity-bound
+metrics in Tables 6 and 13 (reported as $\pm0.422$ to $\pm0.527$) is
+mechanically the binomial spread of one negative example---it carries no
+patient-level uncertainty information about method differences. The authors
+acknowledge this in Appendix~A.7. The deeper problem is not that the SD
+column is misleading, but that \textbf{the cohort cannot in principle support
+any claim about specificity-sensitive metrics}, including balanced accuracy
+and MCC. Reporting median + IQR + bootstrap CI (Table~15) does not fix this;
+the bootstrap inherits the same degeneracy. The honest conclusion is that
+the cohort is below the minimum size at which the chosen evaluation question
+is answerable. The power analysis in Table~25 (Appendix A.21) makes this
+precise: at $n_{\text{val}}=5$, detecting any effect below
+$P(\Delta>0)\approx0.92$ at 80\% power is impossible.
+
+\subsection{Dataset choice and the COVID-19 Image Data Collection caveat}
+The primary dataset (Cohen et~al., COVID-19 Image Data Collection) is
+explicitly cautioned by its own curators as ``not a competition benchmark
+and not a substitute for clinical validation.'' The authors cite this
+caveat (Section 4.9), but the manuscript still uses the dataset as the
+primary evidence base for an eleven-method ranking. This is internally
+inconsistent: if the dataset cannot support a ranking claim, then no amount
+of resampling on top of it can. Furthermore, the published literature has
+documented severe \emph{shortcut learning} (DeGrave et~al.\ 2021, [6] in the
+manuscript) on exactly this collection---models latch onto site-specific
+acquisition artefacts rather than COVID-19 disease patterns. The
+category-level cross-source control reported in Appendix A.20 (Table 24)
+confirms this: every method reaches 100\% sensitivity and near-zero
+specificity on out-of-source negatives. \emph{This is a falsification of the
+training signal itself, not just of the cross-modal transfer hypothesis.}
+The manuscript correctly reports the result but does not adequately
+foreground it: the entire downstream comparison matrix may be measuring
+acquisition-artefact discrimination rather than disease classification.
+
+\subsection{Mismatch between deployment-time framing and the actual contribution}
+The paper repeatedly invokes a ``deployment-realistic X-ray-only'' framing
+(Section 1.1, Table 1, Section 4.8) and reports CPU/GPU latency in
+Table~8. But this framing is undermined by three observations:
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Methodological honesty.} The manuscript clearly distinguishes
-        directional trends from statistically supported results and avoids
-        claiming clinical readiness.
-  \item \textbf{Same-case patient-level evaluation.} The repeated Monte Carlo
-        protocol compares all methods on identical held-out patients and makes
-        the instability of tiny paired cohorts visible.
-  \item \textbf{Negative-result transparency.} The paper reports generic KD
-        failures, module-stack degradation, corrected-protocol results, and the
-        BIMCV Path-C re-split rather than hiding unfavorable evidence.
-  \item \textbf{Reproducibility.} The deterministic settings, CLAIM-style
-        reporting, split audits, latency measurements, power analysis, and
-        external reproducibility package are valuable and should remain central.
-  \item \textbf{Cohort-scale awareness.} The manuscript acknowledges that the
-        existing paired data are below the scale needed for definitive method
-        ranking; this should be treated as a feature of the paper's scientific
-        contribution rather than as a side note.
+  \item The deployed student is only $0.094$M parameters and runs in
+        $\sim$15~ms on CPU; this is already well below clinical-deployment
+        latency floors. Adding DPE+MHRA+DFPN increases CPU latency by
+        $2.1\times$ but the empirical signal worsens, so the deployment
+        framing argues \emph{against} the proposed architecture rather than
+        for it.
+  \item No real-world deployment context, regulatory consideration, or
+        clinical workflow integration is discussed. The deployment claim is
+        rhetorical, not engineered.
+  \item For a TCSVT audience, the natural deployment angle would be
+        \emph{hardware-aware design}, quantisation, or
+        compression-distillation co-design, none of which appear here.
 \end{enumerate}
 
-\section{Priority Revision Actions}
+\subsection{The ``falsification-oriented protocol'' is not novel as a contribution}
+The authors frame the patient-level Monte Carlo resampling with same-case
+evaluation, balance-sensitive metric reporting, and prevalence-aware ranking
+as their primary methodological contribution. While the bundle is
+\emph{well-executed}, none of its components is new:
+\begin{itemize}[leftmargin=*]
+  \item Patient-level cross-validation in medical imaging is standard
+        practice (cited in Maier-Hein et~al.\ 2018, Roberts et~al.\ 2021).
+  \item Balanced accuracy, MCC, and PR-AUC are routine.
+  \item Monte Carlo resampling and bootstrap CIs are textbook.
+  \item Same-case (paired) comparison via Wilcoxon signed-rank is the
+        default test in small-cohort medical-imaging papers.
+\end{itemize}
+The contribution is therefore the \emph{application} of standard tools to a
+particular tiny cohort, not a new evaluation methodology. The CLAIM-style
+checklist (Table 9) and the Code Ocean capsule are valuable for
+reproducibility, but they are also standard expectations now, not novel
+contributions.
 
-\subsection{Reposition the paper around evidence-bounded evaluation, not JDCNet}
-The title, abstract, introduction, and Figure~1 should no longer lead with
-JDCNet as a validated architecture. The evidence shows that the named module
-stack is not the best-performing configuration. Retitle the paper around the
-protocol and the negative-result finding, for example:
+\subsection{Method section lacks engineering depth expected by TCSVT}
+Section 3 introduces three modules (DPE, MHRA, DFPN) coined by the authors,
+but the descriptions in Table 22 are one-line summaries:
+\begin{quote}
+\small
+DPE = ``$1\times1$ convolution + spatial softmax reweighting'';\\
+MHRA = ``batch-first multi-head attention + sigmoid retain gate'';\\
+DFPN = ``3-scale top-down pyramid with lateral $1\times1$ and output
+$3\times3$ convolutions.''
+\end{quote}
+These are not architectural innovations; they are off-the-shelf operators
+relabelled with new acronyms. For a TCSVT submission, the reviewer expects
+either (a) a genuinely new operator with mathematical analysis (gradient
+behaviour, capacity, complexity bounds), or (b) a hardware/efficiency
+argument tied to circuits/systems. Neither is present. The acronym coinage
+(``coined by the authors; not established community names,'' Section 3.3)
+should be removed; standard names should be used.
+
+\subsection{Statistical reporting is internally inconsistent}
+\begin{itemize}[leftmargin=*]
+  \item Table 6 reports mean$\pm$SD; Table 7 uses Wilcoxon signed-rank;
+        Table 15 reports median + IQR + bootstrap CI. The text does not
+        commit to which is primary. Given the binomial degeneracy of the
+        specificity column, the \emph{only} defensible report is the
+        median + IQR view; the mean$\pm$SD column should be removed from
+        the main text or relegated to the appendix with a footnote stating
+        that the SD is not a patient-level uncertainty estimate.
+  \item Multiple-comparison correction is not applied. Table 7 reports
+        eight pairwise Wilcoxon tests; at $\alpha=0.05$ family-wise, a
+        Bonferroni correction would require $p<0.00625$, which only the
+        DKD/DIST/MH comparisons pass marginally ($p=0.031$). The
+        ``directional advantage over CRD'' ($p=0.063$) does not survive
+        any reasonable correction.
+  \item The one-sided $p=0.053$ for plain CT logit KD under the corrected
+        BIMCV protocol (Section 4.10) is reported as a positive finding in
+        the conclusion. With multiple methods, executions, and protocols
+        tested, this is a textbook example of garden-of-forking-paths
+        inference and should not be flagged as the strongest signal.
+\end{itemize}
+
+\subsection{Reference list quality}
+The reference list is broadly competent but has several gaps:
+\begin{itemize}[leftmargin=*]
+  \item Cross-modal distillation has a substantial recent literature that
+        is not engaged: e.g., Garcia~\&~Vidal (RGB-D action recognition),
+        Thoker~\&~Gall (cross-modal action distillation), Aytar et~al.
+        SoundNet, and the wave of work on cross-modal contrastive
+        pretraining post-CLIP. The citation of CRD (Tian 2020) is
+        appropriate but lonely.
+  \item No engagement with the very large privileged-information literature
+        beyond Vapnik \& Vashist (2009) and Lopez-Paz et~al.\ (2016).
+  \item The KD baseline set (CRD, DKD, DIST, MH) is reasonable but stops
+        at 2022; nothing post-2023 is compared. For a 2026 submission this
+        is a noticeable gap.
+  \item No comparison with recent vision-language models for chest imaging
+        beyond a single citation of BiomedCLIP (E4 in Appendix A.22 uses
+        BiomedCLIP frozen features but does not engage with the broader
+        literature).
+\end{itemize}
+
+%==============================================================
+\section{Minor Issues}
+
+\subsection{Title}
+``JDCNet'' is the named architecture, but JDCNet is shown to underperform
+the baseline. Either rename the paper around the protocol contribution
+(e.g., ``Evidence-Bounded Evaluation of Cross-Modal CT-to-X-ray
+Distillation: A Falsification Study'') or drop the JDCNet brand entirely.
+
+\subsection{Abstract}
+The abstract is unusually long ($\sim$350 words) and reads more like an
+executive summary than an abstract. IEEE journals typically expect
+$\sim$200 words. Tighten by removing the explicit $p$-values and the
+detailed module-by-module breakdown; the abstract should state the
+question, the protocol, the primary finding, and the implication.
+
+\subsection{Figure 1 (evidence map)}
+The figure is informative but its caption is long and partly
+duplicates the table. Consider keeping the figure focused on the bar
+chart and moving narrative interpretation to the text.
+
+\subsection{Tables 6, 13, and 15}
+Tables 6 and 13 are almost identical (main vs.\ appendix). Consolidate.
+
+\subsection{Equation (1)}
+The notation $\sigma$ is overloaded (used for both softmax and sigmoid
+in different sections). Standardise.
+
+\subsection{Equation (1) vs.\ Equations (2)--(5)}
+The main-text objective and the appendix-form objective use slightly
+different notation ($\alpha$ vs.\ $(1-\alpha)$ on the soft term). Make
+consistent.
+
+\subsection{Section 3.1 (Notation and Glossary)}
+Move to the very beginning of Section 3 or to an appendix table; in its
+current position it interrupts the methodology.
+
+\subsection{Figure 4 (heatmap of all 0.429)}
+A heatmap of nine identical values is not informative as a figure---it
+is a visual representation of degenerate data. Replace with a single
+sentence: ``Under the four-image fixed split, none of the nine
+$(\tau, \alpha)$ combinations produced any measurable difference in
+macro-F1, indicating that hyperparameter ranking is not identifiable at
+this scale.''
+
+\subsection{Figure 6 (per-seed scatter)}
+The horizontal-line ``means'' overlap the dots and are visually noisy.
+Consider boxplots with overlaid jittered points.
+
+\subsection{Figures 8, 10, 13}
+All three figures present essentially negative results. Consolidate into
+a single ``module ablation summary'' figure with three panels.
+
+\subsection{Section 4.8 (Deployment-Time Efficiency)}
+The latency table is useful, but the row ``$+$ DPE'' showing $9.97$~ms
+on CPU \emph{lower} than ``Student-only X-ray'' ($14.62$~ms) is
+suspicious---adding a $1\times1$ conv plus softmax should not reduce
+latency. Verify measurement setup (warm-up, batch size, single-image vs.
+batched).
+
+\subsection{Section 4.10 (Limitations and Future Work)}
+This section is unusually long and reads as a partial appendix.
+Restructure: pull the BIMCV stress-test narrative into the appendix
+proper (where Table 23 already lives) and leave only a one-paragraph
+summary in the main text.
+
+\subsection{Appendix A.19 (Table 23 caption)}
+The caption runs across two full pages and contains the central
+narrative findings. Move the interpretation paragraphs into the
+appendix body text; the caption should describe the table, not present
+results.
+
+\subsection{Typographical and stylistic items}
+\begin{itemize}[leftmargin=*]
+  \item ``Falsification-oriented'' is used $\sim$15 times; vary phrasing.
+  \item ``Evidential bar / floor / boundary'' is overused.
+  \item ``Tier-1/2/3'' nomenclature is introduced and then dropped
+        inconsistently in tables.
+  \item Several reference entries omit DOIs or proper venue capitalisation
+        (e.g., [9], [10], [20]). Run BibTeX consistency pass.
+  \item Some inline math uses italic ``T'' for temperature and Roman ``T''
+        for transpose without distinction.
+  \item Equation (1) should be labelled and referenced; it is currently
+        floating.
+  \item ``Hikvision Technology Co., Ltd'' appears as an affiliation for
+        one author---verify that no conflict-of-interest or commercial
+        disclosure is required.
+  \item Patient identifiers appearing in Table 17 (e.g., ``210,'' ``65''
+        plus filenames) should be verified for compliance with the
+        original dataset's redistribution terms.
+\end{itemize}
+
+%==============================================================
+\section{Questions for the Authors}
+\begin{enumerate}[leftmargin=*]
+  \item Why was TCSVT chosen as the target venue rather than IEEE TMI,
+        Medical Image Analysis, IEEE JBHI, or Pattern Recognition? What
+        is the circuits/systems contribution the authors wish to claim?
+  \item Given that the named architecture (JDCNet) is empirically
+        dominated by a much simpler control, why is the paper still
+        organised around it? What would change if the paper were
+        retitled to centre the protocol contribution?
+  \item Has the category-level cross-source collapse (Appendix A.20)
+        been investigated as evidence that the training signal is
+        site-specific shortcut learning rather than disease-specific?
+        How does the manuscript's central claim survive if the answer
+        is yes?
+  \item The corrected BIMCV Path-C re-split (Execution F, Table 23)
+        gives plain CT logit KD a $\Delta$ of $+0.002$ over supervised.
+        Why does the conclusion still frame plain logit KD as ``the
+        most stable transfer signal''? Would the authors accept that
+        the honest summary is ``no validated cross-modal advantage at
+        any cohort scale tested''?
+  \item The progressive-complexity table (Table 21) shows monotonic
+        degradation with module addition. Why are DPE, MHRA, and DFPN
+        retained in the figures and abstract at all, rather than
+        removed?
+  \item What is the minimum same-patient paired cohort size at which
+        the authors would expect their protocol to yield a definitive
+        decision, and is such a cohort feasible to assemble?
+\end{enumerate}
+
+%==============================================================
+\section{Concrete Revision Suggestions (LaTeX-Ready Edits)}
+
+If the authors choose to resubmit to a more appropriate venue (e.g.,
+IEEE TMI, MIA, IEEE JBHI), the following structural revisions would
+substantially strengthen the manuscript.
+
+\subsection{Suggested revised title}
 \begin{verbatim}
-Evidence-Bounded Evaluation of Cross-Modal CT-to-X-ray
-Knowledge Distillation under Paired-Cohort Constraints
+\title{Evidence-Bounded Evaluation of Cross-Modal CT-to-X-ray
+Knowledge Distillation under Tiny Paired Cohorts:
+A Falsification Study}
 \end{verbatim}
-In the introduction, state the core claim as follows: CT can be used to train a
-teacher, but the available evidence does not validate a reliable CT-to-X-ray KD
-advantage over supervised X-ray learning. Present DPE, MHRA, and DFPN only as
-stress-tested optional modules that were falsified, not as the paper's main
-contribution.
+This title is honest about the contribution (a protocol + a negative
+finding) and removes the misleading JDCNet branding.
 
-\subsection{Resolve the venue-fit risk explicitly}
-The paper currently sits between two interpretations. One reviewer view is that
-its visual transfer, deployment-only inference, and reproducibility focus can be
-made relevant to TCSVT; the other is that it remains a static medical-imaging
-pilot without circuits, systems, compression, hardware, or video contribution.
-The revision must choose one route:
+\subsection{Suggested revised abstract (drop-in replacement)}
+\begin{verbatim}
+\begin{abstract}
+We study whether chest computed tomography (CT) can serve as
+training-only privileged supervision for an X-ray-only deployed
+binary classifier. Using a same-patient paired chest cohort and a
+patient-level ten-resample Monte Carlo protocol with same-case
+evaluation, we compare eleven configurations spanning student-only
+training, late fusion, same-modality distillation, plain cross-modal
+logit transfer, attention transfer, feature hints, four published
+generic knowledge-distillation baselines (CRD, DKD, DIST,
+modality-hallucination KD), and a module-augmented cross-modal
+variant. Plain cross-modal logit transfer and attention transfer
+achieve the highest mean balanced accuracy (0.900 +/- 0.211) but
+fail to reach significance against the supervised baseline
+(Wilcoxon p = 0.625, n = 10); generic KD baselines collapse to
+trivial prediction on a majority of resamples; the proposed module
+stack underperforms its own stripped-down control. A 512-patient
+BIMCV paired stress test and four follow-up executions (richer
+backbone, prototype-augmented KD, DRR-teacher anchor, balanced
+validation re-split) consistently fail to deliver a statistically
+significant cross-modal advantage. We conclude that cross-modal
+CT-to-X-ray distillation is not validated at currently achievable
+paired-cohort scales, identify the minimum next experiment, and
+release a reproducible pipeline so subsequent studies can be
+evaluated under a uniform evidential bar.
+\end{abstract}
+\end{verbatim}
+
+\subsection{Suggested reorganisation}
 \begin{itemize}[leftmargin=*]
-  \item \textbf{If keeping TCSVT:} add a concise motivation that frames the
-        work as a visual-systems evaluation problem: privileged training
-        modalities are unavailable at deployment, so the systems question is
-        whether training-only cross-modal information improves lightweight
-        single-modality inference under strict audit controls. Avoid clinical
-        efficacy claims.
-  \item \textbf{If changing venue:} redirect the manuscript toward IEEE TMI,
-        Medical Image Analysis, IEEE JBHI, Pattern Recognition, npj Digital
-        Medicine, or a negative-results/methodology venue, where a transparent
-        falsification study is more naturally aligned.
-\end{itemize}
-Do not present both routes simultaneously in the manuscript; choose the final
-venue narrative before submission.
-
-\subsection{Calibrate all claims to the final evidence}
-Revise every claim-status statement, abstract sentence, conclusion sentence,
-and figure caption to follow this hierarchy:
-\begin{enumerate}[leftmargin=*]
-  \item CT teacher training is feasible and produces a nontrivial privileged
-        signal.
-  \item Plain cross-modal logit KD is the least unstable cross-modal option in
-        the small primary cohort, but it is not statistically superior to the
-        X-ray-only baseline.
-  \item The BIMCV Path-C balanced-validation re-split reduces the KD advantage
-        to an effectively null seed-paired difference.
-  \item The module-augmented JDCNet stack is not validated and should not be
-        described as an architectural improvement.
-\end{enumerate}
-Remove language that treats one-sided or post-hoc signals as confirmatory. In
-particular, do not frame the earlier BIMCV one-sided borderline result as the
-paper's strongest positive evidence after the Path-C re-split.
-
-\subsection{Make cohort-size limitations mathematically unavoidable}
-The primary paired cohort has too few negative patients to support stable
-specificity, balanced accuracy, MCC, calibration, or threshold conclusions. This
-must be stated once clearly in the main text and then handled consistently:
-\begin{itemize}[leftmargin=*]
-  \item define median and interquartile range as the primary summary for the
-        small-cohort Monte Carlo protocol;
-  \item move mean$\pm$SD tables to the appendix or explicitly footnote that the
-        SD mostly reflects a one-negative validation draw rather than robust
-        patient-level uncertainty;
-  \item report paired Wilcoxon tests with the tested family and the relevant
-        multiple-comparison threshold;
-  \item include the power-analysis implication in the main discussion: a much
-        larger same-patient paired cohort is required before specificity-aware
-        ranking is answerable.
+  \item \textbf{Section 1.} Lead with the protocol contribution; demote the
+        architecture to a single sentence: ``We also evaluate three
+        optional modules (DPE, MHRA, DFPN), all of which fail.''
+  \item \textbf{Section 3.} Compress the method section to one page.
+        Remove DPE/MHRA/DFPN from the main figure (Figure 1) and place
+        them only in an appendix block diagram.
+  \item \textbf{Section 4.} Restructure as: (4.1) cohort and protocol;
+        (4.2) main result table (Table 6 only, with median + IQR + CI);
+        (4.3) one-paragraph BIMCV stress test summary; (4.4)
+        limitations.
+  \item \textbf{Appendix.} Keep the existing content but split into two
+        files: (A) reproducibility artefacts (manifests, CLAIM checklist,
+        Code Ocean pointer); (B) negative-result audit trail (all
+        execution variants, protocol corrections, calibration, power
+        analysis).
 \end{itemize}
 
-\subsection{Simplify and demote the architecture section}
-The method section should avoid presenting standard operators as new modules.
-Rename or describe DPE, MHRA, and DFPN using standard architectural language,
-and remove any implication that new named blocks are validated contributions.
-Compress the architecture description and use it to explain what was tested, not
-to oversell novelty. A suitable structure is:
-\begin{enumerate}[leftmargin=*]
-  \item problem formulation and privileged-modality training setup;
-  \item student-only, late-fusion, same-modality KD, and cross-modal KD controls;
-  \item optional module stress tests;
-  \item loss functions and evaluation protocol.
-\end{enumerate}
-If a TCSVT submission is retained, add only engineering details that are
-scientifically relevant: parameter counts, latency measurement protocol,
-complexity trade-offs, and why added complexity is not justified by the data.
+\subsection{Suggested statistical reporting standard}
+For every method comparison, report:
+\begin{verbatim}
+median balanced accuracy [Q1, Q3]
+95% bootstrap CI of the median (BCa where defined, percentile
+   otherwise)
+Wilcoxon signed-rank p-value (two-sided)
+Bonferroni-corrected significance threshold for the family of
+   comparisons
+\end{verbatim}
+Remove all $\mathrm{mean}\pm\mathrm{SD}$ reporting from the main text,
+since with $n_{\text{neg}}=1$ per resample the SD column is mechanically
+the binomial spread of a single Bernoulli draw.
 
-\subsection{Foreground dataset caveats and shortcut-learning evidence}
-The COVID-19 Image Data Collection caveat and the cross-source collapse are not
-minor limitations; they directly affect interpretation of the training signal.
-Move this discussion closer to the primary results. State that the comparison
-matrix may reflect acquisition or source artifacts rather than disease-specific
-semantics. Also address whether CT slice selection, X-ray preprocessing, or
-source-specific metadata could introduce shortcut correlations.
-
-\subsection{Consolidate experimental presentation}
-The current evidence trail is valuable but too diffuse. Merge repeated tables
-and figures so that each artifact answers one question:
+%==============================================================
+\section{Summary of Strengths}
+Despite the recommendation, the manuscript has genuine strengths that
+should not be overlooked:
 \begin{itemize}[leftmargin=*]
-  \item keep one main table for the primary Monte Carlo comparison, using the
-        chosen primary statistics;
-  \item summarize the BIMCV Executions A--F in one appendix table plus a short
-        body paragraph;
-  \item replace degenerate fixed-split heatmaps with text when all values are
-        identical or uninformative;
-  \item combine negative module-ablation figures into a compact multi-panel
-        summary;
-  \item shorten long captions, especially for the BIMCV stress-test table, by
-        moving interpretation into body text;
-  \item verify the latency row in which adding DPE appears faster than the
-        student-only model, and document warm-up, batch size, device, and number
-        of repeats.
+  \item \textbf{Methodological honesty.} The authors clearly state which
+        hypotheses fail, do not over-interpret directional trends, and
+        provide an unusually detailed audit trail.
+  \item \textbf{Reproducibility.} The Code Ocean capsule, CLAIM
+        checklist, deterministic training settings, and patient-level
+        split audit are exemplary.
+  \item \textbf{Negative-result transparency.} The five BIMCV executions
+        (A--F), the corrected-protocol analysis, and the Path-C re-split
+        document a thorough effort to test whether the negative finding
+        is robust.
+  \item \textbf{Cohort awareness.} The repeated acknowledgement that the
+        cohort is below the minimum scale for a definitive ranking is
+        unusual and welcome.
+  \item \textbf{Power analysis.} Table 25 (Appendix A.21) is well-done
+        and rare for medical-imaging pilots.
 \end{itemize}
 
-\subsection{Strengthen related work without expanding the main narrative}
-Add a targeted paragraph or appendix subsection that positions the work against:
+These strengths would be much more visible in a venue where negative
+results and protocol contributions are explicitly welcomed (e.g.,
+\emph{Nature Machine Intelligence}'s recent calls for negative results;
+\emph{npj Digital Medicine}; or workshop tracks at MICCAI/ML4H).
+
+%==============================================================
+\section{Final Recommendation}
 \begin{itemize}[leftmargin=*]
-  \item learning using privileged information;
-  \item modality hallucination and cross-modal distillation;
-  \item RGB-D, audio-visual, and other cross-modal teacher-student studies;
-  \item recent KD methods beyond 2022, where relevant;
-  \item recent biomedical vision-language or chest-imaging representation
-        models, including but not limited to BiomedCLIP-style baselines.
+  \item \textbf{Decision:} \textbf{Reject for TCSVT.}
+  \item \textbf{Primary reasons:} (i) no positive claim survives
+        the authors' own evaluation; (ii) the named architecture
+        is empirically falsified; (iii) the cohort is structurally
+        below the minimum scale needed to support any conclusion
+        about the central question.
 \end{itemize}
-The goal is not to claim superiority over this literature, but to clarify why
-the present study focuses on same-patient paired CT/CXR evidence boundaries.
-
-\subsection{Polish notation, style, and compliance details}
-Perform a final consistency pass covering:
-\begin{itemize}[leftmargin=*]
-  \item one notation convention for softmax, sigmoid, temperature, transpose,
-        and KD weights;
-  \item consistent terminology for cross-modal KD, same-modality KD, plain
-        logit KD, and attention transfer;
-  \item fewer repetitions of ``falsification-oriented'' and ``evidence-boundary'';
-  \item a shorter abstract of roughly IEEE-journal length;
-  \item concise figure captions;
-  \item DOI, venue capitalization, and BibTeX consistency;
-  \item patient-identifier, dataset-license, conflict-of-interest, and
-        commercial-affiliation checks.
-\end{itemize}
-
-\section{Concrete Drop-In Text Guidance}
-
-\subsection{Suggested abstract framing}
-\begin{quote}
-We study whether chest CT can provide training-only privileged supervision for
-an X-ray-only deployed classifier under same-patient paired-cohort constraints.
-Across student-only learning, late fusion, same-modality KD, cross-modal logit
-KD, attention transfer, feature hints, published KD baselines, and optional
-module-augmented variants, the strongest small-cohort trends do not reach
-paired statistical significance. A larger BIMCV stress test and a balanced
-validation re-split further show that the CT teacher is feasible but that
-cross-modal KD remains effectively tied with supervised X-ray training. The
-results therefore do not validate JDCNet as an architecture; instead, they
-provide an evidence-bounded audit protocol and a negative-result benchmark for
-future paired CT/CXR studies.
-\end{quote}
-
-\subsection{Suggested conclusion framing}
-\begin{quote}
-The evidence supports a limited conclusion: CT can act as a training-only
-teacher, but the tested CT-to-X-ray distillation strategies do not yield a
-validated advantage over supervised X-ray learning at the available paired
-cohort scales. The named module stack is best interpreted as a falsified
-complexity increment rather than as a successful architectural contribution.
-Future progress requires a substantially larger same-patient paired cohort or a
-new geometric/representation anchor that can be evaluated under the same
-patient-level protocol.
-\end{quote}
-
-\section{Final Consolidated Recommendation}
-The manuscript should proceed as a major narrative and presentation revision,
-not as another attempt to extract a positive architectural claim from the same
-results. The most defensible submission version is a transparent, reproducible,
-evidence-bounded negative-result study. If submitted to TCSVT, the authors must
-make the visual-systems relevance explicit and accept that the venue fit is
-risky. If submitted to a medical-imaging or negative-results venue, the current
-evidence trail becomes a strength rather than a mismatch.
 
 \end{document}
+
+
+```latex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{titlesec}
+
+\hypersetup{
+colorlinks=true,
+linkcolor=blue,
+urlcolor=blue,
+citecolor=blue
+}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+
+\title{
+\textbf{Peer Review Report}\\[4pt]
+\large Manuscript: ``JDCNet: Cross-Modal CT-to-X-ray Knowledge Distillation
+with Evidence-Bounded Evaluation on Patient-Level Paired Cohorts''\\[4pt]
+\normalsize Target Journal: IEEE Transactions on Medical Imaging (IEEE TMI)
+}
+
+\author{Reviewer Report}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+%=========================================================
+\section*{Summary of the Submission}
+
+This manuscript studies whether chest CT can serve as a
+training-only privileged modality for improving an X-ray-only
+deployed classifier under a same-patient paired cohort setting.
+The paper formulates CT-to-X-ray transfer as a cross-modal
+knowledge distillation problem and evaluates multiple
+distillation variants under a repeated patient-level Monte Carlo
+protocol.
+
+The study compares student-only learning, same-modality KD,
+late fusion, plain cross-modal logit KD, attention transfer,
+feature hints, and several generic KD baselines including
+CRD, DKD, DIST, and modality-hallucination KD.
+The proposed JDCNet architecture further introduces three
+optional modules (DPE, MHRA, DFPN).
+
+The paper’s central claim is intentionally conservative:
+plain cross-modal logit KD and attention transfer show
+directional improvement over the X-ray-only supervised baseline,
+but the gains are not statistically significant at the current cohort scale.
+The manuscript further reports that the proposed module stack
+does not improve upon the stripped-down logit-transfer baseline.
+
+The paper is unusually transparent about negative results,
+evaluation fragility, and evidential limitations.
+
+%=========================================================
+\section*{Overall Recommendation}
+
+\textbf{Major Revision}
+
+\medskip
+
+This manuscript addresses an important and clinically relevant
+question: whether a richer modality (CT) can improve a deployment-realistic
+X-ray-only classifier through training-time-only supervision.
+The paper also places unusual emphasis on evidence robustness,
+same-case resampling, and negative-result transparency.
+
+Compared with a TCSVT submission, the manuscript is substantially
+better aligned with the scope of IEEE TMI because the core contribution
+is fundamentally methodological and evaluation-centric within
+medical imaging.
+
+However, in its current form, the paper still has several major weaknesses
+that prevent immediate acceptance:
+
+\begin{itemize}[leftmargin=*]
+    \item the paired cohort is extremely small and statistically underpowered;
+    \item the primary positive claim is not statistically validated;
+    \item the proposed architectural modules are empirically unsupported;
+    \item the manuscript mixes protocol contribution,
+          architectural contribution, and negative-result reporting
+          without sufficiently prioritizing them;
+    \item the clinical and imaging interpretation remains underdeveloped.
+\end{itemize}
+
+Despite these issues, the manuscript has several strengths:
+excellent reproducibility infrastructure, unusually careful
+uncertainty reporting, transparent negative-result analysis,
+and a clinically meaningful deployment framing.
+With substantial restructuring and clearer positioning,
+this work could become a valuable methodological paper
+for the medical-imaging community.
+
+%=========================================================
+\section{Major Issues}
+
+%---------------------------------------------------------
+\subsection{The manuscript lacks a statistically validated primary finding}
+
+The most important issue is that the paper’s main scientific claim
+remains statistically unsupported.
+
+The manuscript repeatedly reports that:
+
+\begin{itemize}[leftmargin=*]
+    \item plain cross-modal logit KD achieves
+          balanced accuracy $0.900 \pm 0.211$;
+    \item the X-ray-only baseline achieves
+          $0.800 \pm 0.258$;
+    \item however, the difference is not statistically significant
+          ($p = 0.625$, Wilcoxon signed-rank test, $n = 10$).
+\end{itemize}
+
+This creates a fundamental problem for a TMI paper:
+the manuscript carefully demonstrates that the central
+cross-modal advantage has not yet been validated.
+
+The paper therefore currently reads more as:
+
+\begin{quote}
+``an evidence-boundary analysis showing that the present
+cohort is insufficient to establish CT-to-X-ray transfer''
+\end{quote}
+
+than as a validated algorithmic contribution.
+
+The authors should therefore explicitly decide which of the
+following directions they want the paper to emphasize:
+
+\begin{enumerate}[leftmargin=*]
+    \item a negative-result / evidence-boundary paper;
+    \item a reproducibility and evaluation methodology paper;
+    \item a clinically motivated transfer-learning study;
+    \item or an architecture paper.
+\end{enumerate}
+
+At present, the manuscript attempts to do all four simultaneously,
+which weakens the scientific narrative.
+
+%---------------------------------------------------------
+\subsection{The paired cohort is too small for reliable clinical conclusions}
+
+The paired cohort contains:
+
+\begin{itemize}[leftmargin=*]
+    \item 19 patients;
+    \item 26 X-ray images;
+    \item only 4 negative patients;
+    \item one negative validation patient per resample.
+\end{itemize}
+
+This is an extremely severe limitation.
+
+Specificity-sensitive metrics such as:
+
+\begin{itemize}[leftmargin=*]
+    \item specificity,
+    \item MCC,
+    \item balanced accuracy,
+\end{itemize}
+
+become highly unstable under this regime.
+
+Indeed, the reported standard deviations
+($\pm 0.422$, $\pm 0.527$) largely reflect
+single-example Bernoulli variance rather than
+true uncertainty about model ranking.
+
+The authors acknowledge this limitation,
+which is appreciated,
+but the manuscript still presents extensive ranking analysis
+that risks over-interpretation.
+
+The repeated-resampling protocol improves methodological rigor,
+but it does not solve the underlying sample-support problem.
+
+For a TMI paper,
+the current evidence scale is below the standard expected
+for establishing clinically meaningful conclusions.
+
+The BIMCV stress-test appendix is therefore critically important,
+yet it remains secondary rather than central in the current paper structure.
+
+%---------------------------------------------------------
+\subsection{The architectural contribution is empirically unsupported}
+
+The proposed JDCNet architecture introduces:
+
+\begin{itemize}[leftmargin=*]
+    \item DPE;
+    \item MHRA;
+    \item DFPN.
+\end{itemize}
+
+However, the experiments consistently show that:
+
+\begin{itemize}[leftmargin=*]
+    \item Full JDCNet underperforms plain logit KD;
+    \item module addition monotonically degrades performance;
+    \item the simpler stripped-down baseline is the strongest method.
+\end{itemize}
+
+The manuscript itself repeatedly acknowledges this result.
+
+Therefore, the current paper cannot simultaneously claim:
+
+\begin{enumerate}[leftmargin=*]
+    \item that JDCNet is the proposed architecture;
+    \item and that the architecture is unsupported.
+\end{enumerate}
+
+This creates narrative inconsistency.
+
+The authors should strongly consider reframing the paper around:
+
+\begin{quote}
+``cross-modal evidence-bounded evaluation''
+\end{quote}
+
+rather than around the JDCNet module stack.
+
+The current title over-emphasizes the architecture.
+
+%---------------------------------------------------------
+\subsection{The clinical interpretation remains weak}
+
+Although the paper is framed as a medical-imaging study,
+the clinical implications are underdeveloped.
+
+Specifically:
+
+\begin{itemize}[leftmargin=*]
+    \item there is limited radiological interpretation;
+    \item no analysis of which CT findings transfer successfully;
+    \item no investigation of disease pattern correspondence;
+    \item no error analysis from a clinical perspective;
+    \item no subgroup analysis;
+    \item no discussion of lesion visibility mismatch between CT and X-ray.
+\end{itemize}
+
+The paper currently treats CT as a generic stronger modality,
+but does not analyze:
+
+\begin{quote}
+\emph{what information is actually transferred.}
+\end{quote}
+
+For TMI,
+stronger imaging interpretation is expected.
+
+The paper would benefit substantially from:
+
+\begin{itemize}[leftmargin=*]
+    \item Grad-CAM / saliency analysis;
+    \item teacher-student attention comparison;
+    \item visualization of successful and failed transfer cases;
+    \item analysis of lesion patterns visible on CT but absent on X-ray;
+    \item clinically interpretable failure modes.
+\end{itemize}
+
+%---------------------------------------------------------
+\subsection{The manuscript overuses evidential language}
+
+Terms such as:
+
+\begin{itemize}[leftmargin=*]
+    \item ``evidence-boundary'';
+    \item ``falsification-oriented'';
+    \item ``evidential floor'';
+    \item ``claim boundary'';
+    \item ``directional but not significant'';
+\end{itemize}
+
+appear extremely frequently.
+
+While the transparency is commendable,
+the manuscript sometimes reads more like
+a philosophy-of-science discussion
+than a medical-imaging paper.
+
+The paper should reduce repetitive meta-discussion
+and focus more directly on:
+
+\begin{itemize}[leftmargin=*]
+    \item imaging findings;
+    \item transfer mechanisms;
+    \item methodological implications;
+    \item clinical deployment relevance.
+\end{itemize}
+
+%---------------------------------------------------------
+\subsection{The BIMCV experiments should be moved into the main paper}
+
+The BIMCV experiments are currently treated as a secondary appendix stress test.
+
+However, these experiments are actually the most scientifically important part
+of the paper because they address the core limitation:
+tiny-cohort instability.
+
+The manuscript should restructure the evidence hierarchy:
+
+\begin{enumerate}[leftmargin=*]
+    \item BIMCV repeated-resampling should become the primary evidence;
+    \item the tiny paired cohort should become the pilot feasibility study;
+    \item the current appendix material should be partially moved into the main text.
+\end{enumerate}
+
+At present, the paper gives disproportionate emphasis
+to the tiny 19-patient cohort.
+
+%---------------------------------------------------------
+\subsection{The manuscript lacks comparison with modern medical foundation models}
+
+The baseline section is incomplete relative to current TMI standards.
+
+The paper compares against:
+
+\begin{itemize}[leftmargin=*]
+    \item CRD,
+    \item DKD,
+    \item DIST,
+    \item modality hallucination KD.
+\end{itemize}
+
+However, there is insufficient engagement with:
+
+\begin{itemize}[leftmargin=*]
+    \item MedCLIP;
+    \item BiomedCLIP;
+    \item RadImageNet-pretrained models;
+    \item multimodal radiology foundation models;
+    \item recent medical contrastive learning frameworks.
+\end{itemize}
+
+Even if such models cannot be fully trained under the current cohort size,
+their role in the literature should be discussed more deeply.
+
+%---------------------------------------------------------
+\subsection{The deployment framing is clinically plausible but technically incomplete}
+
+The X-ray-only deployment framing is reasonable and clinically meaningful.
+
+However, the deployment analysis remains shallow.
+
+Specifically:
+
+\begin{itemize}[leftmargin=*]
+    \item no robustness analysis;
+    \item no domain-shift evaluation;
+    \item no external clinical validation;
+    \item no uncertainty calibration study;
+    \item no deployment-failure analysis.
+\end{itemize}
+
+The cross-source collapse reported in the appendix
+is actually extremely important,
+yet it is not sufficiently foregrounded.
+
+The manuscript should discuss much more explicitly that:
+
+\begin{quote}
+shortcut learning and source-specific acquisition bias
+may dominate the learned transfer signal.
+\end{quote}
+
+%=========================================================
+\section{Minor Issues}
+
+%---------------------------------------------------------
+\subsection{Title}
+
+The title overstates the architectural contribution.
+
+Suggested alternative:
+
+\begin{verbatim}
+Evidence-Bounded Evaluation of Cross-Modal
+CT-to-X-ray Knowledge Distillation under
+Patient-Level Paired Cohorts
+\end{verbatim}
+
+%---------------------------------------------------------
+\subsection{Abstract}
+
+The abstract is overly long and excessively detailed.
+
+It currently reads more like a mini-paper than an abstract.
+
+The abstract should:
+
+\begin{itemize}[leftmargin=*]
+    \item shorten statistical detail;
+    \item remove repetitive evidential qualifiers;
+    \item emphasize the medical-imaging problem;
+    \item summarize the main outcome more concisely.
+\end{itemize}
+
+%---------------------------------------------------------
+\subsection{Figure organization}
+
+Several figures communicate similar conclusions:
+
+\begin{itemize}[leftmargin=*]
+    \item Figure 4;
+    \item Figure 5;
+    \item repeated negative-result plots.
+\end{itemize}
+
+These could be consolidated.
+
+%---------------------------------------------------------
+\subsection{Notation consistency}
+
+The notation for:
+
+\begin{itemize}[leftmargin=*]
+    \item $\alpha$;
+    \item temperature $T$;
+    \item KL direction;
+\end{itemize}
+
+should be made fully consistent between the main text and appendix.
+
+%---------------------------------------------------------
+\subsection{Statistical reporting}
+
+The paper mixes:
+
+\begin{itemize}[leftmargin=*]
+    \item mean $\pm$ SD;
+    \item median + IQR;
+    \item bootstrap CI;
+    \item Wilcoxon tests.
+\end{itemize}
+
+A single primary reporting standard should be adopted.
+
+For small-cohort medical imaging,
+median + IQR + paired nonparametric testing
+is likely more defensible.
+
+%---------------------------------------------------------
+\subsection{Efficiency table}
+
+Table 8 reports lower CPU latency for ``+DPE''
+than for the baseline model.
+
+This is counterintuitive and should be verified carefully.
+
+%---------------------------------------------------------
+\subsection{Acronyms}
+
+DPE, MHRA, and DFPN are not established terms.
+
+The paper should reduce acronym proliferation
+and use standard terminology where possible.
+
+%=========================================================
+\section{Questions for the Authors}
+
+\begin{enumerate}[leftmargin=*]
+
+\item
+What is the primary intended contribution of the paper:
+architecture, evaluation methodology,
+negative-result analysis,
+or deployment-oriented medical transfer learning?
+
+\item
+Why is the tiny paired cohort still treated as the primary evidence source
+when the BIMCV stress-test experiments are substantially more informative?
+
+\item
+What imaging features appear transferable from CT to X-ray?
+Can the authors visualize successful transfer cases?
+
+\item
+Why does attention transfer match plain logit KD almost exactly?
+Does this imply that the transfer signal is mostly logit-level?
+
+\item
+Do the authors believe the current evidence supports any clinically meaningful
+cross-modal advantage?
+
+\item
+Could the observed transfer behavior simply reflect acquisition bias
+rather than disease-specific transfer?
+
+\item
+Why are the proposed modules retained in the paper title and abstract
+if the experiments consistently show that they do not help?
+
+\end{enumerate}
+
+%=========================================================
+\section{Concrete Revision Suggestions}
+
+%---------------------------------------------------------
+\subsection{Suggested revised title}
+
+\begin{verbatim}
+\title{
+Evidence-Bounded Evaluation of Cross-Modal
+CT-to-X-ray Knowledge Distillation under
+Patient-Level Paired Cohorts
+}
+\end{verbatim}
+
+%---------------------------------------------------------
+\subsection{Suggested restructuring}
+
+\begin{itemize}[leftmargin=*]
+
+\item
+Move BIMCV experiments into the main paper.
+
+\item
+Reduce emphasis on DPE/MHRA/DFPN.
+
+\item
+Reframe JDCNet as an experimental scaffold rather than
+a validated architecture.
+
+\item
+Condense repeated evidential terminology.
+
+\item
+Expand clinical interpretation and visualization analysis.
+
+\item
+Separate:
+\begin{enumerate}
+    \item pilot feasibility findings;
+    \item evidence-boundary findings;
+    \item clinically relevant conclusions.
+\end{enumerate}
+
+\end{itemize}
+
+%---------------------------------------------------------
+\subsection{Suggested statistical reporting standard}
+
+For all comparisons, report:
+
+\begin{verbatim}
+Median balanced accuracy [Q1, Q3]
+95% bootstrap confidence interval
+Wilcoxon signed-rank p-value
+Effect size
+Number of positive and negative patients
+\end{verbatim}
+
+%---------------------------------------------------------
+\subsection{Suggested additional experiments}
+
+\begin{itemize}[leftmargin=*]
+
+\item
+External validation on an independent cohort.
+
+\item
+Visualization-based transfer analysis.
+
+\item
+Cross-hospital robustness evaluation.
+
+\item
+Teacher-student feature similarity analysis.
+
+\item
+Comparison with medical foundation models.
+
+\item
+Calibration-error evaluation.
+
+\item
+Failure-case radiological analysis.
+
+\end{itemize}
+
+%=========================================================
+\section{Summary of Strengths}
+
+Despite the concerns above,
+the paper has several genuine strengths.
+
+\begin{itemize}[leftmargin=*]
+
+\item
+Excellent reproducibility infrastructure.
+
+\item
+Unusually transparent negative-result reporting.
+
+\item
+Careful patient-level evaluation methodology.
+
+\item
+Strong awareness of shortcut-learning risks.
+
+\item
+Thoughtful discussion of evidence limitations.
+
+\item
+Clinically meaningful deployment motivation.
+
+\item
+Comprehensive baseline matrix relative to cohort scale.
+
+\end{itemize}
+
+The paper’s transparency and reproducibility quality
+are substantially above average for medical-imaging submissions.
+
+%=========================================================
+\section{Final Recommendation}
+
+\begin{itemize}[leftmargin=*]
+
+\item
+\textbf{Recommendation: Major Revision}
+
+\item
+The paper addresses a scientifically important problem
+and is substantially better aligned with IEEE TMI
+than with TCSVT.
+
+\item
+However, the current evidence scale is insufficient
+to support the central transfer-learning claim.
+
+\item
+The paper should be substantially restructured around:
+\begin{enumerate}
+    \item evidence-bounded evaluation;
+    \item reproducibility;
+    \item clinically interpretable transfer analysis;
+    \item larger-cohort evidence.
+\end{enumerate}
+
+\item
+The manuscript has publication potential if the authors:
+\begin{itemize}
+    \item strengthen the larger-cohort analysis;
+    \item reduce unsupported architectural emphasis;
+    \item improve clinical interpretation;
+    \item clarify the scientific contribution hierarchy.
+\end{itemize}
+
+\end{itemize}
+
+\end{document}
+```
