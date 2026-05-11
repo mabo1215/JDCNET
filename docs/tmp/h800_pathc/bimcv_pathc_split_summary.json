@@ -1,0 +1,26 @@
+{
+  "policy": "Path C H800 fixed patient-level split: val 54 positive + 60 negative; remaining train",
+  "seed": 20260511,
+  "merged_manifest": "/root/autodl-tmp/data/bimcv/bimcv_merged_paired_manifest_pathc.csv",
+  "teacher_manifest": "/root/autodl-tmp/data/bimcv/bimcv_teacher_ct_manifest_pathc.csv",
+  "xray_counts": {
+    "0": {
+      "train": 338,
+      "val": 60
+    },
+    "1": {
+      "train": 60,
+      "val": 54
+    }
+  },
+  "teacher_counts": {
+    "0": {
+      "train": 338,
+      "val": 60
+    },
+    "1": {
+      "train": 60,
+      "val": 54
+    }
+  }
+}

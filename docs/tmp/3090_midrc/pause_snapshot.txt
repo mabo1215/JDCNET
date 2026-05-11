@@ -1,0 +1,26 @@
+snapshot_utc=20260511T065821Z
+host=ubuntu-4card
+2026-05-11T06:58:21+00:00
+--- processes before pause ---
+1727940 SCREEN -dmS midrc_559_combined_dl bash /data/secure/midrc/run_midrc_559_download_combined.sh
+1727942 /data/tools/gen3-client download-multiple --profile=midrc --manifest=/data/secure/midrc/MIDRC_strict_chest_paired_559cases_largestCT_nearestXR.manifest.json --download-path=/data/midrc/raw_559cases_combined --filename-format=combined --skip-completed --no-prompt --numparallel=2
+--- screen before pause ---
+	1727940.midrc_559_combined_dl	(05/10/26 10:27:33)	(Detached)
+--- counts before pause ---
+2
+488M	/data/midrc/raw_559cases_combined
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdb1       3.6T  2.4T  1.1T  71% /data
+--- files before pause ---
+2026-05-10 10:43 6463296 /data/midrc/raw_559cases_combined/dg.MD1R/2db8f53b-a5c3-4152-9b37-451f1fa75942_419639-018337/1.2.826.0.1.3680043.10.474.419639.130773450660233062842756558053/1.2.826.0.1.3680043.10.474.419639.300847699585764025148424740672.zip
+2026-05-10 18:39 505074097 /data/midrc/raw_559cases_combined/dg.MD1R/7292b736-2c45-4786-b10b-127b6fa224cd_419639-018337/1.2.826.0.1.3680043.10.474.419639.132969068699845708674425312008/1.2.826.0.1.3680043.10.474.419639.328273581645407370429247670977.zip
+--- after pause ---
+2026-05-11T07:00:29+00:00
+2026-05-10 10:43 6463296 /data/midrc/raw_559cases_combined/dg.MD1R/2db8f53b-a5c3-4152-9b37-451f1fa75942_419639-018337/1.2.826.0.1.3680043.10.474.419639.130773450660233062842756558053/1.2.826.0.1.3680043.10.474.419639.300847699585764025148424740672.zip
+2026-05-10 18:39 505074097 /data/midrc/raw_559cases_combined/dg.MD1R/7292b736-2c45-4786-b10b-127b6fa224cd_419639-018337/1.2.826.0.1.3680043.10.474.419639.132969068699845708674425312008/1.2.826.0.1.3680043.10.474.419639.328273581645407370429247670977.zip
+snapshot=/data/logs/midrc/midrc_559_pause_snapshot_20260511T065821Z.txt
+snapshot_json=/data/logs/midrc/midrc_559_pause_snapshot_20260511T065821Z.json
+-rw-rw-r-- 1 mabo1215 mabo1215  766 May 11 07:00 /data/secure/midrc/README_RESUME_MIDRC_559.txt
+-rwx------ 1 mabo1215 mabo1215  567 May 11 07:00 /data/secure/midrc/check_midrc_559_progress.sh
+-rwx------ 1 mabo1215 mabo1215 1.2K May 11 07:00 /data/secure/midrc/run_midrc_559_download_combined.sh
+-rwx------ 1 mabo1215 mabo1215  303 May 11 07:00 /data/secure/midrc/start_midrc_559_resume_screen.sh

@@ -1,0 +1,28 @@
+﻿__SCREEN__n	1567.pathc_h800	(05/11/26 05:20:07)	(Detached)
+__GPU__n0, NVIDIA H800 PCIe, 1529, 7
+__PROCS__n1567 SCREEN -dmS pathc_h800 bash /root/autodl-tmp/logs/bimcv_pathc_h800/run_pathc_h800.sh
+1569 bash /root/autodl-tmp/logs/bimcv_pathc_h800/run_pathc_h800.sh
+26559 /root/miniconda3/bin/python3.12 -u -m jdcnet_exp.train --config configs/bimcv_pathc_h800/bimcv_pathc_h800_resnet18_xray_supervised_s44.json
+32940 bash -c cd /root/autodl-tmp/JDCNET/src || exit 1
+ printf __SCREEN__\n; screen -ls 2>/dev/null | grep pathc_h800 || true
+ printf __GPU__\n; nvidia-smi --query-gpu=index,name,memory.used,utilization.gpu --format=csv,noheader,nounits || true
+ printf __PROCS__\n; pgrep -af 'jdcnet_exp.train.*bimcv_pathc_h800|run_pathc_h800' || true
+ printf __COMPLETED__\n; find -L /root/autodl-tmp/runs/bimcv_pathc_h800 -maxdepth 2 -name best_metrics.json -printf '%h\n' 2>/dev/null | sed 's#/root/autodl-tmp/runs/bimcv_pathc_h800/##' | sort || true printf __STATUS_TAIL__\n; tail -n 50 /root/autodl-tmp/logs/bimcv_pathc_h800/status.tsv 2>/dev/null || true
+__COMPLETED__nbimcv_pathc_h800_resnet18_teacher_ct_s42
+bimcv_pathc_h800_resnet18_teacher_ct_s43
+bimcv_pathc_h800_resnet18_teacher_ct_s44
+bimcv_pathc_h800_resnet18_xray_supervised_s42
+bimcv_pathc_h800_resnet18_xray_supervised_s43
+bimcv_pathc_h800_resnet18_xray_supervised_s44
+__STATUS_TAIL__ntime	event	name	detail
+2026-05-11T05:20:07+08:00	START	bimcv_pathc_h800_resnet18_teacher_ct_s42	log=/root/autodl-tmp/logs/bimcv_pathc_h800/bimcv_pathc_h800_resnet18_teacher_ct_s42.log
+2026-05-11T05:36:21+08:00	DONE	bimcv_pathc_h800_resnet18_teacher_ct_s42	ok
+2026-05-11T05:36:21+08:00	START	bimcv_pathc_h800_resnet18_xray_supervised_s42	log=/root/autodl-tmp/logs/bimcv_pathc_h800/bimcv_pathc_h800_resnet18_xray_supervised_s42.log
+2026-05-11T09:24:01+08:00	DONE	bimcv_pathc_h800_resnet18_xray_supervised_s42	ok
+2026-05-11T09:24:01+08:00	START	bimcv_pathc_h800_resnet18_teacher_ct_s43	log=/root/autodl-tmp/logs/bimcv_pathc_h800/bimcv_pathc_h800_resnet18_teacher_ct_s43.log
+2026-05-11T09:40:33+08:00	DONE	bimcv_pathc_h800_resnet18_teacher_ct_s43	ok
+2026-05-11T09:40:33+08:00	START	bimcv_pathc_h800_resnet18_xray_supervised_s43	log=/root/autodl-tmp/logs/bimcv_pathc_h800/bimcv_pathc_h800_resnet18_xray_supervised_s43.log
+2026-05-11T13:32:43+08:00	DONE	bimcv_pathc_h800_resnet18_xray_supervised_s43	ok
+2026-05-11T13:32:43+08:00	START	bimcv_pathc_h800_resnet18_teacher_ct_s44	log=/root/autodl-tmp/logs/bimcv_pathc_h800/bimcv_pathc_h800_resnet18_teacher_ct_s44.log
+2026-05-11T13:49:09+08:00	DONE	bimcv_pathc_h800_resnet18_teacher_ct_s44	ok
+2026-05-11T13:49:09+08:00	START	bimcv_pathc_h800_resnet18_xray_supervised_s44	log=/root/autodl-tmp/logs/bimcv_pathc_h800/bimcv_pathc_h800_resnet18_xray_supervised_s44.log
