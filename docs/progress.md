@@ -13,6 +13,7 @@
 - **Appendix 大表排版决策已消费**：按用户回答，BIMCV stress-test 大表压缩放到最终投稿排版阶段处理；当前仅记录 existing float-too-large warning，不作为本轮算法修改阻挡项。
 - **GAP-KD/JDCNet-v2 代码框架已启动**：已新增 confidence-gated KD、projection-compatible attention loss、CPU synthetic smoke test 和 H800 no-card 启动脚本；本地 CPU smoke test 通过，结果在 `src/results/gapkd_cpu_smoke_local/smoke_gapkd.json`。
 - **H800 无卡 smoke 实验已完成**：已把 GAP-KD/JDCNet-v2 最小代码同步到 H800，在无卡/CPU 环境运行 synthetic smoke test 并拉回结果；`src/results/h800_gapkd_cpu_smoke/smoke_gapkd.json` 显示 5/5 checks passed。
+- **MIDRC balanced pilot 与短版证明框架已完成并拉回**：H800 有卡模式下已完成 MIDRC balanced pilot（126 cases，63 negative / 63 positive，train 44+44，val 19+19，errors=0）以及 3 seeds × 4 rows short-proof runs（CT teacher、X-ray supervised、plain CT KD、GAP-KD confidence-gated + projected attention）。结果已拉回 `src/results/midrc_short_proof_h800/`；H800 自动关机已临时取消，等待是否继续实验。
 - **构建检查已完成**：已运行 `paper/build.bat`，`paper/main.pdf` 和 `paper/appendix.pdf` 均生成成功；剩余为既有排版/LaTeX warnings（如 appendix 大表 float too large、standalone appendix labels/bib warning），无 fatal error。
 
 ## 未修改或部分修改
@@ -21,20 +22,23 @@
    - 推进状态：等待执行。
    - 当前不需要新的作者输入；下一步可直接补充文献和 BibTeX。
 
-2. **MIDRC 新 paired cohort 证据层**：用户已确认下一轮以 MIDRC 作为真正新增 cohort，NLST 暂不推进；当前 GAP-KD/JDCNet-v2 只有代码和 CPU smoke，不应写成论文有效性结果。
-   - 推进状态：等待 MIDRC 数据审计/下载/筛选。
-   - 仍需作者提供或确认：MIDRC 下载继续可用、目标样本量、是否允许后续 GPU 训练预算。
+2. **MIDRC 新 paired cohort 证据层**：用户已确认下一轮以 MIDRC 作为真正新增 cohort，NLST 暂不推进；MIDRC 数据链路已经在 H800 上跑通，当前结果属于 balanced pilot / short-proof evidence，尚不能写成最终 validated architecture 结果。
+   - 推进状态：H800 已完成 126-case balanced preprocessing（63/63）和 3 seeds × 4 rows short-proof runs；本地结果在 `src/results/midrc_short_proof_h800/logs/summary.csv`。
+   - 当前关键发现：GAP-KD 平均 BA 高于 supervised/plain KD，但 seed 43 低于二者，说明方法有正向信号但稳定性不足。
+   - 下一步：先解决 seed 43 instability，再决定是否启动完整 6 行矩阵。
 
-3. **GAP-KD/JDCNet-v2 结果性实验**：3090 已完成 BIMCV Path-C same-cohort follow-up（12 runs / 4 methods / 3 new seeds），因此不再只是“代码和 CPU smoke”；但这些结果仍是同 cohort 的 post-hoc exploratory evidence，不能单独解决论文 validated architecture 的证据问题。
-   - 推进状态：same-cohort exploratory follow-up 已完成，决定性实验仍阻塞于新 cohort。
-   - 仍需作者决策：是否在 MIDRC 审计通过后，把最小矩阵设为 X-ray supervised、CT teacher、plain CT logit KD、confidence-gated KD、confidence-gated projection/anatomy KD。
+3. **GAP-KD/JDCNet-v2 结果性实验**：3090 已完成 BIMCV Path-C same-cohort follow-up，H800 已完成 MIDRC balanced short-proof runs；这些结果显示 GAP-KD 有方向性收益但尚未达到稳定优于 supervised/plain KD 的完整矩阵启动门槛。
+   - 推进状态：MIDRC 3 seeds short-proof 已完成。BA 均值：supervised `0.605`，plain KD `0.605`，GAP-KD conf+proj `0.623`；逐 seed 的 GAP-supervised 为 `+0.053, -0.053, +0.053`，GAP-plain 为 `+0.053, -0.079, +0.079`。
+   - 当前判断：不应立即启动完整 6 行矩阵；需要先做小型参数筛选以修复 seed 43 不稳定。
+   - 建议下一步：固定数据 split，运行 GAP-KD gate threshold `0.55/0.60/0.65` 与 projected_attention_weight `0/0.02/0.05` 的小型筛选；若 3 seeds 均稳定高于 supervised 与 plain KD，再启动完整 6 行矩阵。
 
 ## 遗留问题
 
-1. **MIDRC 新 cohort 路线**
-   - 需要你确认：继续以 MIDRC 作为下一轮真正新增 cohort，并暂停 NLST；是否允许后续在 MIDRC 审计通过后启动 GPU 训练？
-   - A: MIDRC，允许后续 GPU 训练 / MIDRC，但先只做数据审计 / 暂停
+1. **GAP-KD seed 43 instability**
+   - 当前问题：MIDRC short-proof 中 GAP-KD 在 seed 42/44 明显优于 supervised/plain KD，但 seed 43 低于二者；因此不能直接启动完整 6 行矩阵。
+   - 下一步优先级最高：做小型参数筛选，优先测试 gate threshold `0.55/0.60/0.65` 与 projected_attention_weight `0/0.02/0.05`，目标是让 GAP-KD 在 3 seeds 上稳定高于 supervised 与 plain KD。
+   - 启动完整矩阵的门槛：3 seeds 后 GAP-KD 对 supervised 和 plain KD 均稳定为正，且平均 ΔBA 至少达到约 `+0.03`；否则继续调整方法或保持 evidence-bounded 叙事。
 
-2. **GAP-KD/JDCNet-v2 最小实验矩阵**
-   - 需要你确认：MIDRC 审计通过后，是否采用最小矩阵：X-ray supervised、CT teacher、plain CT logit KD、confidence-gated KD、confidence-gated projection/anatomy KD？
-   - A: 是的  
+2. **H800 费用控制**
+   - 当前状态：短版证明框架结果已拉回，本轮自动关机已取消以便检查和决策。
+   - 下次启动实验前：若要无人值守运行，需明确是否恢复脚本完成后自动 `poweroff -f || shutdown -h now || kill -TERM 1`；如果只是调参观察，应保持不自动关机并手动在平台控制台停止计费。

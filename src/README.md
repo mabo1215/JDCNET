@@ -85,6 +85,32 @@ Check whether a newly prepared paired manifest is ready for E1/M2/M10 training (
 python -m jdcnet_exp.data_readiness_gate --manifest .\data\bimcv\bimcv_combined_manifest.csv --dataset-name bimcv_combined --output .\results\bimcv_readiness_gate.json
 ```
 
+Build one mixed BIMCV+MIDRC training index with train/val/test split, paired paths, and controllable positive ratio:
+
+```powershell
+python -m jdcnet_exp.prepare_mixed_bimcv_midrc_manifest \
+	--bimcv-manifest .\data\bimcv\bimcv_paired_manifest.csv \
+	--midrc-metadata-json .\data\midrc_manifests\MIDRC_strict_chest_paired_559cases_largestCT_nearestXR.metadata.json \
+	--midrc-root /data1/midrc/raw_559cases_combined \
+	--output .\data\midrc_manifests\mixed_bimcv_midrc_manifest.csv \
+	--split-output-dir .\data\midrc_manifests\mixed_bimcv_midrc_splits \
+	--train-frac 0.7 --val-frac 0.1 --test-frac 0.2 \
+	--target-train-positive-ratio 0.5 --sampling-mode upsample
+```
+
+The same settings can be edited in a JSON recipe and reused:
+
+```powershell
+Copy-Item .\configs\mixed_bimcv_midrc_manifest_recipe.example.json .\configs\mixed_bimcv_midrc_manifest_recipe.json
+python -m jdcnet_exp.prepare_mixed_bimcv_midrc_manifest --recipe .\configs\mixed_bimcv_midrc_manifest_recipe.json
+```
+
+Notes:
+- The mixed manifest keeps only path references and labels; images are loaded at training time by the dataloader.
+- For MIDRC metadata input, each case is converted into one paired row: X-ray as image_path and CT as teacher_image_path.
+- The output includes pairing columns (`pair_id`, `image_path`, `teacher_image_path`) and can also write separate `train.csv`, `val.csv`, and `test.csv` files.
+- To keep natural validation/test prevalence, omit target-val-positive-ratio and target-test-positive-ratio.
+
 Download curated Kaggle datasets into `src/data/kaggle/`:
 
 ```powershell
