@@ -3,6 +3,7 @@
 ## 已全部修改
 
 - **3090 Path C 结果已回填论文**：BIMCV 512-patient balanced-validation re-split 未把 CT logit KD 推过显著性门槛；当前口径保持 evidence-bounded，不升级为 validated architecture。
+- **3090 completed GAP-KD follow-up on BIMCV Path-C**：同一 balanced-validation Path-C split 上的 12 个新 follow-up runs（seed 43--45；X-ray supervised、plain CT logit KD、confidence-gated KD、confidence-gated projection/anatomy KD）已全部完成。三 seed 汇总 balanced accuracy 分别为 `0.587 ± 0.025`、`0.619 ± 0.025`、`0.605 ± 0.019`、`0.615 ± 0.015`；这说明 same-cohort exploratory evidence 已存在，但仍属 post-hoc same-cohort follow-up，不能上调为 decisive validation 或 validated architecture。
 - **Path C 数值结果已迁移**：3090 拉回的数值结果已从 `docs/tmp/3090_pathc/` 转移到 `src/results/bimcv_pathc_3090/`，避免继续把实验结果放在 `docs/tmp`。
 - **实验计划已收口**：`docs/tmp/experiment_plan.md` 和 `docs/tmp/jdcnet_upgrade_plan.md` 已更新为“当前投稿不再追加同 cohort 微调实验；validated architecture 升级未成立；未来需要真正新增 paired cohort”。
 - **两组评审意见已合并**：`docs/revision_suggestions.tex` 已整理为单一综合修改意见，重复项已合并，主线转向 evidence-bounded negative-result / protocol contribution。
@@ -24,8 +25,8 @@
    - 推进状态：等待 MIDRC 数据审计/下载/筛选。
    - 仍需作者提供或确认：MIDRC 下载继续可用、目标样本量、是否允许后续 GPU 训练预算。
 
-3. **GAP-KD/JDCNet-v2 结果性实验**：代码框架已通过本地和 H800 CPU smoke，但还没有在真实 paired cohort 上训练/评估，因此不能解决论文 validated architecture 的证据问题。
-   - 推进状态：代码就绪，实验阻塞于新 cohort。
+3. **GAP-KD/JDCNet-v2 结果性实验**：3090 已完成 BIMCV Path-C same-cohort follow-up（12 runs / 4 methods / 3 new seeds），因此不再只是“代码和 CPU smoke”；但这些结果仍是同 cohort 的 post-hoc exploratory evidence，不能单独解决论文 validated architecture 的证据问题。
+   - 推进状态：same-cohort exploratory follow-up 已完成，决定性实验仍阻塞于新 cohort。
    - 仍需作者决策：是否在 MIDRC 审计通过后，把最小矩阵设为 X-ray supervised、CT teacher、plain CT logit KD、confidence-gated KD、confidence-gated projection/anatomy KD。
 
 ## 遗留问题
