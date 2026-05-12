@@ -400,14 +400,14 @@ Phase 3 (后天-2 周)
 
 **Question**: 在启动下一个步骤前，需要用户确认：
 
-- [ ] **A) 确认 MIDRC 559-case manifest 是正确的版本**
-  - (不是 50、100、next50 的子集)
+- [x] **A) 确认 MIDRC 559-case manifest 是正确的版本**
+    - (不是 50、100、next50 的子集) 在 3090 上下载全量数据
   
-- [ ] **B) 允许 H800 继续存储 120-140 GB 数据**
-  - (会占用 autodl-tmp 盘的空间)
+- [x] **B) 允许 H800 继续存储 120-140 GB 数据**
+    - (会占用 autodl-tmp 盘的空间) 请在 3090 上下载全量数据
   
-- [ ] **C) 允许在 Phase 2 后启动 GPU 训练**
-  - (预计 300-450 GPU days for 6 methods)
+- [x] **C) 允许在 Phase 2 后启动 GPU 训练**
+    - (预计 300-450 GPU days for 6 methods) 允许
 
 **如果所有选项均 ✓**: 可以立即进入 Phase 1
 
