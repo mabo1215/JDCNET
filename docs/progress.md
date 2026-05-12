@@ -34,10 +34,15 @@
 
 ## 遗留问题
 
-1. **GAP-KD seed 43 instability**
-   - 当前问题：MIDRC short-proof 中 GAP-KD 在 seed 42/44 明显优于 supervised/plain KD，但 seed 43 低于二者；因此不能直接启动完整 6 行矩阵。
-   - 下一步优先级最高：做小型参数筛选，优先测试 gate threshold `0.55/0.60/0.65` 与 projected_attention_weight `0/0.02/0.05`，目标是让 GAP-KD 在 3 seeds 上稳定高于 supervised 与 plain KD。
-   - 启动完整矩阵的门槛：3 seeds 后 GAP-KD 对 supervised 和 plain KD 均稳定为正，且平均 ΔBA 至少达到约 `+0.03`；否则继续调整方法或保持 evidence-bounded 叙事。
+1. **GAP-KD seed 43 instability — 参数筛选已在 3090 启动**
+   - 当前状态：BIMCV pathC 代理扫描已于 2026-05-12 22:01 UTC 在 3090 4 卡上启动。
+   - H800 当前关机（connection refused port 12437），MIDRC 559-case 数据在 H800 上；故以 BIMCV pathC 数据作代理扫描。
+   - 扫描配置：gate_threshold ∈ {0.55, 0.60, 0.65} × projected_attention_weight ∈ {0.0, 0.02, 0.05} × seeds {42, 43, 44} = **27 runs**；4 GPU 并行，每卡顺序跑 6~7 个 run。
+   - 脚本：`src/ops/remote_3090_gapkd_sweep.sh`（launch）、`src/ops/remote_3090_gapkd_sweep_summarize.sh`（汇总）、`src/ops/poll_3090_sweep.sh`（监控）。
+   - 结果目录：`/data/JDCNET/src/runs/bimcv_gapkd_sweep/`，配置：`/data/JDCNET/src/configs/bimcv_gapkd_sweep/`。
+   - 基线参考（bimcv_pathc，seeds 42/43/44）：supervised `0.624/0.623/0.608`，plain KD `0.616/0.647/0.612`。
+   - 完成后拉取：运行 `wsl bash src/ops/poll_3090_sweep.sh` 监控；完成后在 3090 运行 `bash /data/JDCNET/src/ops/remote_3090_gapkd_sweep_summarize.sh` 得矩阵报告。
+   - 判断门槛：若存在 thr/proj 组合使 3 seeds 均 ΔBA > 0 vs plain KD，即为稳定配置；若还满足平均 ΔBA ≥ +0.03，可考虑在 H800 重启后以 MIDRC 数据验证该配置并启动完整矩阵。
 
 2. **H800 费用控制**
    - 当前状态：短版证明框架结果已拉回，本轮自动关机已取消以便检查和决策。

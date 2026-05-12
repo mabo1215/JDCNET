@@ -112,7 +112,15 @@ def run_training(config: ExperimentConfig) -> None:
     train_loader, val_loader = create_dataloaders(config)
     class_weights = _compute_class_weights(train_manifest, config.model.num_classes, device)
 
+    use_amp = bool(config.optimization.amp and device.type == "cuda")
+    grad_accum_steps = max(1, int(config.optimization.grad_accum_steps))
+    use_channels_last = bool(config.optimization.channels_last and device.type == "cuda")
+
     model = build_model(config.model).to(device)
+    if use_channels_last:
+        model = model.to(memory_format=torch.channels_last)
+    if bool(config.optimization.torch_compile) and hasattr(torch, "compile"):
+        model = torch.compile(model)  # type: ignore[assignment]
     teacher_model = None
     student_hint_adapter = None
     teacher_hint_adapter = None
@@ -136,6 +144,8 @@ def run_training(config: ExperimentConfig) -> None:
         )
         teacher_model.load_state_dict(torch.load(teacher_checkpoint, map_location=device))
         teacher_model.eval()
+        if use_channels_last:
+            teacher_model = teacher_model.to(memory_format=torch.channels_last)
         if config.distillation.feature_hint_weight > 0.0:
             student_hint_adapter = nn.Linear(128, config.distillation.feature_hint_dim, bias=False).to(device)
             teacher_hint_adapter = nn.Linear(256, config.distillation.feature_hint_dim, bias=False).to(device)
@@ -199,155 +209,147 @@ def run_training(config: ExperimentConfig) -> None:
 
     best_score = -1.0
     history: list[dict[str, object]] = []
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 
     for epoch in range(1, config.optimization.epochs + 1):
         model.train()
         running_loss = 0.0
+        optimizer.zero_grad(set_to_none=True)
 
-        for batch in train_loader:
+        for step_idx, batch in enumerate(train_loader, start=1):
             images, teacher_images, labels = _unpack_batch(batch)
             images = images.to(device)
             if teacher_images is not None:
                 teacher_images = teacher_images.to(device)
             labels = labels.to(device)
+            if use_channels_last:
+                images = images.contiguous(memory_format=torch.channels_last)
+                if teacher_images is not None:
+                    teacher_images = teacher_images.contiguous(memory_format=torch.channels_last)
 
-            optimizer.zero_grad()
-            student_outputs = _forward_model_outputs(model, images, teacher_images)
-            student_logits = student_outputs["logits"]
+            with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=use_amp):
+                student_outputs = _forward_model_outputs(model, images, teacher_images)
+                student_logits = student_outputs["logits"]
 
-            if config.distillation.enabled and teacher_model is not None:
-                with torch.no_grad():
-                    teacher_inputs = teacher_images if teacher_images is not None else images
-                    teacher_outputs = _forward_model_outputs(teacher_model, teacher_inputs, None)
-                teacher_logits = teacher_outputs["logits"]
-                kd_sample_weights = None
-                if config.distillation.confidence_gate_enabled:
-                    kd_sample_weights = teacher_confidence_gate(
-                        teacher_logits=teacher_logits,
-                        labels=labels,
-                        threshold=config.distillation.confidence_gate_threshold,
-                        floor=config.distillation.confidence_gate_floor,
-                        power=config.distillation.confidence_gate_power,
-                        requires_correct=config.distillation.confidence_gate_requires_correct,
-                    )
-                loss = distillation_loss(
-                    student_logits=student_logits,
-                    teacher_logits=teacher_logits,
-                    labels=labels,
-                    temperature=config.distillation.temperature,
-                    alpha=config.distillation.alpha,
-                    class_weights=class_weights,
-                    sample_weights=kd_sample_weights,
-                )
-                if config.distillation.attention_transfer_weight > 0.0:
-                    loss = loss + config.distillation.attention_transfer_weight * attention_transfer_loss(
-                        student_feature=student_outputs["deepest_feature"],
-                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
-                    )
-                if config.distillation.projected_attention_weight > 0.0:
-                    loss = loss + config.distillation.projected_attention_weight * projected_attention_loss(
-                        student_feature=student_outputs["deepest_feature"],
-                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
-                        confidence_weights=kd_sample_weights,
-                    )
-                if (
-                    config.distillation.feature_hint_weight > 0.0
-                    and student_hint_adapter is not None
-                    and teacher_hint_adapter is not None
-                ):
-                    loss = loss + config.distillation.feature_hint_weight * feature_hint_loss(
-                        student_feature=student_outputs["deepest_feature"],
-                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
-                        student_adapter=student_hint_adapter,
-                        teacher_adapter=teacher_hint_adapter,
-                    )
-                if (
-                    config.distillation.modality_hallucination_weight > 0.0
-                    and hallucination_head is not None
-                ):
-                    loss = loss + config.distillation.modality_hallucination_weight * modality_hallucination_loss(
-                        student_feature=student_outputs["deepest_feature"],
-                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
-                        hallucination_head=hallucination_head,
-                    )
-                if (
-                    config.distillation.crd_weight > 0.0
-                    and student_crd_adapter is not None
-                    and teacher_crd_adapter is not None
-                ):
-                    loss = loss + config.distillation.crd_weight * crd_loss(
-                        student_feature=student_outputs["deepest_feature"],
-                        teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
-                        labels=labels,
-                        student_adapter=student_crd_adapter,
-                        teacher_adapter=teacher_crd_adapter,
-                        temperature=config.distillation.crd_temperature,
-                    )
-                if config.distillation.dkd_weight > 0.0:
-                    loss = loss + config.distillation.dkd_weight * dkd_loss(
-                        student_logits=student_logits,
-                        teacher_logits=teacher_logits,
-                        labels=labels,
-                        temperature=config.distillation.temperature,
-                        alpha=config.distillation.dkd_alpha,
-                        beta=config.distillation.dkd_beta,
-                    )
-                if config.distillation.dist_weight > 0.0:
-                    loss = loss + config.distillation.dist_weight * dist_loss(
-                        student_logits=student_logits,
-                        teacher_logits=teacher_logits,
-                        temperature=config.distillation.temperature,
-                        beta=config.distillation.dist_beta,
-                        gamma=config.distillation.dist_gamma,
-                    )
-                if config.distillation.prototype_weight > 0.0 and prototypes is not None:
-                    student_emb = student_outputs["embedding"]
-                    teacher_emb = teacher_outputs["embedding"]
-                    if prototypes.shape[-1] != student_emb.shape[-1]:
-                        prototypes = torch.zeros(
-                            config.model.num_classes,
-                            student_emb.shape[-1],
-                            device=device,
-                        )
-                    proto_loss, prototypes = prototype_distill_loss(
-                        student_embedding=student_emb,
-                        teacher_embedding=teacher_emb,
-                        labels=labels,
-                        prototypes=prototypes,
-                        num_classes=config.model.num_classes,
-                        ema=config.distillation.prototype_ema,
-                        temperature=config.distillation.prototype_temperature,
-                    )
-                    loss = loss + config.distillation.prototype_weight * proto_loss
-                if (
-                    config.distillation.lung_mask_weight > 0.0
-                    and lung_mask_predictor is not None
-                ):
+                if config.distillation.enabled and teacher_model is not None:
                     with torch.no_grad():
-                        gray = images.mean(dim=1, keepdim=True)
-                        xrv_in = gray * 2048.0 - 1024.0
-                        if xrv_in.shape[-1] != config.distillation.lung_mask_input_size:
-                            xrv_in = nn.functional.interpolate(
-                                xrv_in,
-                                size=config.distillation.lung_mask_input_size,
-                                mode="bilinear",
-                                align_corners=False,
-                            )
-                        seg_logits = lung_mask_predictor(xrv_in)
-                        # PSPNet target order: ['Left Clavicle', 'Right Clavicle',
-                        # 'Left Scapula', 'Right Scapula', 'Left Lung', 'Right Lung',
-                        # ...]; channels 4 and 5 are the two lungs.
-                        lung = torch.sigmoid(seg_logits[:, 4:6]).sum(dim=1, keepdim=True).clamp(0.0, 1.0)
-                    loss = loss + config.distillation.lung_mask_weight * lung_mask_distill_loss(
-                        student_spatial_feature=student_outputs["deepest_feature"],
-                        lung_mask=lung,
+                        teacher_inputs = teacher_images if teacher_images is not None else images
+                        teacher_outputs = _forward_model_outputs(teacher_model, teacher_inputs, None)
+                    teacher_logits = teacher_outputs["logits"]
+                    kd_sample_weights = None
+                    if config.distillation.confidence_gate_enabled:
+                        kd_sample_weights = teacher_confidence_gate(
+                            teacher_logits=teacher_logits,
+                            labels=labels,
+                            threshold=config.distillation.confidence_gate_threshold,
+                            floor=config.distillation.confidence_gate_floor,
+                            power=config.distillation.confidence_gate_power,
+                            requires_correct=config.distillation.confidence_gate_requires_correct,
+                        )
+                    loss = distillation_loss(
+                        student_logits=student_logits,
+                        teacher_logits=teacher_logits,
+                        labels=labels,
+                        temperature=config.distillation.temperature,
+                        alpha=config.distillation.alpha,
+                        class_weights=class_weights,
+                        sample_weights=kd_sample_weights,
                     )
-            else:
-                loss = nn.functional.cross_entropy(student_logits, labels, weight=class_weights)
+                    if config.distillation.attention_transfer_weight > 0.0:
+                        loss = loss + config.distillation.attention_transfer_weight * attention_transfer_loss(
+                            student_feature=student_outputs["deepest_feature"],
+                            teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                        )
+                    if config.distillation.projected_attention_weight > 0.0:
+                        loss = loss + config.distillation.projected_attention_weight * projected_attention_loss(
+                            student_feature=student_outputs["deepest_feature"],
+                            teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                            confidence_weights=kd_sample_weights,
+                        )
+                    if (
+                        config.distillation.feature_hint_weight > 0.0
+                        and student_hint_adapter is not None
+                        and teacher_hint_adapter is not None
+                    ):
+                        loss = loss + config.distillation.feature_hint_weight * feature_hint_loss(
+                            student_feature=student_outputs["deepest_feature"],
+                            teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                            student_adapter=student_hint_adapter,
+                            teacher_adapter=teacher_hint_adapter,
+                        )
+                    if (
+                        config.distillation.modality_hallucination_weight > 0.0
+                        and hallucination_head is not None
+                    ):
+                        loss = loss + config.distillation.modality_hallucination_weight * modality_hallucination_loss(
+                            student_feature=student_outputs["deepest_feature"],
+                            teacher_feature=teacher_outputs.get("refined_feature", teacher_outputs["deepest_feature"]),
+                            hallucination_head=hallucination_head,
+                        )
+                    if (
+                        config.distillation.crd_weight > 0.0
+                        and student_crd_adapter is not None
+                        and teacher_crd_adapter is not None
+                    ):
+                        loss = loss + config.distillation.crd_weight * crd_loss(
+                            student_feature=student_outputs["embedding"],
+                            teacher_feature=teacher_outputs.get("embedding", teacher_outputs["deepest_feature"]),
+                            student_adapter=student_crd_adapter,
+                            teacher_adapter=teacher_crd_adapter,
+                            temperature=config.distillation.crd_temperature,
+                        )
+                    if config.distillation.dkd_weight > 0.0:
+                        loss = loss + config.distillation.dkd_weight * dkd_loss(
+                            student_logits=student_logits,
+                            teacher_logits=teacher_logits,
+                            labels=labels,
+                            temperature=config.distillation.temperature,
+                            alpha=config.distillation.dkd_alpha,
+                            beta=config.distillation.dkd_beta,
+                        )
+                    if config.distillation.dist_weight > 0.0:
+                        loss = loss + config.distillation.dist_weight * dist_loss(
+                            student_logits=student_logits,
+                            teacher_logits=teacher_logits,
+                            labels=labels,
+                            beta=config.distillation.dist_beta,
+                            gamma=config.distillation.dist_gamma,
+                        )
+                    if config.distillation.prototype_weight > 0.0:
+                        proto_term, prototypes = prototype_distill_loss(
+                            student_feature=student_outputs["embedding"],
+                            labels=labels,
+                            prototypes=prototypes,
+                            ema=config.distillation.prototype_ema,
+                            temperature=config.distillation.prototype_temperature,
+                        )
+                        loss = loss + config.distillation.prototype_weight * proto_term
+                    if config.distillation.lung_mask_weight > 0.0:
+                        loss = loss + config.distillation.lung_mask_weight * lung_mask_distill_loss(
+                            student_feature=student_outputs["deepest_feature"],
+                            images=images,
+                            mask_predictor=lung_mask_predictor,
+                            input_size=config.distillation.lung_mask_input_size,
+                        )
+                else:
+                    loss = nn.functional.cross_entropy(student_logits, labels, weight=class_weights)
 
-            loss.backward()
-            optimizer.step()
-            running_loss += float(loss.item())
+            raw_loss = loss
+            loss = raw_loss / grad_accum_steps
+            if use_amp:
+                scaler.scale(loss).backward()
+            else:
+                loss.backward()
+
+            if step_idx % grad_accum_steps == 0 or step_idx == len(train_loader):
+                if use_amp:
+                    scaler.step(optimizer)
+                    scaler.update()
+                else:
+                    optimizer.step()
+                optimizer.zero_grad(set_to_none=True)
+
+            running_loss += float(raw_loss.item())
 
         metrics = evaluate_model(model, val_loader, device)
         metrics["epoch"] = epoch

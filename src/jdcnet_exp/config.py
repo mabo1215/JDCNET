@@ -34,6 +34,10 @@ class OptimizationConfig:
     epochs: int
     learning_rate: float
     weight_decay: float
+    grad_accum_steps: int = 1
+    amp: bool = False
+    channels_last: bool = False
+    torch_compile: bool = False
 
 
 @dataclass
