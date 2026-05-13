@@ -82,7 +82,7 @@ for seed in seeds:
     sup_ba = baselines["supervised"].get(seed, "?")
     plain_ba = baselines["plain_kd"].get(seed, "?")
     lines.append(f"Seed {seed}  supervised={sup_ba:.4f}  plain_kd={plain_ba:.4f}" if isinstance(sup_ba, float) else f"Seed {seed}")
-    header = f"{'proj_w\\thr':>12s}" + "".join(f"  thr={t:.2f}" for t in thresholds)
+    header = "{:>12s}".format("proj_w\\thr") + "".join(f"  thr={t:.2f}" for t in thresholds)
     lines.append(header)
     for proj in proj_weights:
         row_str = f"{'proj='+str(proj):>12s}"

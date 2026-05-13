@@ -14,6 +14,7 @@
 - **GAP-KD/JDCNet-v2 代码框架已启动**：已新增 confidence-gated KD、projection-compatible attention loss、CPU synthetic smoke test 和 H800 no-card 启动脚本；本地 CPU smoke test 通过，结果在 `src/results/gapkd_cpu_smoke_local/smoke_gapkd.json`。
 - **H800 无卡 smoke 实验已完成**：已把 GAP-KD/JDCNet-v2 最小代码同步到 H800，在无卡/CPU 环境运行 synthetic smoke test 并拉回结果；`src/results/h800_gapkd_cpu_smoke/smoke_gapkd.json` 显示 5/5 checks passed。
 - **MIDRC balanced pilot 与短版证明框架已完成并拉回**：H800 有卡模式下已完成 MIDRC balanced pilot（126 cases，63 negative / 63 positive，train 44+44，val 19+19，errors=0）以及 3 seeds × 4 rows short-proof runs（CT teacher、X-ray supervised、plain CT KD、GAP-KD confidence-gated + projected attention）。结果已拉回 `src/results/midrc_short_proof_h800/`；H800 自动关机已临时取消，等待是否继续实验。
+- **H800 MIDRC+BIMCV GAP-KD 参数筛选已完成并拉回**：H800 已完成 3 teachers + 33 student configs（supervised、plain KD、9 个 GAP-KD thr/proj 组合 × 3 seeds）。结果已归档到 `src/results/h800_midrc_bimcv_gapkd/`，远端 GPU 已空闲（0 MiB）。关机前检查显示 mixed manifest 为 187 rows，其中 MIDRC 126 rows（63/63 balanced）+ BIMCV 61 rows（主要为 positive），最终全局标签为 positive 124 / negative 63；因此该 sweep 是 mixed-cohort positive-enriched screen，而不是严格 1:1 balanced validation。该筛选没有找到 3 seeds 均稳定优于 supervised/plain KD 的 GAP-KD 配置，因此不能升级为 validated architecture。
 - **构建检查已完成**：已运行 `paper/build.bat`，`paper/main.pdf` 和 `paper/appendix.pdf` 均生成成功；剩余为既有排版/LaTeX warnings（如 appendix 大表 float too large、standalone appendix labels/bib warning），无 fatal error。
 
 ## 未修改或部分修改
@@ -22,28 +23,34 @@
    - 推进状态：等待执行。
    - 当前不需要新的作者输入；下一步可直接补充文献和 BibTeX。
 
-2. **MIDRC 新 paired cohort 证据层**：用户已确认下一轮以 MIDRC 作为真正新增 cohort，NLST 暂不推进；MIDRC 数据链路已经在 H800 上跑通，当前结果属于 balanced pilot / short-proof evidence，尚不能写成最终 validated architecture 结果。
-   - 推进状态：H800 已完成 126-case balanced preprocessing（63/63）和 3 seeds × 4 rows short-proof runs；本地结果在 `src/results/midrc_short_proof_h800/logs/summary.csv`。
-   - 当前关键发现：GAP-KD 平均 BA 高于 supervised/plain KD，但 seed 43 低于二者，说明方法有正向信号但稳定性不足。
-   - 下一步：先解决 seed 43 instability，再决定是否启动完整 6 行矩阵。
+2. **MIDRC 新 paired cohort 证据层**：用户已确认下一轮以 MIDRC 作为真正新增 cohort，NLST 暂不推进；MIDRC 数据链路已经在 H800 上跑通，当前结果属于 balanced pilot / mixed-cohort parameter screen，尚不能写成最终 validated architecture 结果。
+   - 推进状态：H800 已完成 126-case balanced preprocessing（63/63）、3 seeds × 4 rows short-proof runs，以及 MIDRC+BIMCV mixed 3 teachers + 33 student configs 全量参数筛选；本地结果在 `src/results/midrc_short_proof_h800/` 和 `src/results/h800_midrc_bimcv_gapkd/`。
+   - 当前关键发现：H800 参数筛选显示 supervised 平均 BA `0.7253`、plain KD `0.7197`；最佳 GAP-KD 均值为 thr=`0.55`, proj=`0.00` 的 BA `0.7177`，仍低于 supervised/plain KD。没有配置满足 3 seeds 均稳定优于 baseline。该 mixed manifest 的 MIDRC 子集是 63/63 balanced，但加入 BIMCV 后全局为 124 positive / 63 negative，应按 positive-enriched diagnostic screen 解释。
+   - 下一步：不启动完整 6 行矩阵；先把论文口径固定为 evidence-bounded，并等待 3090 的 BIMCV proxy sweep 和 MIDRC 559 下载完成后决定是否还有必要做更大样本验证。
 
-3. **GAP-KD/JDCNet-v2 结果性实验**：3090 已完成 BIMCV Path-C same-cohort follow-up，H800 已完成 MIDRC balanced short-proof runs；这些结果显示 GAP-KD 有方向性收益但尚未达到稳定优于 supervised/plain KD 的完整矩阵启动门槛。
-   - 推进状态：MIDRC 3 seeds short-proof 已完成。BA 均值：supervised `0.605`，plain KD `0.605`，GAP-KD conf+proj `0.623`；逐 seed 的 GAP-supervised 为 `+0.053, -0.053, +0.053`，GAP-plain 为 `+0.053, -0.079, +0.079`。
-   - 当前判断：不应立即启动完整 6 行矩阵；需要先做小型参数筛选以修复 seed 43 不稳定。
-   - 建议下一步：固定数据 split，运行 GAP-KD gate threshold `0.55/0.60/0.65` 与 projected_attention_weight `0/0.02/0.05` 的小型筛选；若 3 seeds 均稳定高于 supervised 与 plain KD，再启动完整 6 行矩阵。
+3. **GAP-KD/JDCNet-v2 结果性实验**：3090 已完成 BIMCV Path-C same-cohort follow-up，H800 已完成 MIDRC balanced short-proof runs 和 MIDRC+BIMCV 参数筛选；这些结果显示 GAP-KD 有方向性尝试价值，但尚未达到论文中“框架有效性/validated architecture”的证据门槛。
+   - 推进状态：H800 mixed sweep 结果已拉回。方法均值：supervised `0.7253`，plain KD `0.7197`，GAP-KD thr=`0.55`/proj=`0.00` `0.7177`，thr=`0.60`/proj=`0.02` `0.7146`，thr=`0.65`/proj=`0.05` `0.7141`。
+   - 当前判断：不能把本次修改方案写成已验证有效的论文主框架；可以写成预注册/后续工作或实现层面的 negative/diagnostic evidence。
+   - 建议下一步：暂停 H800 继续烧卡；完成 3090 正在运行的下载和 BIMCV proxy sweep；同步更新 paper 和 docs，删除/降调任何“GAP-KD 已验证有效”的措辞。
 
 ## 遗留问题
 
-1. **GAP-KD seed 43 instability — 参数筛选已在 3090 启动**
-   - 当前状态：BIMCV pathC 代理扫描已于 2026-05-12 22:01 UTC 在 3090 4 卡上启动。
-   - H800 当前关机（connection refused port 12437），MIDRC 559-case 数据在 H800 上；故以 BIMCV pathC 数据作代理扫描。
-   - 扫描配置：gate_threshold ∈ {0.55, 0.60, 0.65} × projected_attention_weight ∈ {0.0, 0.02, 0.05} × seeds {42, 43, 44} = **27 runs**；4 GPU 并行，每卡顺序跑 6~7 个 run。
+1. **GAP-KD seed 43 instability — H800 参数筛选已完成，3090 proxy sweep 仍在运行**
+   - H800 当前状态：3 teachers + 33 student configs 已全部完成；结果拉回 `src/results/h800_midrc_bimcv_gapkd/`。GPU 查询为 0 MiB，无训练任务需要继续占卡。
+   - H800 筛选结论：部分配置改善 seed 43，但会牺牲 seed 42 或 seed 44；没有找到 3 seeds 均 ΔBA > 0 vs supervised/plain KD 的稳定配置。
+   - 3090 当前状态（2026-05-13 14:45 UTC）：BIMCV pathC 代理扫描在 4 卡上运行；当前 24/27 run dirs 已创建（缺 3 个配置），完成run数检查中。MIDRC 559 下载**已停止**（无gen3进程，无下载目录，推断失活）。
+   - 3090 扫描配置：gate_threshold ∈ {0.55, 0.60, 0.65} × projected_attention_weight ∈ {0.0, 0.02, 0.05} × seeds {42, 43, 44} = **27 runs**；4 GPU 并行，每卡顺序跑 6~7 个 run。
    - 脚本：`src/ops/remote_3090_gapkd_sweep.sh`（launch）、`src/ops/remote_3090_gapkd_sweep_summarize.sh`（汇总）、`src/ops/poll_3090_sweep.sh`（监控）。
    - 结果目录：`/data/JDCNET/src/runs/bimcv_gapkd_sweep/`，配置：`/data/JDCNET/src/configs/bimcv_gapkd_sweep/`。
    - 基线参考（bimcv_pathc，seeds 42/43/44）：supervised `0.624/0.623/0.608`，plain KD `0.616/0.647/0.612`。
    - 完成后拉取：运行 `wsl bash src/ops/poll_3090_sweep.sh` 监控；完成后在 3090 运行 `bash /data/JDCNET/src/ops/remote_3090_gapkd_sweep_summarize.sh` 得矩阵报告。
-   - 判断门槛：若存在 thr/proj 组合使 3 seeds 均 ΔBA > 0 vs plain KD，即为稳定配置；若还满足平均 ΔBA ≥ +0.03，可考虑在 H800 重启后以 MIDRC 数据验证该配置并启动完整矩阵。
+   - 判断门槛：若 3090 也没有出现 3 seeds 稳定优于 plain KD/supervised 的组合，则 GAP-KD 只能保留为未验证的 future work 或 negative diagnostic，不再投入 H800 完整矩阵。
 
-2. **H800 费用控制**
-   - 当前状态：短版证明框架结果已拉回，本轮自动关机已取消以便检查和决策。
+2. **MIDRC 下载重启后疑似假活跃 / 卡住**
+   - 当前状态：`/data1/midrc/raw_559cases_combined` 已有 979 个文件，约 121 GB；最近 10 分钟新增 0 个文件，最近 30 分钟也无新增。
+   - 进程状态：`gen3-client download-multiple` 仍在运行，但现有日志检索未见稳定的 retry/timeout/error 关键词，较像假活跃或卡在个别对象/连接上，而不是持续推进。
+   - 下一步：优先追最近重启日志和下载器的错误输出，再决定是重启下载进程、切换参数，还是直接把这条链路标记为 stalled。
+
+3. **H800 费用控制**
+   - 当前状态：H800 结果已拉回，GPU 空闲 0 MiB；若平台仍在计费，应立即在平台控制台停止实例或恢复自动关机。
    - 下次启动实验前：若要无人值守运行，需明确是否恢复脚本完成后自动 `poweroff -f || shutdown -h now || kill -TERM 1`；如果只是调参观察，应保持不自动关机并手动在平台控制台停止计费。
