@@ -389,10 +389,45 @@ Phase 2 (明天-后天)
 └─ 生成 prepared_559_paired/ 目录
 
 Phase 3 (后天-2 周)
-├─ 6 行实验矩阵 GPU 训练
+├─ 锁参 4 行验证矩阵 GPU 训练
 ├─ 结果收集 & 统计分析
 └─ 论文更新决策
 ```
+
+---
+
+## Updated Phase 3: validated architecture 锁参验证
+
+当前不再建议直接启动 6 行大矩阵。已有 BIMCV Path-C、3090 sweep 和 MIDRC pilot 表明：projection/anatomy loss 尚未稳定有效，最稳的信号是 conservative reliability-gated KD。
+
+详细计划已放入：
+
+```text
+docs/VALIDATED_ARCHITECTURE_EXPERIMENT_PLAN.md
+```
+
+实际入口脚本：
+
+```bash
+bash src/ops/h800_midrc_locked_validation.sh
+```
+
+默认 4 行矩阵：
+
+1. CT teacher
+2. X-ray supervised
+3. Plain CT logit KD
+4. Reliability-gated KD：`confidence_gate_threshold=0.55`, `projected_attention_weight=0`
+
+升级为 validated architecture 的最低门槛：
+
+- held-out test split 上 3 个 seeds 均优于 supervised 和 plain KD；
+- mean ΔBA 至少约 `+0.03`；
+- macro-F1 同方向；
+- specificity 不塌；
+- 看 test 结果后不得再改阈值或 projection 权重。
+
+如果该门槛不过，论文继续保持 evidence-bounded negative-result 口径。
 
 ---
 
@@ -407,12 +442,12 @@ Phase 3 (后天-2 周)
     - (会占用 autodl-tmp 盘的空间) 请在 3090 上下载全量数据
   
 - [x] **C) 允许在 Phase 2 后启动 GPU 训练**
-    - (预计 300-450 GPU days for 6 methods) 允许
+    - 当前建议先跑锁参 4 行验证矩阵，而不是继续烧卡做 post-hoc 6 行大矩阵。
 
 **如果所有选项均 ✓**: 可以立即进入 Phase 1
 
 ---
 
 **Created**: 2026-05-11  
-**Status**: 📋 Ready for Execution  
-**Blocker**: ⏳ Awaiting user confirmation + Phase 1 audit start
+**Status**: 📋 Ready for locked validation after MIDRC download completes  
+**Blocker**: ⏳ Awaiting complete MIDRC 559 download and final data audit

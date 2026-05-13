@@ -214,6 +214,11 @@ def run_training(config: ExperimentConfig) -> None:
     for epoch in range(1, config.optimization.epochs + 1):
         model.train()
         running_loss = 0.0
+        gate_weight_sum = 0.0
+        gate_active_count = 0
+        gate_sample_count = 0
+        teacher_correct_count = 0
+        teacher_confidence_sum = 0.0
         optimizer.zero_grad(set_to_none=True)
 
         for step_idx, batch in enumerate(train_loader, start=1):
@@ -242,10 +247,22 @@ def run_training(config: ExperimentConfig) -> None:
                             teacher_logits=teacher_logits,
                             labels=labels,
                             threshold=config.distillation.confidence_gate_threshold,
+                            positive_threshold=config.distillation.confidence_gate_positive_threshold,
+                            negative_threshold=config.distillation.confidence_gate_negative_threshold,
                             floor=config.distillation.confidence_gate_floor,
                             power=config.distillation.confidence_gate_power,
                             requires_correct=config.distillation.confidence_gate_requires_correct,
+                            min_margin=config.distillation.confidence_gate_min_margin,
+                            max_entropy=config.distillation.confidence_gate_max_entropy,
                         )
+                        with torch.no_grad():
+                            teacher_prob = torch.softmax(teacher_logits.detach(), dim=1)
+                            teacher_confidence, teacher_prediction = teacher_prob.max(dim=1)
+                            gate_weight_sum += float(kd_sample_weights.detach().sum().item())
+                            gate_active_count += int((kd_sample_weights.detach() > 0).sum().item())
+                            gate_sample_count += int(labels.numel())
+                            teacher_correct_count += int((teacher_prediction == labels).sum().item())
+                            teacher_confidence_sum += float(teacher_confidence.sum().item())
                     loss = distillation_loss(
                         student_logits=student_logits,
                         teacher_logits=teacher_logits,
@@ -354,6 +371,11 @@ def run_training(config: ExperimentConfig) -> None:
         metrics = evaluate_model(model, val_loader, device)
         metrics["epoch"] = epoch
         metrics["train_loss"] = running_loss / max(len(train_loader), 1)
+        if gate_sample_count > 0:
+            metrics["kd_gate_mean_weight"] = gate_weight_sum / gate_sample_count
+            metrics["kd_gate_active_fraction"] = gate_active_count / gate_sample_count
+            metrics["teacher_train_accuracy"] = teacher_correct_count / gate_sample_count
+            metrics["teacher_train_mean_confidence"] = teacher_confidence_sum / gate_sample_count
         history.append(metrics)
         print(
             f"[{config.experiment_name}] epoch={epoch} "

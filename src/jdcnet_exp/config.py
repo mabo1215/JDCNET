@@ -71,9 +71,13 @@ class DistillationConfig:
     # GAP-KD/JDCNet-v2: confidence-gated and projection-compatible transfer.
     confidence_gate_enabled: bool = False
     confidence_gate_threshold: float = 0.0
+    confidence_gate_positive_threshold: float = -1.0
+    confidence_gate_negative_threshold: float = -1.0
     confidence_gate_floor: float = 0.0
     confidence_gate_power: float = 1.0
     confidence_gate_requires_correct: bool = True
+    confidence_gate_min_margin: float = 0.0
+    confidence_gate_max_entropy: float = -1.0
     projected_attention_weight: float = 0.0
 
 

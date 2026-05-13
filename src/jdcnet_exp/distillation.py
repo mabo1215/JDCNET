@@ -38,9 +38,13 @@ def teacher_confidence_gate(
     teacher_logits: torch.Tensor,
     labels: torch.Tensor,
     threshold: float = 0.0,
+    positive_threshold: float = -1.0,
+    negative_threshold: float = -1.0,
     floor: float = 0.0,
     power: float = 1.0,
     requires_correct: bool = True,
+    min_margin: float = 0.0,
+    max_entropy: float = -1.0,
 ) -> torch.Tensor:
     """Return detached per-sample weights for confidence-gated KD.
 
@@ -51,9 +55,34 @@ def teacher_confidence_gate(
     """
     teacher_prob = F.softmax(teacher_logits.detach(), dim=1)
     confidence, prediction = teacher_prob.max(dim=1)
+    if teacher_prob.shape[1] > 1:
+        top2 = teacher_prob.topk(k=2, dim=1).values
+        margin = top2[:, 0] - top2[:, 1]
+    else:
+        margin = confidence
+    entropy = -(teacher_prob * torch.log(teacher_prob.clamp_min(1e-12))).sum(dim=1)
+
+    effective_threshold = torch.full_like(confidence, float(threshold))
+    if negative_threshold >= 0.0:
+        effective_threshold = torch.where(
+            labels == 0,
+            torch.full_like(confidence, float(negative_threshold)),
+            effective_threshold,
+        )
+    if positive_threshold >= 0.0:
+        effective_threshold = torch.where(
+            labels == 1,
+            torch.full_like(confidence, float(positive_threshold)),
+            effective_threshold,
+        )
+
     gate = confidence.clamp(0.0, 1.0).pow(max(power, 0.0))
-    if threshold > 0.0:
-        gate = gate * (confidence >= threshold).float()
+    if threshold > 0.0 or positive_threshold >= 0.0 or negative_threshold >= 0.0:
+        gate = gate * (confidence >= effective_threshold).float()
+    if min_margin > 0.0:
+        gate = gate * (margin >= min_margin).float()
+    if max_entropy >= 0.0:
+        gate = gate * (entropy <= max_entropy).float()
     if requires_correct:
         gate = gate * (prediction == labels).float()
     if floor > 0.0:
