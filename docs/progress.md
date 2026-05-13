@@ -19,6 +19,8 @@
 - **validated architecture 后续验证方案已落地到 docs 和代码**：新增 `docs/VALIDATED_ARCHITECTURE_EXPERIMENT_PLAN.md`，更新 `docs/MIDRC_AUDIT_CHECKLIST.md` 的 Phase 3，从 6 行 post-hoc 大矩阵改为锁参 4 行验证矩阵；代码新增 class-aware/margin/entropy reliability gate 字段、训练期 gate diagnostics，以及 `src/ops/h800_midrc_locked_validation.sh` 作为 MIDRC 559 下载完成后的实际执行入口。
 - **2026-05-13 新一轮实验决策已记录**：`docs/tmp/report513.md` 已追加“teacher upper bound 优先 + 混合队列扩大验证规模”计划。核心决策为：先在 H800 无卡模式下生成 BIMCV+MIDRC 可控比例 index/manifest，用 BIMCV 补阳性、MIDRC 补阴性扩大可支撑 test size；随后优先修复 CT teacher upper bound，再运行 KD。若 CT teacher 不能稳定超过 X-ray supervised，则停止 KD 主实验，继续修 teacher。
 - **H800 无卡混合 CV index 与 teacher-variant 预处理已完成**：已新增并同步 `src/jdcnet_exp/prepare_mixed_bimcv_midrc_cv.py` 和 `src/jdcnet_exp/prepare_midrc_teacher_variants.py` 到 H800。远端已生成 existing-path 版本 5-fold patient-level mixed index：`/root/autodl-tmp/mixed/midrc_bimcv_cv_existing_20260513/`，本地摘要拉回 `src/results/h800_mixed_cv_nocard_20260513/`。当前可训练 patient-level index 为 147 patients（63 negative / 84 positive；MIDRC 63 positive + 63 negative，H800 当前仅有 21 个 BIMCV positive patient 的 X-ray 路径可用，BIMCV negative X-ray 不可用），5-fold 每折 test 约 28--31 patients，所有 image/teacher paths 检查为 0 missing。MIDRC teacher upper-bound 预处理也完成：3-slice、5-slice、9-slice、multi-window、mean projection、MIP 共 6 类 CT teacher 变体，每类 126 patients，errors=0。
+- **MIDRC 559 下载重启与 watchdog 部署（2026-05-13）**：3090 上原有下载进程（`midrc_559_combined_dl`）因 partial-download 卡住 30+ 分钟（0 new files），使用 `nohup` 以 PID 3217255 重启。watchdog 脚本 `/tmp/midrc_auto_watch.sh` 已部署为 PID 3217737，每 10 分钟检测 stall，30 分钟无新文件自动重启；本地副本保存在 `src/tmp_sync/midrc_auto_watch.sh`。重启后 5 分钟 delta 确认：1001→1005 files，132.1→132.4GB。
+- **H800 teacher variant image count 已验证**：`/root/autodl-tmp/midrc/teacher_variants_20260513/images/` 下共 6 个子目录，每个子目录恰好 126 files，与 processed_patients 字段吻合，errors=[]，预处理完整。
 - **构建检查已完成**：已运行 `paper/build.bat`，`paper/main.pdf` 和 `paper/appendix.pdf` 均生成成功；剩余为既有排版/LaTeX warnings（如 appendix 大表 float too large、standalone appendix labels/bib warning），无 fatal error。
 
 ## 未修改或部分修改
@@ -57,10 +59,10 @@
    - 论文处理：正文只保留总括，appendix 放诊断表；当前算法只能写成实现已验证、机制已压力测试、有效性未验证成功。
    - 下一步门槛：如要重新升级为正向算法贡献，必须在下载完成后的更大 MIDRC paired cohort 上按 `docs/VALIDATED_ARCHITECTURE_EXPERIMENT_PLAN.md` 预先锁定配置，并满足三 seed 均优于 supervised/plain KD 且 mean ΔBA 至少约 `+0.03`。
 
-3. **MIDRC 559 下载仍在慢速推进**
-   - 当前状态（2026-05-13 06:02 UTC）：3090 上 `gen3-client download-multiple` 仍在运行，screen 为 `midrc_559_combined_dl`；`/data1/midrc/raw_559cases_combined` 为 `985` files / `985` zip，约 `122G`。
-   - 活跃性判断：60 秒采样中目录总 bytes 从 `130186075893` 增至 `130187102965`，增加约 `1.0MB`；active log 也在增长，说明不是完全卡死。
-   - 风险：文件数长时间不变，当前主要是在几个大 zip 的 partial download 上缓慢推进，速度偏慢；继续观察即可，若连续多次采样 bytes 也不增长再重启下载进程。
+3. **MIDRC 559 下载持续推进（watchdog 已启动）**
+   - 当前状态（2026-05-13 21:44 UTC）：3090 下载进程 PID 3217255 运行中，`/data1/midrc/raw_559cases_combined` 为 1005 files，约 132.4GB；watchdog PID 3217737 已部署，每 10 分钟检测 stall（30 分钟阈值）并自动重启。
+   - 下载日志：`/data1/logs/midrc/midrc_559_download_restart_manual.log`，watchdog 日志：`/data1/logs/midrc/midrc_auto_watch.log`。
+   - 下次关注：若 watchdog 日志出现 `restarting downloader` 说明曾卡住并已自动重启；若日志停更说明 watchdog 本身被 3090 重启/超时杀死，需手动重新部署 `/tmp/midrc_auto_watch.sh`（脚本在 `/tmp/`，重启后会丢失，需重新 scp）。
 
 4. **H800 费用控制**
    - 当前状态：H800 结果已拉回，GPU 空闲 0 MiB；若平台仍在计费，应立即在平台控制台停止实例或恢复自动关机。
