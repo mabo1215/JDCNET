@@ -41,6 +41,11 @@ POSITIVE_GATE_THRESHOLD=${POSITIVE_GATE_THRESHOLD:--1.0}
 NEGATIVE_GATE_THRESHOLD=${NEGATIVE_GATE_THRESHOLD:--1.0}
 AUTO_SHUTDOWN=${AUTO_SHUTDOWN:-0}
 SHUTDOWN_DELAY_SECONDS=${SHUTDOWN_DELAY_SECONDS:-60}
+RUN_MODE=${RUN_MODE:-full}
+TEACHER_CT_MANIFEST=${TEACHER_CT_MANIFEST:-}
+OPT_AMP=${OPT_AMP:-1}
+OPT_CHANNELS_LAST=${OPT_CHANNELS_LAST:-1}
+OPT_TORCH_COMPILE=${OPT_TORCH_COMPILE:-1}
 
 mkdir -p "$OUT" "$LOG_DIR" "$RUN_ROOT" "$CONFIG_DIR"
 cd "$REPO"
@@ -92,6 +97,7 @@ write_configs_for_seed() {
   export CONFIG_DIR RUN_ROOT seed EPOCHS BATCH_SIZE INPUT_SIZE NUM_WORKERS OUT PREFIX
   export GATE_THRESHOLD GATE_FLOOR GATE_POWER GATE_REQUIRES_CORRECT
   export GATE_MIN_MARGIN GATE_MAX_ENTROPY POSITIVE_GATE_THRESHOLD NEGATIVE_GATE_THRESHOLD
+  export TEACHER_CT_MANIFEST OPT_AMP OPT_CHANNELS_LAST OPT_TORCH_COMPILE
   "$PYTHON_BIN" - <<'PY'
 import json
 import os
@@ -108,7 +114,7 @@ num_workers = int(os.environ["NUM_WORKERS"])
 out = Path(os.environ["OUT"])
 prefix = os.environ["PREFIX"]
 paired_manifest = str(out / f"{prefix}_paired_manifest.csv")
-ct_manifest = str(out / f"{prefix}_ct_manifest.csv")
+ct_manifest = os.environ.get("TEACHER_CT_MANIFEST", "").strip() or str(out / f"{prefix}_ct_manifest.csv")
 
 gate_requires_correct = os.environ["GATE_REQUIRES_CORRECT"].lower() not in {"0", "false", "no"}
 
@@ -132,7 +138,14 @@ base_data = {
     "paired_image_column": "teacher_image_path",
     "use_weighted_sampler": True,
 }
-base_optim = {"epochs": epochs, "learning_rate": 3e-4, "weight_decay": 1e-4}
+base_optim = {
+  "epochs": epochs,
+  "learning_rate": 3e-4,
+  "weight_decay": 1e-4,
+  "amp": os.environ.get("OPT_AMP", "1").lower() not in {"0", "false", "no"},
+  "channels_last": os.environ.get("OPT_CHANNELS_LAST", "1").lower() not in {"0", "false", "no"},
+  "torch_compile": os.environ.get("OPT_TORCH_COMPILE", "1").lower() not in {"0", "false", "no"},
+}
 no_distill = {"enabled": False, "temperature": 4.0, "alpha": 0.6, "teacher_checkpoint": ""}
 
 def write(name: str, payload: dict) -> None:
@@ -323,14 +336,26 @@ maybe_prepare_data
 
 for seed in $SEEDS; do
   write_configs_for_seed "$seed"
-  run_one "midrc_locked_teacher_ct_s${seed}"
-  run_one "midrc_locked_xray_supervised_s${seed}"
-  run_one "midrc_locked_xray_plain_kd_s${seed}"
-  run_one "midrc_locked_xray_reliability_gated_kd_s${seed}"
-  evaluate_test_split "midrc_locked_teacher_ct_s${seed}"
-  evaluate_test_split "midrc_locked_xray_supervised_s${seed}"
-  evaluate_test_split "midrc_locked_xray_plain_kd_s${seed}"
-  evaluate_test_split "midrc_locked_xray_reliability_gated_kd_s${seed}"
+  if [ "$RUN_MODE" = "full" ] || [ "$RUN_MODE" = "teacher_supervised_only" ] || [ "$RUN_MODE" = "teacher_only" ]; then
+    run_one "midrc_locked_teacher_ct_s${seed}"
+  fi
+  if [ "$RUN_MODE" = "full" ] || [ "$RUN_MODE" = "teacher_supervised_only" ]; then
+    run_one "midrc_locked_xray_supervised_s${seed}"
+  fi
+  if [ "$RUN_MODE" = "full" ]; then
+    run_one "midrc_locked_xray_plain_kd_s${seed}"
+    run_one "midrc_locked_xray_reliability_gated_kd_s${seed}"
+  fi
+  if [ "$RUN_MODE" = "full" ] || [ "$RUN_MODE" = "teacher_supervised_only" ] || [ "$RUN_MODE" = "teacher_only" ]; then
+    evaluate_test_split "midrc_locked_teacher_ct_s${seed}"
+  fi
+  if [ "$RUN_MODE" = "full" ] || [ "$RUN_MODE" = "teacher_supervised_only" ]; then
+    evaluate_test_split "midrc_locked_xray_supervised_s${seed}"
+  fi
+  if [ "$RUN_MODE" = "full" ]; then
+    evaluate_test_split "midrc_locked_xray_plain_kd_s${seed}"
+    evaluate_test_split "midrc_locked_xray_reliability_gated_kd_s${seed}"
+  fi
 done
 
 summarize | tee "$LOG_DIR/summary_stdout.txt"

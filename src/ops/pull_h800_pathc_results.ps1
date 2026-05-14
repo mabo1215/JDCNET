@@ -14,7 +14,10 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $OutDir 'runs') | Out-Null
 
 $lines = Get-Content -LiteralPath $EnvPath
-$password = $lines[4].Trim()
+$password = $env:H800_PASSWORD
+if ([string]::IsNullOrWhiteSpace($password)) {
+    $password = $lines[4].Trim()
+}
 $plink = (Get-Command plink).Source
 $pscp = (Get-Command pscp).Source
 

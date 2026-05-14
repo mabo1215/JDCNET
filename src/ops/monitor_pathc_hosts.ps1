@@ -13,8 +13,14 @@ New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 $logFile = Join-Path $LogDir 'monitor.log'
 $stateFile = Join-Path $LogDir 'latest_status.txt'
 $lines = Get-Content -LiteralPath $EnvPath
-$h800Password = $lines[4].Trim()
-$r3090Password = $lines[8].Trim()
+$h800Password = $env:H800_PASSWORD
+if ([string]::IsNullOrWhiteSpace($h800Password)) {
+  $h800Password = $lines[4].Trim()
+}
+$r3090Password = $env:R3090_PASSWORD
+if ([string]::IsNullOrWhiteSpace($r3090Password)) {
+  $r3090Password = $lines[8].Trim()
+}
 $plink = (Get-Command plink).Source
 $pscp = (Get-Command pscp).Source
 
