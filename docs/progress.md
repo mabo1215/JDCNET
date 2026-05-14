@@ -25,6 +25,8 @@
 - **3090 性能探测已后台启动（2026-05-14）**：远端新增 `/data1/midrc/tools/midrc_3090_perf_probe.py` 与 `/data1/midrc/tools/run_midrc_3090_perf_probe.sh`，用于记录 3090 上 MIDRC teacher 训练的 batch size / worker 可用上限。当前在空闲物理 GPU 2/3 后台运行，batch 从 `1024` 开始降档，workers 从 `64` 开始降档（未按 400 workers 直接启动，因为该机器约 40 CPU threads，400 workers 会导致进程和磁盘 I/O 抖动而非提升吞吐）。结果会写入 `/data1/logs/midrc_3090_perf/perf_probe_gpu*.csv` 和 `perf_probe_gpu*_best.json`。
 - **H800 teacher variant image count 已验证**：`/root/autodl-tmp/midrc/teacher_variants_20260513/images/` 下共 6 个子目录，每个子目录恰好 126 files，与 processed_patients 字段吻合，errors=[]，预处理完整。
 - **构建检查已完成**：已运行 `paper/build.bat`，`paper/main.pdf` 和 `paper/appendix.pdf` 均生成成功；剩余为既有排版/LaTeX warnings（如 appendix 大表 float too large、standalone appendix labels/bib warning），无 fatal error。
+- **3090 性能探测已完成（2026-05-14）**：GPU2/3 均测出 batch=1024/workers=64 最快（合成数据），但真实 MIDRC 训练 batch=32/workers=8 是合理选择（85 train 样本 × BS=32 = 3 batch/epoch）。实际单 run 耗时约 50s（30 epochs）；GPU VRAM 仅占 ~1GB/24GB，这是小数据集固有限制，靠 4 卡并行弥补。
+- **3090 MIDRC 5-fold patient-level CV 已启动（2026-05-14）**：将 126 patients 生成 5-fold stratified split（FOLD_SEED=99），每 fold test ≈ 25-26 例（原来 10/10），train ≈ 85，val ≈ 15-16。manifest 路径：`/data1/midrc/5fold_cv_20260514/`，日志：`/data1/logs/midrc_5fold_cv_3090/`。实验矩阵：`ct_mean_projection_lung` teacher + `xray_supervised` × 5 fold × 6 seeds（42-47）= 60 runs，全部 4 张 GPU 并行（round-robin），预计 ~12 min 完成。目标：通过 out-of-fold 聚合 126 例 test 预测，稳定估计 teacher vs supervised 的 BA/AUC delta，消除单次 10/10 test 的采样方差。
 
 ## 未修改或部分修改
 
