@@ -14,7 +14,7 @@ set -euo pipefail
 #
 # GPUs default to "2 3" because GPUs 0/1 are co-tenanted on the 3090 host.
 
-ROOT=${ROOT:-/data/JDCNET_git}
+ROOT=${ROOT:-/data/JDCNET_git/src}
 PYTHON_BIN=${PYTHON_BIN:-python3}
 
 # CV manifests prepared by remote_3090_bimcv_only_5fold_cv.sh
