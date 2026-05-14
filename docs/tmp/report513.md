@@ -537,3 +537,94 @@ evidence-bounded negative-result / audit framing
 ```
 
 不再强行声称 validated architecture。
+
+---
+
+## 8. 2026-05-14 3090 BIMCV-only 4-row 5-fold CV 结果
+
+本轮在 3090 四卡远端完成了 BIMCV-only same-source paired pilot。核心目的是排除 MIDRC/BIMCV mixed CV 中的跨机构 source/domain shift，测试“同一 BIMCV 患者的 DRR teacher 是否比 X-ray supervised 更有信息优势，以及 gated KD 是否能稳定转移该优势”。
+
+### 8.1 执行状态
+
+```text
+数据：BIMCV-only balanced patient-level 5-fold CV
+样本：228 patients = 114 positive + 114 negative
+每折 test：fold0-3 为 23+/23-，fold4 为 22+/22-
+矩阵：5 folds × 3 seeds × 4 rows = 60 runs
+完成度：60/60 best.pt，60/60 test_eval
+远端：3090 10.147.20.176
+本地结果：src/results/bimcv_only_5fold_cv_3090_20260514/
+```
+
+四行矩阵：
+
+```text
+1. teacher_drr
+2. xray_supervised
+3. plain_kd
+4. gated_kd_thr055_proj0000
+```
+
+执行中为了压榨 4 张 3090，采用多 independent run 并发调度；最终配置主要为 `batch_size=1024` / `num_workers=16` / `input_size=224`，部分较早启动 run 保留 `batch_size=128/256`。由于每折训练样本很小，继续增大 batch size 不再显著增加 GPU 利用率，瓶颈转为小数据集和 run 数量。
+
+### 8.2 主要数值结果
+
+15 个 fold-seed cell 上的均值：
+
+| row | mean BA | 95% CI | mean Macro-F1 | mean specificity | mean AUC |
+|---|---:|---:|---:|---:|---:|
+| teacher_drr | 0.6403 | [0.6076, 0.6722] | 0.6262 | 0.7220 | 0.7059 |
+| xray_supervised | 0.5657 | [0.5309, 0.6010] | 0.5358 | 0.5057 | 0.6208 |
+| plain_kd | 0.5368 | [0.5031, 0.5693] | 0.5207 | 0.5390 | 0.5753 |
+| gated_kd_thr055_proj0000 | 0.5803 | [0.5466, 0.6121] | 0.5608 | 0.5906 | 0.5922 |
+
+paired BA delta：
+
+| comparison | mean ΔBA | 95% CI | positive / zero / negative |
+|---|---:|---:|---:|
+| teacher - supervised | +0.0746 | [+0.0314, +0.1144] | 12 / 0 / 3 |
+| plain KD - supervised | -0.0290 | [-0.0842, +0.0240] | 7 / 0 / 8 |
+| gated KD - supervised | +0.0146 | [-0.0264, +0.0531] | 9 / 1 / 5 |
+| gated KD - plain KD | +0.0435 | [+0.0052, +0.0858] | 7 / 4 / 4 |
+| gated KD - teacher | -0.0600 | [-0.1011, -0.0133] | 3 / 0 / 12 |
+
+### 8.3 解释
+
+这组结果有一个明确的正向信号，但仍不能升级为 validated architecture。
+
+正向部分：
+
+- **same-source BIMCV DRR teacher 成立**：teacher_drr mean BA `0.6403`，比 X-ray supervised 高 `+0.0746`，95% CI lower bound `+0.0314`，15 个 fold-seed cell 中 12 个为正。
+- 这说明 mixed CV 失败很可能包含明显的跨机构 / 跨源域差因素；在同源 BIMCV 内，DRR teacher 的确比 X-ray supervised 捕获了更多可用信号。
+- **reliability gate 有效削弱 plain KD 退化**：plain KD 比 supervised 低 `-0.0290`，而 gated KD 比 plain KD 高 `+0.0435`，且 CI lower bound 为正。
+
+限制部分：
+
+- **gated KD 仍未稳定超过 supervised**：gated KD - supervised mean ΔBA 只有 `+0.0146`，CI 为 `[-0.0264, +0.0531]`，lower bound 仍小于 0。
+- gated KD 明显低于 teacher：gated KD - teacher mean ΔBA `-0.0600`，说明 teacher 的上界优势没有被充分转移到 X-ray student。
+- 单折 test 仍只有 22/22 或 23/23，低于原始 validation gate 要求的 `≥50+/50-`。虽然 5-fold 聚合覆盖 114+/114-，但每个 fold 的决策方差仍然较大。
+
+### 8.4 对论文结论的影响
+
+这组实验可以支持一个更精确的中间结论：
+
+> In a same-source BIMCV paired setting, the DRR teacher has a measurable upper-bound advantage, and reliability gating partially rescues the degradation of plain KD. However, the gated student does not yet achieve a statistically reliable improvement over the supervised X-ray baseline.
+
+因此论文可以增加一个 **BIMCV same-source paired pilot** 作为 limited positive evidence，但主叙事仍应保持：
+
+```text
+evidence-bounded negative / diagnostic benchmark
+```
+
+不能写成：
+
+```text
+GAP-KD validated architecture works.
+```
+
+当前最稳妥的结论是：
+
+1. teacher upper-bound 在 same-source BIMCV 中成立；
+2. plain KD 会退化；
+3. reliability gating 能部分修复 plain KD；
+4. 但 gated KD 尚未稳定超过 supervised，因此框架有效性仍未被验证成功。

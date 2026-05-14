@@ -2,6 +2,7 @@
 
 ## 已全部修改
 
+- **3090 BIMCV-only same-source 4-row 5-fold CV 已完成并拉回（2026-05-14）**：3090 远端 `10.147.20.176` 已完成 BIMCV-only balanced patient-level 5-fold CV，矩阵为 teacher_drr、xray_supervised、plain_kd、gated_kd_thr055_proj0000 × 5 folds × 3 seeds，共 `60/60` runs，`60/60` test_eval。结果已拉回 `src/results/bimcv_only_5fold_cv_3090_20260514/`，并已追加到 `docs/tmp/report513.md`。核心结果：teacher_drr mean BA `0.6403` 明显高于 X-ray supervised `0.5657`（paired ΔBA `+0.0746`，95% CI `[+0.0314,+0.1144]`，12/15 positive）；plain KD 低于 supervised（ΔBA `-0.0290`）；gated KD 高于 plain KD（ΔBA `+0.0435`，95% CI `[+0.0052,+0.0858]`），但对 supervised 仅 `+0.0146` 且 CI `[-0.0264,+0.0531]` 跨 0。因此 same-source DRR teacher upper-bound 与 gating-rescue 信号成立，但 GAP-KD 仍未达到 validated architecture 门槛。
 - **3090 Path C 结果已回填论文**：BIMCV 512-patient balanced-validation re-split 未把 CT logit KD 推过显著性门槛；当前口径保持 evidence-bounded，不升级为 validated architecture。
 - **3090 completed GAP-KD follow-up on BIMCV Path-C**：同一 balanced-validation Path-C split 上的 12 个新 follow-up runs（seed 43--45；X-ray supervised、plain CT logit KD、confidence-gated KD、confidence-gated projection/anatomy KD）已全部完成。三 seed 汇总 balanced accuracy 分别为 `0.587 ± 0.025`、`0.619 ± 0.025`、`0.605 ± 0.019`、`0.615 ± 0.015`；这说明 same-cohort exploratory evidence 已存在，但仍属 post-hoc same-cohort follow-up，不能上调为 decisive validation 或 validated architecture。
 - **Path C 数值结果已迁移**：3090 拉回的数值结果已从 `docs/tmp/3090_pathc/` 转移到 `src/results/bimcv_pathc_3090/`，避免继续把实验结果放在 `docs/tmp`。
@@ -53,12 +54,14 @@
 2. **MIDRC 新 paired cohort 证据层**：用户已确认下一轮以 MIDRC 作为真正新增 cohort，NLST 暂不推进；MIDRC 559 raw download 现在已在 3090 完整落地，但“新 paired cohort 证据层”还没有完成。已完成的是数据下载、旧 126-case pilot、mixed-cohort diagnostic screen 与 3090 准备任务启动；尚未完成的是在完整 MIDRC 数据基础上确认 CT teacher upper bound、改进验证协议并运行预先锁定的验证矩阵。
    - 推进状态：H800 已完成 126-case balanced preprocessing（63/63）、3 seeds × 4 rows short-proof runs，以及 MIDRC+BIMCV mixed 3 teachers + 33 student configs 全量参数筛选；本地结果在 `src/results/midrc_short_proof_h800/` 和 `src/results/h800_midrc_bimcv_gapkd/`。
    - 当前关键发现：H800 参数筛选显示 supervised 平均 BA `0.7253`、plain KD `0.7197`；最佳 GAP-KD 均值为 thr=`0.55`, proj=`0.00` 的 BA `0.7177`，仍低于 supervised/plain KD。没有配置满足 3 seeds 均稳定优于 baseline。该 mixed manifest 的 MIDRC 子集是 63/63 balanced，但加入 BIMCV 后全局为 124 positive / 63 negative，应按 positive-enriched diagnostic screen 解释。
-   - 下一步：不启动完整 6 行矩阵，也不直接跑 KD。当前优先在 3090 上完成 MIDRC locked manifest 与 6 类 CT teacher variant 生成，然后只做 CT teacher upper-bound 修复/验证，并与 X-ray supervised baseline 比较 BA/AUC。只有 CT teacher 稳定超过 X-ray supervised 后，才恢复 locked 4-row matrix；KD 若恢复仍锁定 gating-only（threshold=`0.55`、requires_correct=`true`、proj=`0`）。H800 无卡生成的 mixed CV 仍只能作为扩大版诊断队列；若要把 mixed cohort 作为论文主验证，需要先补齐/同步 BIMCV X-ray 文件并重新生成 source-balanced 5-fold index。
+   - 3090 后续发现：MIDRC-only 5-fold teacher upper-bound 与 BIMCV+MIDRC mixed 5-fold 均未通过稳定 teacher 门槛；但 BIMCV-only same-source 5-fold CV 显示 DRR teacher 明显强于 X-ray supervised（mean BA `0.6403` vs `0.5657`，paired ΔBA `+0.0746`，CI lower `+0.0314`）。这说明 teacher 信息优势在同源 BIMCV 中存在，mixed CV 失败主要受 source/domain shift 影响。
+   - 下一步：MIDRC 作为“真正新增 cohort”的主证据仍未完成；不要把 BIMCV-only pilot 直接写成主验证。若继续推进，需要在完整 MIDRC 559 可用阳性/阴性框架下重新确认 teacher upper-bound，或把 BIMCV-only 结果作为 appendix/limited positive pilot 写入，明确其 same-source 局限。KD 若恢复仍锁定 gating-only（threshold=`0.55`、requires_correct=`true`、proj=`0`）。
 
 3. **GAP-KD/JDCNet-v2 结果性实验**：3090 已完成 BIMCV Path-C same-cohort follow-up，H800 已完成 MIDRC balanced short-proof runs 和 MIDRC+BIMCV 参数筛选；这些结果显示 GAP-KD 有方向性尝试价值，但尚未达到论文中“框架有效性/validated architecture”的证据门槛。
    - 推进状态：3090 BIMCV Path-C 27-run threshold/projection sweep 已完成并写入 appendix；唯一三 seed 均优于 plain KD 的组合是 threshold=`0.55`、proj=`0`，mean ΔBA 约 `+0.0095`，信号太弱。
-   - 当前判断：不能把本次修改方案写成已验证有效的论文主框架；已改为实现层面的 negative/diagnostic evidence。
-   - 建议下一步：暂停继续烧卡跑 KD；H800 无卡已完成 CT teacher upper-bound 的输入变体预处理。下次 H800 有卡时先只训练/评估 CT teacher variants 与 X-ray supervised baseline，比较 BA/AUC；只有 CT teacher 的 test BA/AUC 稳定高于 X-ray supervised，才恢复 KD 实验。KD 若恢复，仍锁定 gating-only：threshold=`0.55`、requires_correct=`true`、proj=`0`。
+   - 新增 3090 BIMCV-only 结果：same-source 4-row 5-fold CV 中，gated KD 相比 plain KD 有稳定修复信号（paired ΔBA `+0.0435`，95% CI `[+0.0052,+0.0858]`），但相比 supervised 仅 `+0.0146` 且 CI `[-0.0264,+0.0531]` 跨 0；因此 gating 有价值，但仍不是 validated architecture。
+   - 当前判断：不能把本次修改方案写成已验证有效的论文主框架；应写成 teacher upper-bound / KD failure mode / reliability-gating rescue 的诊断证据。
+   - 建议下一步：暂停盲目扩大 KD 矩阵。若论文要吸收 BIMCV-only 结果，建议放为 limited positive pilot：说明 same-source DRR teacher 成立、plain KD 退化、gated KD 部分修复，但 gated student 未稳定超过 supervised。
 
 ## 遗留问题
 
@@ -66,8 +69,9 @@
    - 先不开完整 6 行矩阵，不直接继续 post-hoc 调参。
    - 已完成：H800 无卡生成 BIMCV+MIDRC existing-path 5-fold patient-level index，路径 `/root/autodl-tmp/mixed/midrc_bimcv_cv_existing_20260513/`；本地摘要 `src/results/h800_mixed_cv_nocard_20260513/`。清单保留 `source_stratum` 与 `source_label_stratum` 字段，且 path audit 为 0 missing。
    - 已完成：MIDRC teacher upper-bound 输入预处理，路径 `/root/autodl-tmp/midrc/teacher_variants_20260513/`；变体包括 `ct_3slice_lung_rgb`、`ct_5slice_lung_montage`、`ct_9slice_lung_montage`、`ct_multiwindow_mid_rgb`、`ct_mean_projection_lung`、`ct_mip_lung`，每类 126 patients，errors=0。
-   - 当前状态：3090 已具备 GPU/card 环境，MIDRC 559 raw download 完整，Git clone `/data/JDCNET_git` 已建立；GPU 0/1 有其他用户进程占用，因此当前任务限制在物理 GPU 2/3。CPU/I/O 准备阶段已完成：`/data1/midrc/locked_validation/midrc_locked_validation_summary.json` 和 `/data1/midrc/teacher_variants_20260514/midrc_upper_bound_summary.json` 均已写出，6 类 teacher variants 每类 `126` patients、`errors=[]`。Teacher upper-bound triage 已完成；当前最好 `ct_mean_projection_lung` 仍只达到 `2/3` seeds 正向，未通过稳定 teacher 门槛。
-   - 下一步：不跑 KD；先读取 `/data1/logs/midrc_3090_perf/` 的性能探测结果，确定 3090 可用 batch size / workers，再用最佳 teacher candidate 继续做 teacher 修复或改验证协议（优先 5-fold/repeated patient-level validation）。若 CT teacher 不能稳定超过 X-ray supervised，则继续修 teacher；若 teacher 上界成立，再恢复 locked 4-row matrix。
+   - 当前状态：3090 已具备 GPU/card 环境，MIDRC 559 raw download 完整，Git clone `/data/JDCNET_git` 已建立。CPU/I/O 准备阶段已完成：`/data1/midrc/locked_validation/midrc_locked_validation_summary.json` 和 `/data1/midrc/teacher_variants_20260514/midrc_upper_bound_summary.json` 均已写出，6 类 teacher variants 每类 `126` patients、`errors=[]`。Teacher upper-bound triage、MIDRC-only 5-fold、BIMCV+MIDRC mixed 5-fold、以及 BIMCV-only same-source 4-row 5-fold CV 均已完成；最新本地结果在 `src/results/bimcv_only_5fold_cv_3090_20260514/`。
+   - 当前结论：MIDRC-only 与 mixed-cohort 仍不支持稳定 teacher upper-bound；BIMCV-only same-source 则显示 DRR teacher 明显强于 X-ray supervised，并且 gated KD 能稳定优于 plain KD，但 gated KD 未稳定超过 supervised。因此“teacher upper-bound 在同源 BIMCV 中成立，但跨源/MIDRC 主验证和 KD validated architecture 仍未成立”。
+   - 下一步：需要决定是否把 BIMCV-only same-source pilot 写入论文 appendix 或 main diagnostic section。若写入，必须明确它是 limited positive pilot，不是主验证；若继续追求 validated architecture，则仍需在更强 teacher / 更大 paired cohort 上重新达到 gated KD 同时超过 supervised 和 plain KD 的门槛。
    - 停止条件：如果 CT teacher 不能稳定超过 X-ray supervised，则继续修 teacher，不启动 GAP-KD 主实验。
    - 达标后最小验证矩阵只跑 4 行：CT teacher、X-ray supervised、plain CT logit KD、reliability-gated KD。
    - KD 锁定配置：`confidence_gate_threshold=0.55`、`confidence_gate_requires_correct=true`、`projected_attention_weight=0.0`；projection attention 暂停作为主贡献。
