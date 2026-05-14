@@ -27,6 +27,22 @@
 - **构建检查已完成**：已运行 `paper/build.bat`，`paper/main.pdf` 和 `paper/appendix.pdf` 均生成成功；剩余为既有排版/LaTeX warnings（如 appendix 大表 float too large、standalone appendix labels/bib warning），无 fatal error。
 - **3090 性能探测已完成（2026-05-14）**：GPU2/3 均测出 batch=1024/workers=64 最快（合成数据），但真实 MIDRC 训练 batch=32/workers=8 是合理选择（85 train 样本 × BS=32 = 3 batch/epoch）。实际单 run 耗时约 50s（30 epochs）；GPU VRAM 仅占 ~1GB/24GB，这是小数据集固有限制，靠 4 卡并行弥补。
 - **3090 MIDRC 5-fold patient-level CV 已启动（2026-05-14）**：将 126 patients 生成 5-fold stratified split（FOLD_SEED=99），每 fold test ≈ 25-26 例（原来 10/10），train ≈ 85，val ≈ 15-16。manifest 路径：`/data1/midrc/5fold_cv_20260514/`，日志：`/data1/logs/midrc_5fold_cv_3090/`。实验矩阵：`ct_mean_projection_lung` teacher + `xray_supervised` × 5 fold × 6 seeds（42-47）= 60 runs，全部 4 张 GPU 并行（round-robin），预计 ~12 min 完成。目标：通过 out-of-fold 聚合 126 例 test 预测，稳定估计 teacher vs supervised 的 BA/AUC delta，消除单次 10/10 test 的采样方差。
+- **3090 MIDRC 5-fold CV Batch1+Batch2 已完成，两者均 FAIL（2026-05-14）**：
+  - Batch1（ct_mean_projection_lung，MIDRC 126pts）：fold1 teacher 大幅领先（+0.211，6/6 pos），但 fold0/3/4 显著落后（-0.045/-0.111/-0.091），总计 12/30 pos，mean_delta=-0.009 → **FAIL**。
+  - Batch2（ct_3slice_lung_rgb，MIDRC 126pts）：同样 fold1 领先（+0.135），其余 fold 均为负（fold0=-0.103，fold2=-0.081，fold3=-0.076，fold4=-0.008），10/30 pos，mean_delta=-0.027 → **FAIL**。
+  - **根因**：fold1 supervised 模型崩溃（4/6 seeds 预测单类，BA≈0.50-0.54）。根本原因是训练数据过少：85 train × BS=32 × 30 epochs = 仅 ~78 次梯度更新，模型在 fold1 以随机初始化概率崩溃。并非 teacher 真实超越 supervised 的信号。
+  - **数据限制**：MIDRC 全量 559 patients 中仅 69 COVID+（已用 63），无法在 MIDRC 内扩充。
+- **3090 BIMCV+MIDRC 混合 5-fold CV 已完成，teacher 仍 FAIL（2026-05-14）**：将 MIDRC 126 + BIMCV 226 = 352 patients（176+/176-），每 fold train≈208-216，test≈68-72。全部 60 runs 完成，rc=0。
+  - fold0: teacher=0.618  sup=0.725  delta=**-0.107**  (0/6 pos)
+  - fold1: teacher=0.664  sup=0.623  delta=**+0.042**  (4/6 pos)
+  - fold2: teacher=0.639  sup=0.688  delta=**-0.049**  (0/6 pos)
+  - fold3: teacher=0.669  sup=0.635  delta=**+0.034**  (4/6 pos)
+  - fold4: teacher=0.654  sup=0.677  delta=**-0.022**  (1/6 pos)
+  - **总计：9/30 pos，mean_delta=-0.020，95% bootstrap CI=[-0.043, +0.002] → FAIL**
+  - Teacher mean AUC=0.653 < Supervised mean AUC=0.686
+  - fold0 supervised 模型是真实强（BA=0.724，recall/spec 均合理），非崩溃；teacher 在 fold0 真实弱（BA=0.618）。
+  - **根因**：BIMCV DRR（模拟 CT 投影，西班牙医院）与 MIDRC ct_mean_projection（真实 CT 投影，美国医院）存在域差，teacher 无法跨域泛化；supervised Xray 模型域迁移能力更好。
+  - **结论**：三轮实验（MIDRC-only batch1/batch2 + BIMCV+MIDRC 混合）均 FAIL，CT teacher upper-bound 未通过验证。不启动 KD 实验。paper 继续 evidence-bounded negative-result framing。数据记录在 `/data1/midrc/runs/midrc_mixed_5fold_cv_3090/`，日志 `/data1/logs/midrc_mixed_5fold_cv_3090/`。
 
 ## 未修改或部分修改
 
