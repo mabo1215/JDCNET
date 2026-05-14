@@ -27,6 +27,9 @@ class DataConfig:
     num_workers: int
     paired_image_column: str = "teacher_image_path"
     use_weighted_sampler: bool = False
+    pin_memory: bool = True
+    persistent_workers: bool = True
+    prefetch_factor: int = 2
 
 
 @dataclass
@@ -38,6 +41,7 @@ class OptimizationConfig:
     amp: bool = False
     channels_last: bool = False
     torch_compile: bool = False
+    validation_interval: int = 1
 
 
 @dataclass

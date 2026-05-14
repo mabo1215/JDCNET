@@ -89,10 +89,10 @@ def evaluate_model(model: nn.Module, loader: DataLoader, device: torch.device) -
     with torch.no_grad():
         for batch in loader:
             images, paired_images, labels = _unpack_batch(batch)
-            images = images.to(device)
+            images = images.to(device, non_blocking=True)
             if paired_images is not None:
-                paired_images = paired_images.to(device)
-            labels = labels.to(device)
+                paired_images = paired_images.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
             logits = _forward_model(model, images, paired_images)
             probabilities = torch.softmax(logits, dim=1).cpu().numpy()
             all_probabilities.append(probabilities)
@@ -115,6 +115,7 @@ def run_training(config: ExperimentConfig) -> None:
     use_amp = bool(config.optimization.amp and device.type == "cuda")
     grad_accum_steps = max(1, int(config.optimization.grad_accum_steps))
     use_channels_last = bool(config.optimization.channels_last and device.type == "cuda")
+    validation_interval = max(1, int(config.optimization.validation_interval))
 
     model = build_model(config.model).to(device)
     if use_channels_last:
@@ -223,10 +224,10 @@ def run_training(config: ExperimentConfig) -> None:
 
         for step_idx, batch in enumerate(train_loader, start=1):
             images, teacher_images, labels = _unpack_batch(batch)
-            images = images.to(device)
+            images = images.to(device, non_blocking=True)
             if teacher_images is not None:
-                teacher_images = teacher_images.to(device)
-            labels = labels.to(device)
+                teacher_images = teacher_images.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
             if use_channels_last:
                 images = images.contiguous(memory_format=torch.channels_last)
                 if teacher_images is not None:
@@ -368,26 +369,41 @@ def run_training(config: ExperimentConfig) -> None:
 
             running_loss += float(raw_loss.item())
 
-        metrics = evaluate_model(model, val_loader, device)
-        metrics["epoch"] = epoch
-        metrics["train_loss"] = running_loss / max(len(train_loader), 1)
+        metrics: dict[str, object] = {
+            "epoch": epoch,
+            "train_loss": running_loss / max(len(train_loader), 1),
+        }
         if gate_sample_count > 0:
             metrics["kd_gate_mean_weight"] = gate_weight_sum / gate_sample_count
             metrics["kd_gate_active_fraction"] = gate_active_count / gate_sample_count
             metrics["teacher_train_accuracy"] = teacher_correct_count / gate_sample_count
             metrics["teacher_train_mean_confidence"] = teacher_confidence_sum / gate_sample_count
-        history.append(metrics)
-        print(
-            f"[{config.experiment_name}] epoch={epoch} "
-            f"loss={metrics['train_loss']:.4f} acc={metrics['accuracy']:.4f} "
-            f"f1={metrics['macro_f1']:.4f} auc={metrics['roc_auc']}"
-        )
+        should_validate = (epoch % validation_interval == 0) or (epoch == config.optimization.epochs)
+        if should_validate:
+            metrics.update(evaluate_model(model, val_loader, device))
+            print(
+                f"[{config.experiment_name}] epoch={epoch} "
+                f"loss={metrics['train_loss']:.4f} acc={metrics['accuracy']:.4f} "
+                f"f1={metrics['macro_f1']:.4f} auc={metrics['roc_auc']}"
+            )
 
-        score = float(metrics.get("balanced_accuracy", metrics["accuracy"]))
-        if score > best_score:
-            best_score = score
-            torch.save(model.state_dict(), output_dir / "best.pt")
-            write_json(metrics, output_dir / "best_metrics.json")
+            score = float(metrics.get("balanced_accuracy", metrics["accuracy"]))
+            if score > best_score:
+                best_score = score
+                torch.save(model.state_dict(), output_dir / "best.pt")
+                write_json(metrics, output_dir / "best_metrics.json")
+        else:
+            metrics["accuracy"] = float("nan")
+            metrics["macro_f1"] = float("nan")
+            metrics["roc_auc"] = float("nan")
+            metrics["validation_skipped"] = True
+            print(
+                f"[{config.experiment_name}] epoch={epoch} "
+                f"loss={metrics['train_loss']:.4f} val=skipped "
+                f"next_val_epoch={min(config.optimization.epochs, ((epoch // validation_interval) + 1) * validation_interval)}"
+            )
+
+        history.append(metrics)
 
     write_json(history, output_dir / "history.json")
     write_history_csv(history, output_dir / "history.csv")

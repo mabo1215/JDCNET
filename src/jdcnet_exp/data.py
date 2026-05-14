@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import torch
 from PIL import Image, ImageFile
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 from torchvision import transforms
@@ -114,6 +115,19 @@ def load_filtered_manifests(config: ExperimentConfig) -> tuple[pd.DataFrame, pd.
     return train_manifest.reset_index(drop=True), val_manifest.reset_index(drop=True)
 
 
+def _loader_runtime_kwargs(config: ExperimentConfig) -> dict[str, object]:
+    kwargs: dict[str, object] = {
+        "batch_size": config.data.batch_size,
+        "num_workers": config.data.num_workers,
+    }
+    if config.data.pin_memory and torch.cuda.is_available():
+        kwargs["pin_memory"] = True
+    if config.data.num_workers > 0:
+        kwargs["persistent_workers"] = bool(config.data.persistent_workers)
+        kwargs["prefetch_factor"] = max(1, int(config.data.prefetch_factor))
+    return kwargs
+
+
 def create_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader]:
     train_manifest, val_manifest = load_filtered_manifests(config)
     include_paired_image = (
@@ -135,10 +149,7 @@ def create_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader
         include_paired_image=include_paired_image,
     )
 
-    train_loader_kwargs = {
-        "batch_size": config.data.batch_size,
-        "num_workers": config.data.num_workers,
-    }
+    train_loader_kwargs = _loader_runtime_kwargs(config)
     if config.data.use_weighted_sampler:
         label_counts = train_manifest["label"].value_counts().to_dict()
         sample_weights = train_manifest["label"].map(
@@ -155,10 +166,7 @@ def create_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader
         train_loader_kwargs["shuffle"] = True
 
     train_loader = DataLoader(train_dataset, **train_loader_kwargs)
-    val_loader = DataLoader(
-        val_dataset,
-        batch_size=config.data.batch_size,
-        shuffle=False,
-        num_workers=config.data.num_workers,
-    )
+    val_loader_kwargs = _loader_runtime_kwargs(config)
+    val_loader_kwargs["shuffle"] = False
+    val_loader = DataLoader(val_dataset, **val_loader_kwargs)
     return train_loader, val_loader
