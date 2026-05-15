@@ -1,163 +1,263 @@
-# JDCNet TCSVT 实验蓝图更新 (2026-05-15) — 路径 B 后的新探索
+# C1 + C2 实验任务规格 (2026-05-15)
 
-> **决策背景**：Priority 2 calibration scan（T×threshold 8-cell，120 runs）全部失败（最近格 T=4, thr=0.50: ΔBA=+0.034，CI [-0.004, +0.073]）。已选择路径 B（evidence-bounded 写作）。  
-> 但在最终提交前，存在三条低成本、高潜力的探索路径，值得在 3090 上快速验证。
-
----
-
-## 1. 根因分析：为什么 gated KD 只有 20% 转移效率？
-
-当前数字：teacher ΔBA = **+0.075**，gated KD ΔBA = **+0.015**，转移效率 = **20%**。
-
-### 根因 1：模态空间错位（最主要）
-
-```
-CT 横断面切片 teacher  →  logit [p_covid, p_neg]
-    ↑ 基于横断面特征校准的置信度
-
-X-ray 正位 AP student  →  完全不同的特征空间
-    ↑ 根本无法直接使用 CT-domain 的软标签
-```
-
-DRR（Digitally Reconstructed Radiograph）= 沿 AP 方向积分 CT 体积生成的合成 X-ray，**几何等价于真实 X-ray**。DRR teacher 的软标签标定在 X-ray 可见的解剖特征上，student 可以直接使用。
-
-**关键代码确认**：`data.py` 中 `_load_rgb_image` 已有 `.convert("RGB")`，灰度 DRR PNG 无需任何代码修改。
-
-**DRR 缓存可用性**：
-- `/data/bimcv/drr_cache/`：510 个患者，224×224 灰度 PNG，9.6MB 总大小
-- 228 平衡队列覆盖 226/228（缺 S03048 COVID+ 和 S05726 COVID-，排除后 226 患者 113+/113-）
-- 文件命名：`bimcv_S{patient_id}.png`，直接映射现有 manifest
-
-**历史对比（避免重复错误）**：Execution E（BIMCV 512-patient 不平衡队列）DRR-KD 崩溃（修正后 ΔBA ≈ -0.001）。原因：不平衡分割 + 无 gate 机制 + 不同 backbone。**当前设置完全不同**：平衡 5-fold + confidence gate + ResNet18，不存在直接可比性。
-
-### 根因 2：梯度步数极少（次要）
-
-```
-160 训练样本 ÷ batch_size=256 → 1 batch/epoch × 50 epochs = 50 次梯度更新
-普通 ImageNet KD 通常 >10,000 次
-```
-
-Fix：batch_size=64 → 3 batches/epoch × 50 epochs = 150 次（3×）；或 epochs=100 → 300 次（6×）。
-
-### 根因 3：requires_correct=True 过滤有价值边界样本（轻微）
-
-teacher BA=0.640 → 在测试集上错误率 36%，但 gate_active_fraction=0.88 说明训练集上 teacher overfit（正确率 >90%）。训练集上 teacher 不稳定的样本（correct but low-confidence）带有真实的不确定性信息，不应被全部过滤。
+> **目的**: 为 Codex 提供两个新实验（C1 multi-slice CT teacher 对比，C2 BiomedCLIP fine-tune baseline）的可执行规格。
+> 这两个实验直接回应 TCSVT 审稿意见 R8 (stronger baselines), M8 (foundation-model fine-tune), M9 (CT representation under-specified)。
+>
+> **背景上下文文件**: `docs/revision_suggestions.tex`（审稿原文）、`paper/main.tex`、`paper/supplementary.tex`、`docs/tmp/drr_cv_decision_report.md`（已完成的 DRR 实验结果）。
+>
+> **已完成的工作**（不要重复）:
+> - 立即文本修改 (A): 已 commit
+> - B1 页数压缩、B2 TCSVT framing、B3 statistical protocol: 已 commit
+> - DRR multi-seed pilot (165 runs): 结果在 `docs/tmp/drr_cv_decision_report.md`，结论 FAIL
 
 ---
 
-## 2. 三个实验计划
+## 0. 共用环境
 
-### 实验 1：DRR Teacher 5-fold CV（主实验，最高潜力）
+### 0.1 计算资源
 
-**假设**：DRR→X-ray 模态差 ≪ CT切片→X-ray，KD 效率从 20% 提升到 50%+。
+```
+3090 服务器: mabo1215@10.147.20.176, 密码 mabo1215
+工作目录:    /data/JDCNET_git
+数据目录:    /data1/midrc/
+GPU:         4× RTX 3090 (24 GB each)
+登录命令:    sshpass -p mabo1215 ssh mabo1215@10.147.20.176
+```
 
-**数据集**：226 平衡患者（113+/113-，排除 2 个缺 DRR 的患者）
+### 0.2 已有数据资产（不要重复下载）
 
-**矩阵**（与 CT mid-slice 实验完全对称）：
-| 行 | 方法 | 说明 |
+| 资源 | 路径 | 备注 |
 |---|---|---|
-| 1 | DRR teacher | 用 DRR 图像训练教师，测上界 |
-| 2 | X-ray supervised | baseline（对照，同分割） |
-| 3 | Plain DRR logit KD | 无门控，看退化是否仍存在 |
-| 4 | Gated DRR KD (T=4, thr=0.50) | 主候选（最优 T/thr from 扫描） |
+| BIMCV 平衡 CV manifests | `/data1/midrc/bimcv_only_cv_20260514/fold_0{0..4}/bimcv_only_fold0X_paired_manifest.csv` | 228 患者 (114+/114-)，5-fold |
+| BIMCV X-ray 图像 (256×256) | `/data1/midrc/bimcv_xray_256/` | 已 resize |
+| BIMCV X-ray 原始 | `/dev/shm/bimcv_paired/sub-S*/cxr/*.png` | manifest `image_path` 列指向此 |
+| BIMCV CT mid-slice | manifest `teacher_image_path` 列 | 单中央轴位切片 PNG |
+| BIMCV DRR 缓存 | `/data/bimcv/drr_cache/bimcv_S*.png` (源) → `/dev/shm/bimcv_drr/` (运行时) | 510 患者，224×224 灰度 |
+| BIMCV CT volumes (NIfTI) | `/data1/midrc/bimcv_ct_nifti/` （**Codex 需先确认存在**） | 用于 C1 multi-slice 提取 |
 
-**运行规模**：4 rows × 5 folds × 3 seeds（42,43,44）= **60 runs**
+### 0.3 参考脚本（直接复制改造，不要从零写）
 
-**决策标准（保持不变）**：gated_kd vs supervised ΔBA ≥ +0.03 AND CI lower > 0
-
-**预计时间**：3090 四卡并行 ~2 小时
-
----
-
-### 实验 2：Extended Seeds T=4.0, thr=0.50（快速统计功效）
-
-**假设**：当前 9/15 pos 接近验证门槛，增加 seeds 45-47 可能收窄 CI 到 lower > 0。
-
-**使用现有 CT mid-slice manifests**（228 患者）
-
-**矩阵**：只运行 teacher_drr + xray_supervised + gated_kd（T=4, thr=0.50）× seeds 45,46,47
-
-**运行规模**：3 rows × 5 folds × 3 seeds = **45 runs**
-
-**统计分析**：与已有 seeds 42-44 合并 → 共 30 fold-seed cells，检查是否 CI lower > 0
-
-**注意**：这是对扫描发现的最优格做进一步验证。需在论文中说明是探索性结果。
-
-**预计时间**：~30 分钟
-
----
-
-### 实验 3：Batch Size 敏感性（batch=64, epochs=50）
-
-**假设**：3 batches/epoch × 50 epochs = 150 次梯度更新（当前 50 次的 3×），学生更充分收敛。
-
-**配置**：T=4, thr=0.50，gated_kd only，seeds 42-44，使用现有 teacher_drr checkpoints
-
-**运行规模**：5 folds × 3 seeds = **15 runs**
-
-**对比**：与现有 batch=256 结果配对比较（同 fold-seed）
-
-**预计时间**：~20 分钟
-
----
-
-## 3. GPU 压榨策略
-
-**3090 硬件**：4× RTX 3090 (24GB VRAM each)，CPU ~40 threads
-
-**策略**：
-- 全部 4 GPU（GPU 0,1,2,3）
-- 每 GPU 3 并发（xargs -P 3）= 12 simultaneous runs
-- /dev/shm 存放图像数据（DRR 9.6MB + CT slices 16MB + X-ray ~19MB）
-- BIMCV 数据集极小（160 训练样本）→ 每 run 约 3-5 分钟
-- 3 concurrent × 4 GPU = 12 run/批次，几乎 100% GPU 利用率
-
-**总计**：120 runs / 12 concurrent ≈ 10 批 × ~4 min = **~40 分钟完成全部三个实验**
-
----
-
-## 4. 实现路径
-
-### Step 1：准备 /dev/shm DRR 数据
-```bash
-mkdir -p /dev/shm/bimcv_drr
-cp /data/bimcv/drr_cache/bimcv_S*.png /dev/shm/bimcv_drr/
-```
-
-### Step 2：生成 DRR teacher manifests
-Python 脚本：读取现有 5-fold manifests，替换 `teacher_image_path` 为 DRR 路径，排除 2 个缺失患者。
-
-### Step 3：生成训练 configs 并并发启动
-参照 `remote_3090_bimcv_calibration_scan.sh` 模式：
-- Python 生成 JSON configs
-- 4 screen 会话 × xargs -P 3 并发
-
-### Step 4：汇总并生成 decision report
-沿用 calibration scan 的 bootstrap CI 汇总逻辑。
-
----
-
-## 5. 决策矩阵
-
-| 实验结果 | 结论 | 论文处理 |
-|---|---|---|
-| 实验 1 DRR gated KD ΔBA ≥ +0.03，CI lower > 0 | **Validated architecture（DRR-guided）** | 升级 appendix pilot；可扩展 seeds 45-47 |
-| 实验 2 合并 30 cells CI lower > 0 | **CT mid-slice gated KD 探索性通过** | appendix 明确标注 post-hoc 探索 |
-| 实验 3 batch=64 ΔBA 明显提升 | **Gradient steps 是瓶颈** | 论文新增诊断结论 |
-| 全部失败 | 维持 evidence-bounded 路径 B | 以诊断价值写入 appendix |
-
----
-
-## 6. 文件路径
-
-| 资源 | 路径 |
+| 脚本 | 用途 |
 |---|---|
-| 本计划 | `docs/tmp/report516.md` |
-| 实验脚本 | `src/ops/remote_3090_bimcv_drr_cv.sh` |
-| 汇总脚本 | `src/ops/remote_3090_bimcv_drr_summarize.sh` |
-| 3090 DRR 图像 | `/dev/shm/bimcv_drr/bimcv_S{patient_id}.png` |
-| 3090 run root | `/data1/midrc/runs/bimcv_drr_cv_20260515/` |
-| 3090 logs | `/data1/logs/bimcv_drr_cv_20260515/` |
-| 决策报告 | `/data1/logs/bimcv_drr_cv_20260515/decision_report.md` |
-| 现有 CV manifests | `/data1/midrc/bimcv_only_cv_20260514/fold_0{0..4}/` |
-| 现有 CT teacher ckpts | `/data1/midrc/runs/bimcv_only_5fold_cv_balanced/` |
+| `src/ops/remote_3090_bimcv_drr_cv.sh` | 主 launcher：生成 manifests + configs，4×3 GPU 并发 |
+| `src/ops/remote_3090_bimcv_drr_summarize.sh` | 汇总：bootstrap CI + decision report |
+| `src/ops/remote_3090_bimcv_drr_ext_seeds.sh` | 扩展模板 |
+
+### 0.4 训练命令模板（已经在 3090 上验证可用）
+
+```bash
+cd /data/JDCNET_git && python3 -u -m jdcnet_exp.train --config <config.json>
+cd /data/JDCNET_git && python3 -m jdcnet_exp.evaluate \
+    --config <test_config.json> --checkpoint <best.pt> --output-dir <run_dir>/test_eval
+```
+
+### 0.5 Config 关键字段
+
+- 必含：`distillation: {enabled: false}`、`data.val_modalities`
+- Teacher 训练：manifest `image_path` 必须指向 teacher 图像（CT slice / DRR / multi-slice），`train_modalities: ["xray"]`（manifest `modality` 列恒为 `"xray"`，data.py 通过该列过滤）
+- Student 训练：manifest `image_path` 指向 X-ray，`paired_image_column: teacher_image_path`
+- KD gated 配置：`temperature=4.0, alpha=0.6, confidence_gate_threshold=0.50, confidence_gate_floor=0.0, confidence_gate_requires_correct=true`
+
+### 0.6 决策门（pre-specified）
+
+- 主端点: gated KD vs supervised on BIMCV-only balanced 5-fold CV (15 fold-seed cells, seeds 42-44)
+- 通过门: mean ΔBA ≥ +0.03 AND 95% bootstrap CI lower bound > 0
+- bootstrap 用 numpy.random + 10000 resamples（参考 `remote_3090_bimcv_drr_summarize.sh` 的 `bootstrap_ci()`）
+
+---
+
+## C1. Multi-slice / Volume CT Teacher Comparison
+
+### C1.1 审稿动机
+
+> M9 原话: "If CT is claimed to be a richer teacher modality, the teacher should exploit CT more meaningfully... Add or emphasize multi-slice/volume teacher experiments."
+
+当前 DRR pilot 只用单中央切片或 DRR 做 CT teacher，被 reviewer 视为 CT 信息使用不充分。需在同样的 BIMCV 5-fold CV 框架下对比 4 种 CT teacher 表征。
+
+### C1.2 实验矩阵
+
+4 种 teacher 表征（**全部从 `/data1/midrc/bimcv_ct_nifti/` NIfTI volume 提取**）：
+
+| ID | Teacher 表征 | 提取方式 | 输出 |
+|---|---|---|---|
+| `mid` | mid-slice (现有) | 取轴位中央切片 | 224×224 灰度 PNG |
+| `3slice` | 3-slice 中央 stack | 取中央切片 + 上下各 1 个（间隔 5 mm） | 3 通道 224×224 |
+| `proj` | 多切片肺野投影 | 沿 axial 平均所有切片，可选 lung mask 加权 | 224×224 灰度 |
+| `drr` | DRR (已有) | AP 投影 (沿 sagittal)，复用现有 cache | 224×224 灰度 |
+
+每种 teacher 跑完整 4 行 × 5 folds × 3 seeds = **60 runs/teacher × 4 teachers = 240 runs**
+
+每个 4-row matrix 复用 `remote_3090_bimcv_drr_cv.sh` 的 EXP1 段：
+1. teacher（在该 teacher 表征上训练）
+2. xray supervised（baseline，可复用已有 12 个 runs from DRR pilot）
+3. plain logit KD
+4. gated KD (T=4, thr=0.50)
+
+### C1.3 实施步骤
+
+**Step 1**: 检查 `/data1/midrc/bimcv_ct_nifti/` 是否存在，至少覆盖 226 patients（DRR cache 同样的 patient set，排除 S03048 + S05726）。
+- 存在 → 进入 Step 2
+- 不存在 → 写一份 `docs/tmp/c1_blocker.md`，列出缺什么数据，C1 暂停
+
+**Step 2**: 写 `src/ops/extract_ct_teacher_variants.py`：
+- 输入：NIfTI volume 路径
+- 输出：3 种 teacher 表征（mid/3slice/proj）的 PNG 到 `/dev/shm/bimcv_ct_{mid,3slice,proj}/`
+- DRR 复用 `/dev/shm/bimcv_drr/`
+- 224×224 输出尺寸
+
+**Step 3**: 复制 `remote_3090_bimcv_drr_cv.sh` → `remote_3090_bimcv_ct_variants_cv.sh`，参数化 teacher type（`TEACHER_TYPE=mid|3slice|proj|drr`）。
+- TAG=`bimcv_ct_variants_cv_20260516`
+- RUN_ROOT=`/data1/midrc/runs/bimcv_ct_variants_cv_20260516/<teacher_type>/`
+- 每种 teacher 的 manifests 单独生成（teacher manifest 指向对应 PNG 路径）
+- 4 GPU × 3 concurrent
+- 4 teachers 顺序跑（每种内部 30 min）≈ **2 小时总时间**
+
+**Step 4**: 写 `remote_3090_bimcv_ct_variants_summarize.sh`：
+- 读取 4 种 teacher 的 run_root
+- 每种独立计算 4 row × 15 cells 的 means + bootstrap CI
+- 输出对比表 + decision report
+
+**Step 5**: scp 结果回本地 `docs/tmp/ct_variants_decision_report.md` + `ct_variants_summary.csv`。
+
+### C1.4 预期输出文件
+
+```
+3090: /data1/midrc/runs/bimcv_ct_variants_cv_20260516/{mid,3slice,proj,drr}/
+3090: /data1/logs/bimcv_ct_variants_cv_20260516/decision_report.md
+本地: docs/tmp/ct_variants_decision_report.md
+本地: docs/tmp/ct_variants_summary.csv
+```
+
+### C1.5 论文产出（**不要 Codex 写论文段落**，user 自己改）
+
+- supplementary.tex 新增 1 个表（4 teachers × 4 methods × means/CI）
+- main.tex Limitations § 加 1 句："Multi-slice and projection-based CT teachers were also evaluated in Supplementary~\\ref{sec:ct_variants}; none closes the validation gate."
+- 预期结论：极可能仍 FAIL（数据规模瓶颈），但可以 cleanly 回答 M9
+
+---
+
+## C2. BiomedCLIP Fine-tune Baseline
+
+### C2.1 审稿动机
+
+> R8 原话: "Consider foundation-model baselines with fine-tuning, not only frozen linear probing."
+> M8: "Use a consistent backbone family for supervised, teacher, and KD comparisons. Include stronger X-ray-only baselines."
+
+当前论文只在 supplementary 用 BiomedCLIP frozen-feature linear probe (E3/E4)，被 reviewer 视为太弱。需 fine-tune full visual encoder。
+
+### C2.2 实验矩阵
+
+**模型**: BiomedCLIP visual encoder (ViT-B/16, 224×224 input) + 二分类头 (2-layer MLP)
+- HuggingFace ID: `microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224`
+- 仅用 vision tower（忽略 text encoder）
+
+**训练设置**:
+- 3 seeds × 5 folds = **15 runs**
+- 同 BIMCV-only balanced 5-fold CV 数据（226 patients）
+- learning_rate: 1e-5（fine-tune ViT 用小 lr）
+- batch_size: 32（ViT 显存比 ResNet 大）
+- epochs: 50
+- AMP, channels_last 同 baseline
+
+**对比基准**（已有，直接引用）:
+| Method | 已有结果 |
+|---|---|
+| ResNet18 supervised | BA=0.566 |
+| ResNet18 teacher_drr | BA=0.640 |
+| ResNet18 + gated DRR-KD (T=4, thr=0.50) | BA=0.580 |
+| **BiomedCLIP fine-tuned (NEW)** | **要测** |
+
+**目标比较**:
+1. BiomedCLIP fine-tune vs ResNet18 supervised → 看 foundation model 是否更强 baseline
+2. BiomedCLIP fine-tune vs ResNet18 + gated DRR-KD → 看是否 foundation model 已经吸收了 KD 能给的信息
+
+### C2.3 实施步骤
+
+**Step 1**: 检查 3090 是否能访问 HuggingFace：
+```bash
+sshpass -p mabo1215 ssh mabo1215@10.147.20.176 'pip show open_clip_torch 2>/dev/null || pip install open_clip_torch'
+sshpass -p mabo1215 ssh mabo1215@10.147.20.176 \
+  'python3 -c "import open_clip; m, p, _ = open_clip.create_model_and_transforms(\"hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224\"); print(m.visual)"'
+```
+失败 → 先在本机下载 cache，再 scp 到 3090 `~/.cache/huggingface/`
+
+**Step 2**: 在 `src/jdcnet_exp/` 新增 `models/biomedclip_classifier.py`：
+```python
+import open_clip, torch.nn as nn
+class BiomedCLIPClassifier(nn.Module):
+    def __init__(self, num_classes=2, freeze_backbone=False):
+        super().__init__()
+        m, _, _ = open_clip.create_model_and_transforms(
+            'hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224')
+        self.visual = m.visual
+        if freeze_backbone:
+            for p in self.visual.parameters(): p.requires_grad = False
+        self.head = nn.Sequential(nn.Linear(768, 256), nn.GELU(),
+                                   nn.Linear(256, num_classes))
+    def forward(self, x):
+        return self.head(self.visual(x))
+```
+
+**Step 3**: 在 `src/jdcnet_exp/train.py` 模型工厂注册 `model.name == "biomedclip"` 分支。
+
+**Step 4**: 写 `src/ops/remote_3090_bimcv_biomedclip_cv.sh`，模仿 DRR CV launcher 但只生成 1 row × 5 folds × 3 seeds = 15 configs。
+- TAG=`bimcv_biomedclip_cv_20260516`
+- learning_rate=1e-5, batch_size=32, num_workers=2
+- 4 GPU × 1 concurrent (ViT 显存大) = 4 simultaneous
+- 预计 ~30 分钟
+
+**Step 5**: 复用 DRR summarize 脚本计算 means + bootstrap CI vs 已有 ResNet18 supervised baseline（取自 `/data1/midrc/runs/bimcv_only_5fold_cv_balanced/`）。
+
+### C2.4 预期输出文件
+
+```
+3090: /data1/midrc/runs/bimcv_biomedclip_cv_20260516/
+3090: /data1/logs/bimcv_biomedclip_cv_20260516/decision_report.md
+本地: docs/tmp/biomedclip_decision_report.md
+本地: docs/tmp/biomedclip_summary.csv
+```
+
+### C2.5 论文产出
+
+- supplementary.tex 现有 "ImageNet-Pretrained ResNet18 and BiomedCLIP Frozen-Feature Baselines (E3, E4)" 节增补 1 段 + 1 行表（fine-tune 结果）
+- main.tex 不需改
+
+---
+
+## D. 共享约束 / 常见坑
+
+1. **不要修改 `paper/main.tex` 或 `paper/supplementary.tex`** —— C1+C2 只跑实验、写脚本、生成数据；论文段落 user 自己改
+2. **完成后必须 commit** Bash 脚本（`src/ops/remote_3090_*.sh`）和结果（`docs/tmp/*_decision_report.md`、`*_summary.csv`）
+3. **3090 不计费**，可放心跑；但避免影响其他人作业
+4. **Manifest modality 列恒为 `"xray"`** —— teacher train 也用 `train_modalities=["xray"]`，靠 `image_path` 切换实际加载的图像（DRR 实验已踩过的坑，详见 `src/jdcnet_exp/data.py` 的 `_filter_manifest`）
+5. **不要重新生成已有 manifests** —— C1+C2 都基于 `/data1/midrc/bimcv_only_cv_20260514/` 的 5-fold 划分
+6. **每个 run 完成后必须执行 test_eval**（与 DRR 脚本相同模式：把 val_split 改成 test，跑 evaluate）
+
+---
+
+## E. 验收标准
+
+**C2 完成 = 满足全部**:
+1. `docs/tmp/biomedclip_decision_report.md` 存在并包含: BiomedCLIP fine-tune mean BA + CI vs ResNet18 supervised baseline (15 fold-seed cells)
+2. `src/jdcnet_exp/models/biomedclip_classifier.py` 和 launcher 脚本已 commit
+3. 3090 上 `/data1/midrc/runs/bimcv_biomedclip_cv_20260516/` 包含 15 个 run dirs，每个有 `test_eval/metrics.json`
+
+**C1 完成 = 满足全部**:
+1. `docs/tmp/ct_variants_decision_report.md` 存在并包含 4 种 teacher × 4 methods 的对比表
+2. `src/ops/extract_ct_teacher_variants.py` + `src/ops/remote_3090_bimcv_ct_variants_cv.sh` 已 commit
+3. 3090 上 4 种 teacher 各自的 run_root 包含 60 个 run dirs
+
+**如果 C1 因 NIfTI 缺失而无法执行**：至少完成 C2 + 写一份 `docs/tmp/c1_blocker.md` 说明缺什么数据。
+
+---
+
+## F. 文件 / 资源清单
+
+| 类别 | 路径 |
+|---|---|
+| 本规格 | `docs/tmp/report516.md` |
+| 审稿原文 | `docs/revision_suggestions.tex` |
+| 论文当前主稿 | `paper/main.tex` (411 行, 已 B1+B2+B3) |
+| 论文 supplementary | `paper/supplementary.tex` (906 行) |
+| DRR pilot 结果 | `docs/tmp/drr_cv_decision_report.md` |
+| 项目 memory | `~/.claude/projects/-mnt-c-source-JDCNET/memory/project_jdcnet.md` |
