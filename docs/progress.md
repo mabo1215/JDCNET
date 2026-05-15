@@ -66,3 +66,28 @@
 - C2 BiomedCLIP fine-tune: 15/15 completed; batch 64, workers 8, GPU2/GPU3 parallel.
 - Pulled results to `docs/tmp/ct_variants_decision_report.md`, `docs/tmp/biomedclip_decision_report.md`, and the corresponding summary/delta CSV files.
 - Conclusion: C1 gated KD did not pass the validation gate; proj teacher itself is significantly stronger than supervised. C2 is tied with the same-split ResNet18 supervised baseline but stronger than the older BIMCV-only supervised baseline.
+
+### 2026-05-16 - Table 21 caption/explanation compression
+
+- ??? `paper/appendix.tex` ? CT teacher representation comparison ??Table 21 / `tab:ct_variants`?? caption?? BA?Delta BA?gate?dash/bold ??????? appendix ??????????
+- ????? `paper/main.tex` ? Method limitation ? Conclusion ??? BIMCV/MIDRC/DRR/C1/C2 ??????????? appendix???????????
+- `paper/build.bat` ?????? `paper/main.pdf`????? float-too-large warning???? Table 21 caption ???
+
+### 2026-05-16 - BIMCV 512 stress-test table cleanup
+
+- ??? `paper/appendix.tex` ? `tab:bimcv_512_stress_test` ? caption?
+- ?????????????? `Interpretation` ??????????? appendix ??????????????
+- ????????????? caption/???????????
+- ??? `paper/build.bat`?`paper/main.pdf` ???????????????????
+
+
+### 2026-05-16 - Fixed unresolved same-patient table reference
+
+- Fixed the appendix sentence that rendered as `Tables ??-2` by replacing the missing `tab:problem_scope` reference with explicit references to `tab:dataset_protocol` and `tab:evaluation_regimes`.
+- Rebuilt `paper/main.pdf` and `paper/appendix.pdf`; PDF text now reads `Tables 1 and 2`, with no remaining `??` instance for this phrase.
+
+
+### 2026-05-16 - Fixed Methodology whitespace around Section 3.4
+
+- Removed the abnormal vertical gap between the DPE/MHRA/DFPN acronym paragraph and Section 3.4 by moving the full-width baseline evidence-map float later in `paper/main.tex`.
+- Rebuilt `paper/main.pdf` and verified that Section 3.4 now follows the acronym paragraph normally; no `??` references are present in the rendered PDF text.
