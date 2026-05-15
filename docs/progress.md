@@ -49,44 +49,13 @@
   - **根因**：BIMCV DRR（模拟 CT 投影，西班牙医院）与 MIDRC ct_mean_projection（真实 CT 投影，美国医院）存在域差，teacher 无法跨域泛化；supervised Xray 模型域迁移能力更好。
   - **结论**：三轮实验（MIDRC-only batch1/batch2 + BIMCV+MIDRC 混合）均 FAIL，CT teacher upper-bound 未通过验证。不启动 KD 实验。paper 继续 evidence-bounded negative-result framing。数据记录在 `/data1/midrc/runs/midrc_mixed_5fold_cv_3090/`，日志 `/data1/logs/midrc_mixed_5fold_cv_3090/`。
 
+## 已全部修改（续）
+
+- **Priority 2 Calibration Scan 已完成，无 winner cell，选择路径 B（2026-05-15）**：T × threshold 8-cell 扫描（120 runs × BIMCV-only 5-fold × 3 seeds）全部完成（120/120 test_eval done，21:34 UTC）。所有 8 格 ΔBA vs supervised 的 95% CI 均跨 0，没有通过 ΔBA≥+0.03 且 CI lower>0 的 validated gate。最接近的是 T=4.0, thr=0.50（mean ΔBA=+0.034，CI [-0.0039, +0.0727]，9/15 pos）。决策：选择路径 B——直接切换到 evidence-bounded 写作模式，不再新增实验。结果文件：`docs/tmp/calibration_scan_decision_report.md`，`docs/tmp/calibration_scan_cell_summary.csv`。
+
 ## 进行中（需要跟进）
 
-1. **Priority 2 Calibration Scan — 死锁，需要重启（2026-05-14 启动，已卡住 ~22h）**
-   - 扫描目的：T × threshold 网格（8 cells × 15 runs = 120 runs），测试是否能关闭 BIMCV-only 中 gated_kd vs supervised 的 +0.0146 ΔBA 缺口。
-   - 当前状态：两个 screen session（`bimcv_calib_g2`、`bimcv_calib_g3`）仍在但进程已死锁——训练 log 停在 epoch 44/50 处，24 小时未增长；根因是 `num_workers=16` 导致 epoch 45 处 dataloader 多进程死锁。已有 2/120 best.pt，0/120 test_eval。
-   - **修复命令（需要授权）：**
-     ```bash
-     sshpass -p mabo1215 ssh mabo1215@10.147.20.176 “
-       screen -S bimcv_calib_g2 -X quit 2>/dev/null || true
-       screen -S bimcv_calib_g3 -X quit 2>/dev/null || true
-       pkill -f 'bimcv_only_calibration_scan' 2>/dev/null || true
-       sleep 3
-     “
-     # 用 num_workers=0 重启（done_run() 会跳过已完成的 2 runs）
-     sshpass -p mabo1215 ssh mabo1215@10.147.20.176 “
-       cd /data/JDCNET_git && git fetch origin && git reset --hard origin/main
-       export NUM_WORKERS=0
-       bash /data/JDCNET_git/src/ops/remote_3090_bimcv_calibration_scan.sh
-     “
-     ```
-   - 扫描完成后运行汇总：`bash /data/JDCNET_git/src/ops/remote_3090_bimcv_calibration_summarize.sh`
-   - 结果文件：`/data1/logs/bimcv_only_calibration_scan_20260514/decision_report.md`
+（当前无运行中的实验）
 
 ## 遗留问题（需要作者决策）
 
-1. **Calibration Scan 重启授权 + 路径选择（最紧急）**
-   - 是否授权用 `NUM_WORKERS=0` 重启扫描？（扫描耗时估计约 2–4 小时，120 runs × BIMCV 小数据集）
-   - 扫描完成后需要选择路径（详见 `docs/tmp/report515.md` Section 6）：
-     - **路径 A**（有 winner cell）→ 扩展 seeds 45-47 强化 BIMCV-only pilot，写入 appendix
-     - **路径 B**（无 winner cell）→ 考虑为 MIDRC CT 生成 DRR 投影，绕开跨域差问题
-     - **路径 C**（直接投稿）→ 以 evidence-bounded protocol/framework 口径提交 TCSVT
-
-2. **MIDRC 主验证方向（影响论文定位）**
-   - 当前状态：MIDRC-only 与混合 5-fold 均失败，根因是 MIDRC CT teacher（ct_mean_projection 等）在跨源混合中域差过大。
-   - MIDRC 只有 69 COVID+ patients，即使修复 teacher，5-fold test fold ≈ 14 positive，统计功效弱。
-   - **待决策：** 是否还把 MIDRC 作为主验证目标？或接受 BIMCV-only same-source pilot 作为 limited positive evidence 并以 protocol paper 投稿？
-   - 如继续追求 MIDRC：下一步是为 MIDRC CT 生成 DRR 投影（同 BIMCV drr_cache pipeline），再跑 MIDRC-only teacher upper-bound
-
-3. **H800 费用控制**
-   - 上次状态：H800 GPU 空闲 0 MiB（2026-05-14 结果已拉回）
-   - **待确认：** H800 是否仍在计费？如果是，需在平台控制台停止实例。
