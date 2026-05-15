@@ -261,3 +261,30 @@ class BiomedCLIPClassifier(nn.Module):
 | 论文 supplementary | `paper/supplementary.tex` (906 行) |
 | DRR pilot 结果 | `docs/tmp/drr_cv_decision_report.md` |
 | 项目 memory | `~/.claude/projects/-mnt-c-source-JDCNET/memory/project_jdcnet.md` |
+
+---
+
+## 2026-05-15 3090 execution completion: C1 + C2
+
+- Remote: `mabo1215@10.147.20.176`.
+- C1 run root: `/data1/midrc/runs/bimcv_ct_variants_cv_20260516/`.
+- C2 run root: `/data1/midrc/runs/bimcv_biomedclip_cv_20260516/`.
+- Completed at: 2026-05-15 12:42 UTC / 2026-05-16 00:42 NZST.
+- GPU pressure settings:
+  - C1: 4 x RTX 3090, `batch_size=512`, `num_workers=8`, 4 independent runs per GPU (16 concurrent runs total).
+  - C2: GPU2/GPU3, `batch_size=64`, `num_workers=8`, BiomedCLIP full visual-tower fine-tune, 50 epochs, lr=1e-5.
+- Completion:
+  - C1: `240/240` runs completed with `test_eval/metrics.json`.
+  - C2: `15/15` runs completed with `test_eval/metrics.json`.
+- Local result files:
+  - `docs/tmp/ct_variants_decision_report.md`
+  - `docs/tmp/ct_variants_summary.csv`
+  - `docs/tmp/ct_variants_deltas.csv`
+  - `docs/tmp/biomedclip_decision_report.md`
+  - `docs/tmp/biomedclip_summary.csv`
+  - `docs/tmp/biomedclip_deltas.csv`
+  - `docs/tmp/ct_variants_status.tsv`
+  - `docs/tmp/biomedclip_status.tsv`
+- Key conclusion:
+  - C1: projection CT teacher itself is strongest (teacher BA 0.6760; teacher_vs_supervised Delta BA +0.0449, CI [0.0077, 0.0813]), but gated KD does not pass the pre-specified validation gate. No gated_vs_supervised or gated_vs_plain comparison passes.
+  - C2: BiomedCLIP fine-tune BA is 0.6333. It is essentially tied with the C1 same-split ResNet18 supervised baseline (Delta BA +0.0022, CI [-0.0476, 0.0496]) and positive vs the older 228-patient BIMCV-only supervised baseline (Delta BA +0.0675, CI [0.0213, 0.1119]).

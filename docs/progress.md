@@ -59,3 +59,10 @@
 
 ## 遗留问题（需要作者决策）
 
+### 2026-05-15 - 3090 completed C1 + C2
+
+- Completed report516 C1/C2 on 3090 remote `10.147.20.176`.
+- C1 CT variants: 240/240 completed; batch 512, workers 8, 4 GPUs x 4 concurrent runs.
+- C2 BiomedCLIP fine-tune: 15/15 completed; batch 64, workers 8, GPU2/GPU3 parallel.
+- Pulled results to `docs/tmp/ct_variants_decision_report.md`, `docs/tmp/biomedclip_decision_report.md`, and the corresponding summary/delta CSV files.
+- Conclusion: C1 gated KD did not pass the validation gate; proj teacher itself is significantly stronger than supervised. C2 is tied with the same-split ResNet18 supervised baseline but stronger than the older BIMCV-only supervised baseline.

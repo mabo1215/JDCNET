@@ -15,6 +15,7 @@ class ModelConfig:
     use_dfpn: bool = True
     paired_input: bool = False
     backbone: str = "custom"  # "custom" | "resnet18" | "biomedclip"
+    freeze_backbone: bool = True
 
 
 @dataclass

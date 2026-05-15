@@ -234,16 +234,18 @@ class ResNet18Classifier(nn.Module):
 
 
 class BiomedCLIPClassifier(nn.Module):
-    """E4 baseline: BiomedCLIP image encoder (frozen) + linear probe.
+    """BiomedCLIP image encoder baseline with either frozen or fine-tuned visual tower.
 
     Uses microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224 via open_clip.
-    The ViT image encoder is frozen; only the linear head is trained.
+    When ``freeze_backbone`` is true, the ViT image encoder is frozen and only
+    the linear head is trained. When false, the full visual tower is fine-tuned
+    with a small classification head.
 
     Requires: `pip install open_clip_torch`
     Model will be downloaded to `~/.cache/huggingface` on first use.
     """
 
-    def __init__(self, num_classes: int) -> None:
+    def __init__(self, num_classes: int, freeze_backbone: bool = True) -> None:
         super().__init__()
         try:
             import open_clip  # type: ignore
@@ -261,19 +263,28 @@ class BiomedCLIPClassifier(nn.Module):
             "hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224"
         )
         self.encoder = model.visual
-        for param in self.encoder.parameters():
-            param.requires_grad_(False)
+        self.freeze_backbone = freeze_backbone
+        if freeze_backbone:
+            for param in self.encoder.parameters():
+                param.requires_grad_(False)
 
         # Probe the output dimension with a dummy forward pass
         with torch.no_grad():
             dummy = torch.zeros(1, 3, 224, 224)
             feat_dim = self.encoder(dummy).shape[-1]
 
-        self.head = nn.Linear(feat_dim, num_classes)
+        self.head = nn.Sequential(
+            nn.Linear(feat_dim, 256),
+            nn.GELU(),
+            nn.Linear(256, num_classes),
+        )
         self.preprocess = preprocess
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        with torch.no_grad():
+        if self.freeze_backbone:
+            with torch.no_grad():
+                features = self.encoder(x)
+        else:
             features = self.encoder(x)
         return self.head(features)
 
@@ -288,7 +299,10 @@ def build_model(model_config: ModelConfig) -> nn.Module:
         return ResNet18Classifier(num_classes=model_config.num_classes)
 
     if backbone == "biomedclip":
-        return BiomedCLIPClassifier(num_classes=model_config.num_classes)
+        return BiomedCLIPClassifier(
+            num_classes=model_config.num_classes,
+            freeze_backbone=model_config.freeze_backbone,
+        )
 
     if model_config.name == "teacher":
         return TeacherCNN(
