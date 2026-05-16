@@ -53,41 +53,41 @@
 
 - **Priority 2 Calibration Scan 已完成，无 winner cell，选择路径 B（2026-05-15）**：T × threshold 8-cell 扫描（120 runs × BIMCV-only 5-fold × 3 seeds）全部完成（120/120 test_eval done，21:34 UTC）。所有 8 格 ΔBA vs supervised 的 95% CI 均跨 0，没有通过 ΔBA≥+0.03 且 CI lower>0 的 validated gate。最接近的是 T=4.0, thr=0.50（mean ΔBA=+0.034，CI [-0.0039, +0.0727]，9/15 pos）。决策：选择路径 B——直接切换到 evidence-bounded 写作模式，不再新增实验。结果文件：`docs/tmp/calibration_scan_decision_report.md`，`docs/tmp/calibration_scan_cell_summary.csv`。
 
+## 已全部修改（续2）
+
+- **2026-05-16 Fixed unresolved same-patient table reference**：Fixed the appendix sentence that rendered as `Tables ??-2` by replacing the missing `tab:problem_scope` reference with explicit references to `tab:dataset_protocol` and `tab:evaluation_regimes`. Rebuilt `paper/main.pdf` and `paper/appendix.pdf`; PDF text now reads `Tables 1 and 2`, with no remaining `??` instance for this phrase.
+
+- **2026-05-16 Fixed Methodology whitespace around Section 3.4**：Removed the abnormal vertical gap between the DPE/MHRA/DFPN acronym paragraph and Section 3.4 by moving the full-width baseline evidence-map float later in `paper/main.tex`. Rebuilt `paper/main.pdf` and verified that Section 3.4 now follows the acronym paragraph normally.
+
+- **2026-05-15 3090 C1+C2 完成并拉回**：C1 CT variants 240/240 完成；C2 BiomedCLIP fine-tune 15/15 完成。结论：C1 gated KD 未通过门，proj teacher 本身显著强于 supervised；C2 与同 split ResNet18 supervised 平手。结果在 `src/results/` 对应目录，计划在 `docs/tmp/report515.md`。
+
+- **2026-05-16 Stage A 510-patient BIMCV 扩容实验完成（240/240 runs），决策：转向 definitive negative result**：在 510-patient（113+/397-）同患者配对 cohort 上运行 4 teacher × 4 method × 5-fold × 3 seed，全部完成。关键结论：
+  - Teacher upper bound 通过门：`mid` ΔBA +0.045 [+0.019,+0.069] **PASS**，`3slice` ΔBA +0.051 [+0.025,+0.080] **PASS**——CT 确实承载可用病患信息，reviewer M9 批评已实证回答。
+  - Gated KD vs supervised：4 个 teacher 全部 FAIL；DRR gated KD catastrophic collapse（ΔBA -0.064，CI [-0.095,-0.034]）。
+  - 226-patient 时的"near-pass"（+0.034）在 510 时变成系统性负值，确认为小样本 artifact。
+  - **决策**：不触发 Stage B（MIDRC 559）/ Stage C（X-ray pretrain）；转为"definitive negative at 4.5× cohort scale"写作框架。
+  - 结果在 `src/results/bimcv_full_paired_cv_3090_20260516/`；计划与分析在 `docs/tmp/report515.md` §7。
+
 ## 进行中（需要跟进）
 
 （当前无运行中的实验）
 
 ## 遗留问题（需要作者决策）
 
-### 2026-05-15 - 3090 completed C1 + C2
+### 待完成：Paper 修改（Stage A 结果写入论文）—— 最高优先级
 
-- Completed report516 C1/C2 on 3090 remote `10.147.20.176`.
-- C1 CT variants: 240/240 completed; batch 512, workers 8, 4 GPUs x 4 concurrent runs.
-- C2 BiomedCLIP fine-tune: 15/15 completed; batch 64, workers 8, GPU2/GPU3 parallel.
-- Pulled results to `docs/tmp/ct_variants_decision_report.md`, `docs/tmp/biomedclip_decision_report.md`, and the corresponding summary/delta CSV files.
-- Conclusion: C1 gated KD did not pass the validation gate; proj teacher itself is significantly stronger than supervised. C2 is tied with the same-split ResNet18 supervised baseline but stronger than the older BIMCV-only supervised baseline.
+根据 `docs/tmp/report515.md` §7.6 的规划，需要对论文做以下修改：
 
-### 2026-05-16 - Table 21 caption/explanation compression
+1. **`paper/main.tex` §IV.A Datasets**：Table 1 新增一行 `Extended BIMCV paired (510 patients, 113+/397-)`。
+2. **`paper/main.tex` §IV.C Primary Same-Case Evidence**：新增"4.5× cohort scaling test"段落，给出 teacher_vs_supervised PASS（mid +0.045, 3slice +0.051）与 gated_vs_supervised FAIL（all 4 variants negative，DRR -0.064 collapse）。
+3. **`paper/main.tex` §III Contributions bullet 2**：升级为"Definitive negative result at 4.5× cohort scale"，完整新文见 `docs/tmp/report515.md` §7.6。
+4. **`paper/main.tex` §IV.E Limitations**：新增 1 句关于 510-patient extension 与 open question。
+5. **`paper/appendix.tex`**：新增 `Stage A: 510-Patient Extended Paired Cohort CV` 节，含 16 行 decision delta 表。
+6. **Cover letter**：reviewer (iii) 回应段新增 510-patient 扩容说明，见 `docs/tmp/report515.md` §7.6 完整文字。
+7. 重新 build PDF 验证无 fatal error。
 
-- ??? `paper/appendix.tex` ? CT teacher representation comparison ??Table 21 / `tab:ct_variants`?? caption?? BA?Delta BA?gate?dash/bold ??????? appendix ??????????
-- ????? `paper/main.tex` ? Method limitation ? Conclusion ??? BIMCV/MIDRC/DRR/C1/C2 ??????????? appendix???????????
-- `paper/build.bat` ?????? `paper/main.pdf`????? float-too-large warning???? Table 21 caption ???
+### 待完成：LaTeX 表格 caption 整理（次要优先级）
 
-### 2026-05-16 - BIMCV 512 stress-test table cleanup
-
-- ??? `paper/appendix.tex` ? `tab:bimcv_512_stress_test` ? caption?
-- ?????????????? `Interpretation` ??????????? appendix ??????????????
-- ????????????? caption/???????????
-- ??? `paper/build.bat`?`paper/main.pdf` ???????????????????
-
-
-### 2026-05-16 - Fixed unresolved same-patient table reference
-
-- Fixed the appendix sentence that rendered as `Tables ??-2` by replacing the missing `tab:problem_scope` reference with explicit references to `tab:dataset_protocol` and `tab:evaluation_regimes`.
-- Rebuilt `paper/main.pdf` and `paper/appendix.pdf`; PDF text now reads `Tables 1 and 2`, with no remaining `??` instance for this phrase.
-
-
-### 2026-05-16 - Fixed Methodology whitespace around Section 3.4
-
-- Removed the abnormal vertical gap between the DPE/MHRA/DFPN acronym paragraph and Section 3.4 by moving the full-width baseline evidence-map float later in `paper/main.tex`.
-- Rebuilt `paper/main.pdf` and verified that Section 3.4 now follows the acronym paragraph normally; no `??` references are present in the rendered PDF text.
+- `paper/appendix.tex` Table 21 / `tab:ct_variants`：caption 内 BA / Delta BA / gate / dash/bold 的说明文字需压缩，避免 float-too-large warning。
+- `paper/appendix.tex` `tab:bimcv_512_stress_test`：caption 与 `Interpretation` 段需整理，和 appendix 其余节风格一致。
+- 上述整理完后重建 `paper/main.pdf` 验证。
