@@ -75,6 +75,23 @@
   - `mid τ=0.80 λ=1.50 (hard)`：ΔBA=+0.0329 [+0.0074, +0.0584]，10/15 positive — **PASS** ✓
   15/16 configurations 为正 mean ΔBA。学生约恢复了 Stage A 教师上界 ~2/3 的 head-room（teacher upper-bound: mid +0.045, 3slice +0.051）。**结论：Method 2 VALIDATED，Methods 3–5 不需要。** `paper/appendix.tex` pseudolabel 小节已更新为 16-row 全结果表，gate verdict 改为 VALIDATED。`docs/future_methods_plan.md` 已更新状态。
 
+- **2026-05-16 论文综合重构为 PL-XKD validation 框架**：根据用户决策（"找到有效路径就修改原有框架"），把 paper 从 evidence-bounded negative audit 反转为 PL-XKD 验证型论文。
+  - **新计划文件**：`docs/plxkd_validation_plan.md` 综合记录策略转向、风险、逐步实施。
+  - **Paper 主要修改**（`paper/main.tex`）：
+    - 标题：`Cross-Modal Pseudo-Label Distillation for CT-to-X-ray Disease Classification: A Pre-Registered Validation Study`
+    - Abstract：以 PL-XKD 为主，列两个 PASS cells 的 ΔBA，6 个 comparator 全部 FAIL
+    - Contributions：4 条，PL-XKD validated architecture 为 #1，pre-registered protocol 为 #2，comprehensive mechanism comparison 为 #3
+    - Methodology Section 3.3：新增 PL-XKD 数学定义（confidence mask M、hard CE 和 soft-KL 两个 variant、Eq. 2/3）和机制解释
+    - Methodology Section 3.4 (renamed from Pilot Scaffold)：legacy JDCNet 降级为 Comparator Mechanisms
+    - Hypotheses：从 H1-H5 改为 H0-H5，H1=PL-XKD validated transfer, H4=mechanism-channel isolation
+    - Experiments §4.5：renamed `PL-XKD Validation under the Pre-Registered Statistical Gate`，含 Tier 1 (PL-XKD headline) / Tier 2 (Comparator audit) / Tier 3 (Teacher upper-bound) 三个 subsubsection
+    - Experiments §4.6：新增 `Historical Feasibility Reference: 226-Patient Resampling`，把原 primary 表降为历史参考
+    - Deployment Efficiency：强调 PL-XKD 零部署成本，与 supervised baseline 完全相同
+    - Limitations：从 negative-result 风格改为 validated-method 风格（单 cohort、二分类任务、ResNet18 backbone 等限制）
+    - Conclusion：完全重写，以 PL-XKD validated 为主，6 个 comparators 全部 fail 为辅
+  - **构建状态**：`paper/main.pdf` 已生成（31 pages combined, main paper 约 13 pages, 比 12-page TCSVT 限制超 1 页；如需可后续 compress）。Cross-reference 警告仅 1359 行需要再跑一次 xr 重建。
+  - **未做**：架构图（PL-XKD mechanism diagram）暂未新增；如需 figures 可后续单独迭代。Cover letter 暂未重写。
+
 - **2026-05-16 遗留区清理完成**：已核对旧的 Stage A 写入论文条目：`paper/main.tex` 已包含 Extended BIMCV paired 510-patient 数据集行、4.5× cohort scaling test 段落、contribution 与 limitations 更新；`paper/appendix.tex` 已包含 510-patient full-paired CV 表和 Method 2 pseudo-label 16-row VALIDATED 表；`docs/cover_letter.txt` 已包含 reviewer (iii) 的 510-patient 扩容回应；`paper/main.pdf` 与 `paper/appendix.pdf` 已存在。旧的 caption 压缩项属于最终投稿排版优化，不需要作者决策，因此不再放在“遗留问题”区。
 
 - **2026-05-16 Method 2 VALIDATED 已回填主文叙事**：`paper/main.tex` 已同步更新 abstract、Introduction summary、Contributions、pre-specified/exploratory analyses、Results 中的 510-patient follow-up 段、Limitations 与 Conclusion。当前口径改为：原始 module-augmented / gated-logit KD 架构仍未 validated，但 CT pseudo-label semi-supervision 是已测试 transfer channel 中唯一通过同一 gate 的机制（2/16 cells pass），需要 independent paired-cohort replication。`paper/appendix.tex` 已删除过时的 “Minimum Next Experiment” 重复段落，改为简短 transition，避免主文和附录重复描述；同时修复 appendix 中 `128脳128` mojibake 为 LaTeX `\times` 写法。已运行 `paper/build.bat`，构建完成并生成 `paper/main.pdf`，无 fatal error（仍有既有 overfull/underfull 与交叉引用/排版 warning）。
