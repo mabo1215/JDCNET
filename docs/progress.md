@@ -21,6 +21,12 @@
 
 - **14页复核（2026-05-17）**：再次编译 `paper/build.bat`，确认 combined `paper/main.pdf` 为 14 页；为消除最后一页溢出，压缩 Appendix 的 gated-logit KD 温度/阈值扫描说明，移除该扫描的独立表格，并将机制总结并入同一段落；同步更新正文对该附录内容的引用。
 
+- **Cover letter 同步（2026-05-17）**：`docs/cover_letter.txt` 已按最新 14 页 TCSVT 论文同步，更新为 JDCNet 当前标题、510-patient BIMCV headline 结果、同一 gate 下 comparator audit、部署成本表述、GitHub 开源链接和当前 appendix 内容；移除旧的 Code Ocean、commit hash、MIDRC/module-ablation 等过期描述。
+
+- **Cover letter 简版（2026-05-17）**：`docs/cover_letter.txt` 已压缩到约 440 词，改成更自然的人工 cover letter 风格；保留标题、510-patient headline 结果、comparator audit、TCSVT 系统相关性、14 页状态、局限和 GitHub 链接，移除大段机械式分栏和过期标记。
+
+- **伦理/知情同意表述（2026-05-17）**：建议提交表单选 `Yes`（使用人类影像数据），同时说明本研究为公开去标识化 BIMCV 数据的二次分析。`paper/main.tex` Methods 和 `docs/cover_letter.txt` 已补充 institutional research-committee approval/anonymization/no new consent 表述，重新编译 combined PDF 仍为 14 页。
+
 ## 用户已确认的决策
 
 - **不披露 arXiv pilot**：用户将自行更新 arXiv 上的预印本以与 TCSVT 稿件同步，因此不在论文中加入"Relation to prior arXiv version"段落。

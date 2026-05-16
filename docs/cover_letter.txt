@@ -1,176 +1,70 @@
-Cover Letter ? Revision
+﻿Cover Letter - Revised Manuscript
 Submission to IEEE Transactions on Circuits and Systems for Video Technology (TCSVT)
 
 Title: JDCNet: Confidence-Gated Privileged-Modality Distillation for
        Cost-Preserving X-ray Inference
 
-------------------------------------------------------------------------
-
 Dear Editor,
 
-We submit a major revision of the manuscript and thank the reviewers for
-their detailed and constructive feedback. The revision reorganises the
-paper around a cost-preserving visual-systems question: can same-patient
-CT be used as training-only privileged supervision to improve an X-ray
-classifier while leaving the deployed inference graph unchanged? The
-revised manuscript presents JDCNet as a confidence-gated auxiliary
-supervision mechanism, reports its bounded positive evidence on the
-510-patient same-patient paired BIMCV cohort, and retains the broader
-mechanism audit as evidence of which cross-modal transfer channels do
-not pass the same gate.
+We are pleased to submit the revised manuscript, "JDCNet:
+Confidence-Gated Privileged-Modality Distillation for Cost-Preserving
+X-ray Inference," for consideration in IEEE Transactions on Circuits and
+Systems for Video Technology.
 
-WHAT THE PAPER ADDRESSES
+This paper studies a practical visual-inference setting in which CT is
+available during training but the deployed model must use X-ray alone. We
+propose JDCNet, a confidence-gated CT-to-X-ray distillation method. The CT
+teacher provides an auxiliary hard or lightly softened target only when its
+confidence exceeds a fixed threshold; at test time, the CT branch and the
+auxiliary loss are removed. The deployed student is therefore the same
+single-modality ResNet-18 X-ray classifier as the supervised baseline.
 
-Chest X-ray and CT can be co-acquired for the same patient, whereas
-many deployed models receive only one modality at inference time. We
-therefore study training-only CT supervision for an X-ray-only deployed
-classifier. This setting is difficult because teacher and student images
-come from different modalities, soft-logit distillation can transfer
-misleading information across the modality gap, and small paired cohorts
-can make split-dependent gains look convincing. The revised manuscript
-uses patient-level cross-validation, seed-paired comparisons, and a
-pre-specified transfer gate to keep the claim bounded by the available
-paired evidence.
+The revised manuscript is centered on one bounded claim. On a 510-patient
+same-patient paired BIMCV cohort, using patient-level 5-fold
+cross-validation and seeds 42--44, two JDCNet settings pass the fixed
+transfer gate against the matched supervised X-ray baseline:
 
-WHAT THE PAPER CONTRIBUTES
+- 3-slice CT teacher with soft-KL target: Delta BA = +0.0345,
+  95% CI [+0.0112, +0.0571].
+- Mid-slice CT teacher with hard target: Delta BA = +0.0329,
+  95% CI [+0.0074, +0.0584].
 
-1. JDCNet: confidence-gated privileged-modality distillation for
-   cost-preserving X-ray inference. JDCNet uses the CT teacher's argmax
-   target (hard variant) or temperature-scaled distribution (soft-KL
-   variant) as an auxiliary supervisory signal only on samples where the
-   CT teacher confidence exceeds a gate threshold, while the ordinary
-   weighted cross-entropy on the ground-truth label remains always on.
-   On 510 same-patient paired BIMCV patients evaluated under 5-fold
-   patient-level cross-validation and seeds 42--44, two configurations
-   pass the pre-specified transfer gate (mean DeltaBA >= +0.03 and 95%
-   bootstrap CI lower bound > 0 versus the matched supervised X-ray
-   baseline):
+The CT teacher upper-bound rows also show positive head-room on the same
+patients. In contrast, plain and gated logit distillation, DRR-guided logit
+transfer, contrastive alignment, attention transfer, feature hints,
+BiomedCLIP fine-tuning, and the historical module-augmented pilot do not
+pass the same gate. This comparison is important to the paper: the result is
+not presented as a general claim that any CT-to-X-ray distillation works,
+but as evidence that confidence-gated auxiliary targets are the supported
+transfer channel in this cohort.
 
-       - 3-slice CT teacher, soft-KL target, tau=0.70, lambda=1.0:
-         DeltaBA = +0.0345, 95% CI [+0.0112, +0.0571], 10/15 positive
-         fold-seed cells.
-       - Mid-slice CT teacher, hard target, tau=0.80, lambda=1.5:
-         DeltaBA = +0.0329, 95% CI [+0.0074, +0.0584], 10/15 positive
-         fold-seed cells.
+The systems relevance for TCSVT is that JDCNet uses the richer CT modality
+only at training time while preserving the deployed X-ray inference graph.
+The manuscript reports parameters, MACs, memory, and CPU/GPU/edge latency to
+verify that the selected JDCNet student adds no inference-time cost relative
+to the supervised X-ray baseline.
 
-   The deployed student is structurally identical to the supervised
-   X-ray ResNet-18 baseline (11.178 M parameters and 1.819 GMACs in the
-   local sanity check), so the gain is obtained without adding CT input,
-   teacher branches, or extra inference-time modules.
+We have also tightened the manuscript to the current 14-page TCSVT package,
+kept the smaller historical experiments in the appendix only as context, and
+made the limitations explicit. The claim is limited to one public paired
+cohort and binary COVID-19/non-COVID classification; independent paired-cohort
+replication is needed before any clinical or production deployment claim.
 
-2. A matched mechanism audit under the same gate. The revised manuscript
-   separates the JDCNet result from comparators that use the same
-   student backbone and data splits. Confidence-gated logit distillation
-   across four CT teacher representations, CLIP-style contrastive
-   alignment, attention transfer, feature-hint distillation, BiomedCLIP
-   fine-tuning, and the historical module-augmented logit-KD scaffold do
-   not pass the same transfer gate. This comparison isolates the
-   confidence-gated auxiliary target as the transfer channel supported by
-   the current data, rather than attributing the result to a larger
-   backbone, a richer teacher representation, or extra deployment-time
-   modules.
+The work has not been published previously and is not under consideration
+elsewhere. It is a secondary analysis of publicly released, de-identified
+human imaging data. The original BIMCV release reports institutional
+research-committee approval and anonymization/de-identification by the data
+custodians; we did not collect new patient data, obtain new consent, attempt
+re-identification, or redistribute patient pixels. Source code, split
+definitions, training configurations, and analysis utilities are released at:
 
-3. Reproducibility and bounded interpretation. The original transfer
-   gate and Method-2 candidate route are archived at commit
-   9e99413e9cd1157592aaad5a2152190afa126043; the extension-sweep
-   decision is archived at commit 0e1e626aa69cc96513ec1306aea6f743ad3d4e98;
-   and the validated JDCNet result snapshot is archived at commit
-   096ed2948544d36194cd06af51462fb218930db4. We release manifests,
-   training scripts, per-cell decision reports, and the Code Ocean
-   capsule (https://codeocean.com/capsule/6030764/tree) so that the gate
-   and mechanism comparisons can be audited. The manuscript explicitly
-   treats the effect size as bounded to this public paired cohort and
-   does not make a clinical-readiness claim.
+https://github.com/mabo1215/JDCNET
 
-RESPONSES TO MAJOR REVIEWER CONCERNS
-
-Concern (iii): The primary paired cohort is extremely small and cannot
-support a strong journal-level technical claim.
-
-Response: We extended the paired-cohort analysis from the earlier small
-balanced subset to all 510 same-patient BIMCV paired patients used in the
-headline experiment (113 positive and 397 negative). The revised paper
-uses this 510-patient cohort as the sole headline evidence source and
-moves smaller-cohort results to the appendix as historical feasibility
-material. Under the same patient-level 5-fold protocol, CT teachers pass
-the upper-bound feasibility gate (DeltaBA = +0.045 and +0.051 with
-positive CI lower bounds), and JDCNet passes the transfer gate in two of
-sixteen pre-specified configurations. The earlier 226-patient near-pass
-for gated logit KD is now reported as small-cohort context rather than as
-headline evidence.
-
-Concern: The previous submission reported a negative result and was
-difficult to position as a positive scientific contribution.
-
-Response: The revision foregrounds the gate-passing JDCNet mechanism and
-uses the negative comparator outcomes to support mechanism isolation. The
-paper now asks which training-only CT-to-X-ray transfer channel survives
-a matched, patient-level evidence gate. JDCNet is the only tested channel
-that does so in the current cohort, while logit-KD, contrastive,
-attention-transfer, feature-hint, foundation-model, and
-module-augmented alternatives do not.
-
-Concern: Risk of post-hoc cell selection within the JDCNet sweep matrix.
-
-Response: The transfer gate and extension decisions were committed before
-the supporting extension sweeps were executed, as documented by the
-commit hashes above and cited in the Statistical Protocol subsection. The
-main text reports all 16 JDCNet configurations in the appendix, not only
-the two passing cells. Fifteen of the sixteen configurations have a
-positive mean DeltaBA, which supports a bounded direction-of-effect
-interpretation rather than a single post-hoc winner.
-
-WHY TCSVT
-
-The contribution is relevant to TCSVT's scope on efficient visual
-systems: JDCNet exploits a richer auxiliary modality during training but
-preserves an X-ray-only ResNet-18 inference graph. The mechanism
-comparison (soft-logit, confidence-gated auxiliary targets, contrastive
-alignment, attention transfer, feature hints, and foundation-model
-students) is also relevant to broader cross-modal visual classification
-settings where one modality may be available during training but not at
-inference.
-
-The pre-specified gate and public decision records address reproducibility
-concerns in visual learning and medical imaging. The manuscript presents
-a positive transfer result, but it also states its limits: one public
-paired cohort, binary COVID-19/non-COVID classification, modest effect
-size, and a need for independent paired-cohort replication before any
-clinical or production deployment claim.
-
-SCOPE AND ORIGINALITY
-
-This manuscript has not been published previously and is not under
-consideration elsewhere. The work uses publicly released, de-identified
-imaging data and does not redistribute patient pixels. No
-patient-identifiable information is reported or released. We have
-prepared a supplemental appendix covering the full 16-cell JDCNet sweep,
-the comparator-mechanism audit, CT teacher upper-bound checks, historical
-resampling references, MIDRC stress tests, calibration scans, and module
-ablations so that the main-text claims can be audited from the released
-artifacts.
-
-We appreciate your time and look forward to the review.
+Thank you for your time and consideration.
 
 Sincerely,
 
 Bo Ma
-Auckland University of Technology,
+Auckland University of Technology
 New Zealand
 amabo1215@gmail.com
-
-------------------------------------------------------------------------
-Manuscript details:
-  Submission type : Regular Paper (Major Revision)
-  Keywords        : Cross-modal knowledge distillation,
-                    confidence-gated auxiliary supervision,
-                    privileged information learning, chest X-ray
-                    classification, computed tomography, patient-level
-                    cross-validation, pre-specified evaluation protocol
-  Supplemental    : Appendix (separate PDF)
-  Code/data       : Public Code Ocean capsule
-                    (https://codeocean.com/capsule/6030764/tree)
-  Decision records: Repository commits 9e99413e9cd1157592aaad5a2152190afa126043,
-                    0e1e626aa69cc96513ec1306aea6f743ad3d4e98, and
-                    096ed2948544d36194cd06af51462fb218930db4.
-------------------------------------------------------------------------
