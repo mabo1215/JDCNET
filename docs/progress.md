@@ -75,26 +75,18 @@
   - `mid τ=0.80 λ=1.50 (hard)`：ΔBA=+0.0329 [+0.0074, +0.0584]，10/15 positive — **PASS** ✓
   15/16 configurations 为正 mean ΔBA。学生约恢复了 Stage A 教师上界 ~2/3 的 head-room（teacher upper-bound: mid +0.045, 3slice +0.051）。**结论：Method 2 VALIDATED，Methods 3–5 不需要。** `paper/appendix.tex` pseudolabel 小节已更新为 16-row 全结果表，gate verdict 改为 VALIDATED。`docs/future_methods_plan.md` 已更新状态。
 
+- **2026-05-16 遗留区清理完成**：已核对旧的 Stage A 写入论文条目：`paper/main.tex` 已包含 Extended BIMCV paired 510-patient 数据集行、4.5× cohort scaling test 段落、contribution 与 limitations 更新；`paper/appendix.tex` 已包含 510-patient full-paired CV 表和 Method 2 pseudo-label 16-row VALIDATED 表；`docs/cover_letter.txt` 已包含 reviewer (iii) 的 510-patient 扩容回应；`paper/main.pdf` 与 `paper/appendix.pdf` 已存在。旧的 caption 压缩项属于最终投稿排版优化，不需要作者决策，因此不再放在“遗留问题”区。
+
+- **2026-05-16 Method 2 VALIDATED 已回填主文叙事**：`paper/main.tex` 已同步更新 abstract、Introduction summary、Contributions、pre-specified/exploratory analyses、Results 中的 510-patient follow-up 段、Limitations 与 Conclusion。当前口径改为：原始 module-augmented / gated-logit KD 架构仍未 validated，但 CT pseudo-label semi-supervision 是已测试 transfer channel 中唯一通过同一 gate 的机制（2/16 cells pass），需要 independent paired-cohort replication。`paper/appendix.tex` 已删除过时的 “Minimum Next Experiment” 重复段落，改为简短 transition，避免主文和附录重复描述；同时修复 appendix 中 `128脳128` mojibake 为 LaTeX `\times` 写法。已运行 `paper/build.bat`，构建完成并生成 `paper/main.pdf`，无 fatal error（仍有既有 overfull/underfull 与交叉引用/排版 warning）。
+
+- **2026-05-16 IEEE 风格标题整理**：已将主文过长的 `Extended 510-Patient Same-Patient Paired Cohort (4.5× Scale Test)` 标题改为更符合 IEEE Transactions 风格的 `Cohort-Scale Stress Test`，并将 appendix 对应标题改为 `Cohort-Scale BIMCV Extension`；510-patient、4.5×、113+/397- 等具体信息保留在正文首句和表注中，避免标题实验日志化。
+
+- **2026-05-16 Table 28/29 越界已修复**：`paper/appendix.tex` 中 CT pseudo-label 表和 contrastive alignment 表已从单栏 `table/tabular` 改为双栏 `table*/tabular*`，并压缩字号与列距以适配 IEEE 双栏版面；相邻的 pseudo-label 与 InfoNCE 公式也改为多行 `aligned` 形式，避免同页公式越界。已重新运行 `paper/build.bat`，无 fatal error，且 build log 中已无 Overfull hbox warning。
+
 ## 进行中（需要跟进）
 
-（当前无运行中的实验）
+（当前无运行中的实验；当前无阻塞性论文回填任务。）
 
 ## 遗留问题（需要作者决策）
 
-### 待完成：Paper 修改（Stage A 结果写入论文）—— 最高优先级
-
-根据 `docs/tmp/report515.md` §7.6 的规划，需要对论文做以下修改：
-
-1. **`paper/main.tex` §IV.A Datasets**：Table 1 新增一行 `Extended BIMCV paired (510 patients, 113+/397-)`。
-2. **`paper/main.tex` §IV.C Primary Same-Case Evidence**：新增"4.5× cohort scaling test"段落，给出 teacher_vs_supervised PASS（mid +0.045, 3slice +0.051）与 gated_vs_supervised FAIL（all 4 variants negative，DRR -0.064 collapse）。
-3. **`paper/main.tex` §III Contributions bullet 2**：升级为"Definitive negative result at 4.5× cohort scale"，完整新文见 `docs/tmp/report515.md` §7.6。
-4. **`paper/main.tex` §IV.E Limitations**：新增 1 句关于 510-patient extension 与 open question。
-5. **`paper/appendix.tex`**：新增 `Stage A: 510-Patient Extended Paired Cohort CV` 节，含 16 行 decision delta 表。
-6. **Cover letter**：reviewer (iii) 回应段新增 510-patient 扩容说明，见 `docs/tmp/report515.md` §7.6 完整文字。
-7. 重新 build PDF 验证无 fatal error。
-
-### 待完成：LaTeX 表格 caption 整理（次要优先级）
-
-- `paper/appendix.tex` Table 21 / `tab:ct_variants`：caption 内 BA / Delta BA / gate / dash/bold 的说明文字需压缩，避免 float-too-large warning。
-- `paper/appendix.tex` `tab:bimcv_512_stress_test`：caption 与 `Interpretation` 段需整理，和 appendix 其余节风格一致。
-- 上述整理完后重建 `paper/main.pdf` 验证。
+（当前无需要作者决策的遗留问题。）
