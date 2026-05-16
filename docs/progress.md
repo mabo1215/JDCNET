@@ -113,10 +113,34 @@
 
 - **2026-05-16 Table 28/29 越界已修复**：`paper/appendix.tex` 中 CT pseudo-label 表和 contrastive alignment 表已从单栏 `table/tabular` 改为双栏 `table*/tabular*`，并压缩字号与列距以适配 IEEE 双栏版面；相邻的 pseudo-label 与 InfoNCE 公式也改为多行 `aligned` 形式，避免同页公式越界。已重新运行 `paper/build.bat`，无 fatal error，且 build log 中已无 Overfull hbox warning。
 
-## 进行中（需要跟进）
+## 已全部修改（2026-05-17 TCSVT revision cycle）
 
-（当前无运行中的实验；当前无阻塞性论文回填任务。）
+- **TCSVT 主文重构与 reviewer M1--M10 回应已完成**：`paper/main.tex` 已改为 TCSVT visual-systems / cost-preserving inference 口径，新标题为 `JDCNet: Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray Inference`；abstract、introduction、contributions、limitations、conclusion 均已从“强 novelty/临床验证”改为“单一公开 paired cohort 上的 bounded positive evidence + 外部验证前不做临床就绪声明”。
+- **Backbone/效率不一致已修正**：主文已明确 primary 510-patient JDCNet、supervised X-ray、plain/gated logit-KD 使用同一 ResNet-18/224 inference graph；部署表已改为 ResNet-18 的 11.178M 参数、1.819G MACs、21.23 ms 本地 CPU sanity-check，并把 0.567M/3.052G 的 historical module-augmented pilot 降为历史对照，解决原先“ResNet-18 vs 0.094M”矛盾。
+- **数据集角色与证据层级已重新界定**：主文只把 510-patient BIMCV same-patient paired 5-fold protocol 作为 headline evidence；Cohen、小样本 BIMCV、MIDRC/cross-source、226-patient resampling 与 historical module stack 均移入 appendix 或降级为 historical/stress-test/diagnostic evidence，避免 reviewer 认为主结论混用多个 cohort。
+- **数学编号与统计预注册证据已整理**：JDCNet loss 与 logit-KD loss 已加 `\label{eq:jdcnet_loss}` / `\label{eq:logit_kd_loss}` 并用 `Eq.~\eqref{...}` 引用；统计 protocol 已改为引用 immutable commit hashes（`9e99413...`、`0e1e626...`、`096ed294...`），不再依赖本地路径叙述。
+- **cover letter 与计划文档已同步到新口径**：`docs/cover_letter.txt` 已改为当前标题、ResNet-18 真实成本、softened novelty、无临床就绪声明、commit-hash traceability；`docs/jdcnet_validation_plan.md` 顶部已新增 2026-05-17 status update，说明旧计划为历史实施记录，最终提交口径以当前 manuscript 为准。
+- **future methods plan 已追溯恢复**：`docs/future_methods_plan.md` 已从 commit `096ed2948544d36194cd06af51462fb218930db4` 恢复，用于保留 Method 2 gate / extension sweep 的预注册与执行轨迹。
+- **配置同步已完成**：已确认 `.codex/config.toml` 与 `agents/.codex/config.toml` 内容一致，满足 repository rule 中的同步要求。
+- **构建验证已完成**：已运行 `paper/build.bat`，构建成功并生成 `paper/main.pdf`；本轮文稿修改无 fatal LaTeX error。
 
-## 遗留问题（需要作者决策）
 
-（当前无需要作者决策的遗留问题。）
+- **2026-05-17 论文面向读者化清理与压缩已完成**：已按用户要求先备份到 `paper/backup/20260517_015930/`；随后删除正文/附录中的 commit hash、public repository、Code Ocean、GitHub、manifest、脚本/本地运行环境等面向内部执行记录的叙述。正文只保留读者需要的 fixed gate、实验设计、结果和限制，不再出现“Pre-specified versus exploratory analyses”段落或代码/仓库证据链。
+- **2026-05-17 页数压缩已完成**：`paper/appendix.tex` 曾从长附录压缩为 compact supplementary evidence，为后续回填和解释性重构腾出版面；当前最终页数以下方最新构建记录为准，仍满足“正文 ≤13、appendix ≤3、总计 ≤14”的硬约束。
+- **2026-05-17 TCSVT ethics/data 位置决策**：已检查 TCSVT/IEEE author guidance；TCSVT 页面强调 manuscript 要清楚说明问题、贡献、novelty、相关工作与区别，允许 supplementary datasets/materials；IEEE Author Center 鼓励 data/code sharing，但未要求在 TCSVT 主文放独立 Code/Data section。正文因此仅保留一句 public de-identified data / aggregate results / no clinical-readiness 的读者必要说明；详细数据、伦理、可复现性和代码说明应放在 cover letter 或 submission/supplementary material，而不是主文主体。
+- **2026-05-17 正文/附录按页数目标回填完成**：已从 `paper/backup/20260517_015930/` 参考早前版本，将关键读者向内容回填到正文与 appendix：正文新增 510-patient decision summary、primary protocol details、stress-test summary、teacher-upper-bound/logit-KD failure-mode 解释、deployment boundary 与 external-validation caveat；appendix 新增 metric definitions、teacher-view definitions、transfer-channel detail 表。所有回填均避免 commit/repository/Code Ocean/GitHub/本地脚本/运行日志等内部执行记录。
+- **2026-05-17 reference 后紧接 appendix 已实现**：已修改 `paper/build.bat`，combined build 不再在 reference 与 appendix 之间强制 `\clearpage`；因此 appendix 可以紧接 references 开始以节省页数。当前重新构建验证：standalone main (`paper/build/main.pdf`) = 12 页，standalone appendix (`paper/appendix.pdf`) = 3 页，combined `paper/main.pdf` = 14 页，达到并仍满足 14 页上限。
+- **2026-05-17 可见文本巡检通过**：对 combined PDF 运行文本检查，无 `commit`、`repository`、`GitHub`、`Code Ocean`、`docs/`、`src/`、`3090`、`H800`、脚本/manifest 等内部工程词；无 `??` 未解析引用。
+- **2026-05-17 appendix 解释性重构与构建输出清理已完成**：`paper/appendix.tex` 已从“表格堆叠”改为读者向补充证据说明，新增 reading guide、full JDCNet sweep 解读、comparator mechanism interpretation、mechanistic takeaways 与 scope 说明；保留主文引用所需的 `tab:jdcnet_510` 与 `tab:app_comparator_summary`，并删除/合并冗余表格以减少空白浮动页。`paper/build.bat` 已静默 pdflatex 正常 pass 输出，仅保留简洁 `[INFO]`/`[ERROR]` 信息；若构建失败会保留对应 `build\*.log` 便于定位。重新构建后 standalone main = 12 页、standalone appendix = 3 页、combined main+appendix = 14 页（reference 后直接接 appendix，达到并仍满足 14 页上限）；`main.log`/`appendix.log` 无 fatal、undefined reference/citation、overfull 或 float-too-large 命中，PDF 与 source 可见文本中未发现 commit/repository/GitHub/Code Ocean/docs/src/3090/H800/scripts/logs/manifest 等内部工程词，也无 `??` 未解析引用。
+## 未修改或部分修改
+
+（当前无已知未修改或部分修改的 reviewer M1--M10 论文项；没有正在运行的实验。）
+
+## 遗留问题
+
+（当前无需要作者决策的遗留问题；如下一轮继续，可只做最终投稿前的版面压缩、PDF 逐页检查和补充材料一致性巡检。）
+
+
+
+
+

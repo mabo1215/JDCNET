@@ -4,6 +4,9 @@
 **Trigger**: Method 2 (CT pseudo-label semi-supervised) cleared the pre-specified gate (2/16 cells, ΔBA +0.033 and +0.035 with CI lower bounds +0.007 and +0.011).
 **Goal**: Reframe the manuscript from "evidence-bounded negative audit" to "validated confidence-gated cross-modal distillation (JDCNet)" so reviewers see a positive, deployable architectural contribution backed by pre-registered statistical evidence.
 
+**2026-05-17 status update**: The restructure has been implemented, then tightened for TCSVT framing. The current manuscript title is
+"JDCNet: Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray Inference". The paper now softens the novelty language, treats BIMCV as a single public paired cohort rather than a general clinical validation set, corrects the ResNet-18 cost accounting, and uses immutable commit hashes rather than local planning-file paths as the pre-specification evidence. The plan below is retained as a historical implementation record and should not be read as the final submission wording.
+
 ---
 
 ## Strategic Shift (one sentence)
