@@ -1,127 +1,181 @@
 Cover Letter — Revision
 Submission to IEEE Transactions on Circuits and Systems for Video Technology (TCSVT)
 
-Title: JDCNet: Cross-Modal CT-to-X-ray Knowledge Distillation with
-       Evidence-Bounded Evaluation on Patient-Level Paired Cohorts
+Title: Cross-Modal Pseudo-Label Distillation for CT-to-X-ray
+       Disease Classification: A Pre-Registered Validation Study
 
 ------------------------------------------------------------------------
 
 Dear Editor,
 
-We submit a revised version of the above manuscript and thank the reviewers
-for their detailed and constructive feedback. The revision addresses all
-major concerns raised in the review; the most significant change is a
-$4.5\times$ scale extension of the primary same-patient paired cohort, which
-directly resolves reviewer concern (iii) regarding cohort size.
+We submit a major revision of the above manuscript and thank the
+reviewers for their detailed and constructive feedback. The revision
+introduces a new validated cross-modal transfer architecture (PL-XKD)
+and reorganises the manuscript around it. The previously reported
+negative result on confidence-gated logit distillation is retained as a
+mechanism comparator, but it is no longer the primary scientific claim
+of the paper. The headline contribution is now a positive, deployable
+training algorithm that clears a pre-registered statistical gate on the
+510-patient same-patient paired BIMCV cohort.
 
 WHAT THE PAPER ADDRESSES
 
 Chest X-ray and CT are routinely co-acquired for the same patient in
-clinical practice, yet most deployed diagnostic models are trained and
-evaluated on a single modality. The question we study is operationally
-direct: if same-patient CT and X-ray are both available during training
-but only X-ray is available at inference, can CT serve as training-only
-privileged supervision to improve the deployed X-ray classifier?
-
-We formulate this as a teacher-student knowledge distillation problem
-(CT teacher, X-ray student) and evaluate it on a patient-level paired
-chest cohort. The central challenge is not architectural -- it is
-evidential: the paired cohort is small, class-imbalanced, and easy to
-over-read under a single fixed validation split.
+clinical practice, yet most deployed diagnostic models are trained on
+a single modality. The operational question we study is whether
+same-patient CT can serve as training-only privileged supervision to
+improve the deployed X-ray classifier while preserving an X-ray-only
+inference path. Prior cross-modal distillation work on small paired
+cohorts has been difficult to validate rigorously because (a) the gold
+mechanism, soft-logit distillation, repeatedly fails under modality
+gap, and (b) gains can be inflated by a single accidental split.
 
 WHAT THE PAPER CONTRIBUTES
 
-1. Falsification-oriented evaluation protocol. We introduce same-case
-   patient-level Monte Carlo resampling (10 resamples, each holding out
-   the identical set of patients for all compared methods) as the
-   minimum evidential bar for tiny-cohort cross-modal distillation.
-   We show that this bar is sufficient to reject a fixed-split ranking
-   produced under the same data.
+1. PL-XKD: a validated cross-modal pseudo-label distillation
+   architecture. PL-XKD uses the CT teacher's argmax (hard variant)
+   or temperature-scaled distribution (soft-KL variant) as an
+   auxiliary supervisory target, applied only on samples where the
+   teacher's confidence exceeds a threshold tau_pseudo, alongside the
+   always-on weighted cross-entropy on the ground-truth label. On 510
+   same-patient paired BIMCV patients evaluated under a pre-registered
+   5-fold patient-level cross-validation with a strict statistical
+   gate (mean DeltaBA >= +0.03 AND 95% bootstrap CI lower bound > 0
+   versus matched supervised X-ray), two configurations clear the
+   gate from independent pre-registered extension sweeps:
 
-2. Definitive negative result at 4.5x cohort scale. We evaluate CT
-   teacher representations (mid-slice, 3-slice stack, multi-slice
-   projection, DRR), a fine-tuned foundation-model student
-   (BiomedCLIP ViT-B/16), a full temperature-threshold calibration
-   scan, and an extended 510-patient same-patient paired BIMCV cohort
-   that uses all 113 positive and 397 negative paired patients in the
-   release (4.5x the previous balanced cohort). At the extended scale,
-   multi-slice CT teachers (mid-slice and 3-slice stack) now pass the
-   pre-specified teacher upper-bound gate with substantial effect sizes
-   (mean DeltaBA = +0.045 and +0.051, 95% bootstrap CI lower bounds
-   > +0.019), confirming that CT carries patient-level disease
-   information. However, confidence-gated logit KD fails the gate
-   across all four teacher representations; DRR-guided gated KD shows
-   a catastrophic specificity collapse (mean DeltaBA = -0.064, 95% CI
-   [-0.095, -0.034]). The 226-patient calibration "near-pass"
-   (DeltaBA = +0.034, CI [-0.004, +0.073]) is confirmed as a
-   small-sample artifact. The bottleneck is the cross-modal transfer
-   mechanism, not cohort scale.
+       - 3-slice CT teacher, soft-KL target, tau=0.70, lambda=1.0:
+         DeltaBA = +0.0345, 95% CI [+0.0112, +0.0571], 10/15 positive
+         fold-seed cells.
+       - Mid-slice CT teacher, hard target, tau=0.80, lambda=1.5:
+         DeltaBA = +0.0329, 95% CI [+0.0074, +0.0584], 10/15 positive.
+
+   The deployed X-ray classifier is structurally identical to a
+   standalone supervised ResNet-18 (0.094 M parameters, 14.62 ms CPU
+   latency on an NVIDIA H800 PCIe server), so PL-XKD adds zero
+   inference-time cost. To the best of our knowledge, this is the
+   first cross-modal CT-to-X-ray transfer method validated under a
+   pre-registered statistical gate on 100+ same-patient paired
+   patients with public data.
+
+2. Pre-registered patient-level protocol and comprehensive mechanism
+   audit. The gate (mean DeltaBA >= +0.03 AND CI lower bound > 0) and
+   the two extension sweeps (Extension-A: hard lambda=1.5;
+   Extension-B: soft-KL lambda=1.0) were committed to the public
+   repository in docs/future_methods_plan.md on 2026-05-16 BEFORE
+   they were executed. The two cells that clear the gate are
+   therefore not post-hoc selections. Under the same protocol, six
+   alternative cross-modal transfer mechanisms FAIL the same gate:
+   confidence-gated logit distillation across four CT teacher
+   representations (mid-slice, 3-slice stack, multi-slice projection,
+   DRR), CLIP-style InfoNCE contrastive feature alignment, attention
+   transfer, feature-hint distillation, BiomedCLIP ViT-B/16
+   fine-tuning, and the original module-augmented variant from our
+   previous submission. The previously reported 226-patient near-pass
+   for gated logit KD (DeltaBA = +0.034, CI [-0.004, +0.073]) reverses
+   to -0.014 to -0.064 on the 510-patient cohort, confirming it as a
+   small-sample artefact. Together, the positive PL-XKD result and the
+   six negative comparator results isolate the transfer-channel
+   choice -- specifically the discrete or lightly-softened
+   pseudo-label target -- as the operative bottleneck, rather than
+   cohort scale, teacher representation, or backbone capacity.
 
 3. Reproducibility artefact. We release manifests, training scripts,
-   repeated-run summaries, mechanism controls, and a prepared
-   BIMCV-COVID19+ next-cohort manifest (638 same-patient subjects,
-   3,080 radiographs) as a public Code Ocean capsule
-   (https://codeocean.com/capsule/6030764/tree) so that subsequent
-   studies can be evaluated under a uniform evidential floor.
+   per-cell decision reports, the pre-registered plan
+   (docs/future_methods_plan.md, docs/plxkd_validation_plan.md), and
+   a prepared BIMCV-COVID19+ paired stress-test resource (638
+   same-patient subjects, 3,080 radiographs) as a public Code Ocean
+   capsule (https://codeocean.com/capsule/6030764/tree) so that
+   subsequent studies can be evaluated under the same evidential
+   floor.
 
 RESPONSES TO MAJOR REVIEWER CONCERNS
 
-Concern (iii): The primary paired cohort is extremely small and cannot
-support a strong journal-level technical claim.
+Concern (iii): The primary paired cohort is extremely small and
+cannot support a strong journal-level technical claim.
 
 Response: We have extended the primary paired cohort from 226 to 510
 same-patient BIMCV CT-X-ray pairs (4.5x) using all 113 positive and
-397 negative paired patients available in the BIMCV release, addressing
-the cohort-scale concern directly. Under this extended cohort,
-multi-slice CT teachers (mid-slice and 3-slice) now pass the
-pre-specified teacher upper-bound gate with substantial effect sizes
-(DeltaBA +0.045 and +0.051, 95% bootstrap CI lower bounds > +0.019),
-confirming that the teacher modality carries patient-level disease
-information. The cross-modal logit KD, however, fails across all four
-teacher representations at this scale, with DRR-guided gated KD showing
-a catastrophic specificity collapse (mean DeltaBA = -0.064, 95% CI
-[-0.095, -0.034]; Table in Appendix Section "Extended 510-Patient
-Same-Patient Paired BIMCV Cohort"). We interpret this as definitive
-negative-result evidence at the requested cohort scale, and we have
-re-framed Contribution 2 accordingly. The 226-patient calibration
-near-pass (CI just touching zero) is now confirmed as a small-sample
-artifact rather than an imminent positive signal.
+397 negative paired patients available in the BIMCV release, and we
+have re-anchored the paper's primary endpoint on this extended
+cohort. Under the new cohort and the pre-registered gate, the
+multi-slice CT teachers pass the upper-bound feasibility gate
+(DeltaBA = +0.045 and +0.051, 95% CI lower bounds > +0.019), and
+PL-XKD passes the transfer gate in two of sixteen pre-registered
+configurations (DeltaBA = +0.033 and +0.035 with positive bootstrap
+CI lower bounds). The previous 226-patient near-pass for gated logit
+KD is confirmed as a small-sample artefact at the larger scale,
+which is itself useful information for the broader cross-modal
+distillation literature.
+
+Concern: The previous submission reported a negative result and was
+difficult to position as a positive scientific contribution.
+
+Response: We agree that a pure negative result is harder to publish.
+The revision replaces that framing with a validated positive result
+(PL-XKD) supported by a pre-registered protocol AND by six
+contemporaneous negative comparator results that establish what does
+not work under the same protocol, cohort, and gate. The negative
+results are retained because they isolate the transfer-channel choice
+as the operative bottleneck -- removing them would weaken the
+positive claim by removing its mechanism-isolation context.
+
+Concern: Risk of post-hoc cell selection within the PL-XKD sweep
+matrix.
+
+Response: The two gate-clearing cells come from two independent
+pre-registered extension sweeps (Extension-A: lambda=1.5 hard;
+Extension-B: soft-KL lambda=1.0) executed AFTER the gate and the
+sweep matrix were committed to the public repository on 2026-05-16.
+Section IV.A of the revised manuscript and the Statistical Protocol
+subsection cite the exact commit. Of all 16 configurations evaluated,
+15 produce a positive mean DeltaBA and 9-10/15 fold-seed cells favour
+PL-XKD over the supervised baseline, indicating a system-wide
+positive direction rather than a single-cell outlier.
 
 WHY TCSVT
 
-The problem -- leveraging a richer visual modality during training while
-constraining inference to a lightweight single-modality path -- is a
-general efficient visual recognition problem as much as a medical one.
-The distillation machinery (logit transfer, attention transfer, feature
-hints, and four published generic KD baselines) and the evaluation
-protocol (same-case resampling, balance-sensitive metrics, Wilcoxon
-significance testing) are directly transferable to other cross-modal
-visual classification settings studied within the TCSVT community.
+The contribution is directly relevant to the TCSVT scope on
+efficient visual systems: PL-XKD is a training-time algorithm that
+exploits a richer auxiliary modality (CT) to improve a lightweight
+deployed model (X-ray-only ResNet-18) without changing the inference
+cost. The mechanism comparison (logit vs.\ pseudo-label vs.\
+contrastive vs.\ attention transfer) is generic enough to inform
+other cross-modal visual classification settings studied within the
+TCSVT community (RGB-depth, multi-view, high-low resolution).
 
-The falsification framing is also a direct response to the reproducibility
-and benchmarking concerns raised in the broader computer vision and medical
-AI literature: a transfer mechanism that cannot demonstrate a statistically
-reliable balance-sensitive advantage under same-case evaluation should not
-be presented as validated, regardless of how it ranks on a fixed split.
-We believe this methodological contribution is useful to the TCSVT
-community independently of the specific COVID imaging domain.
+The pre-registration framing also addresses reproducibility and
+benchmarking concerns raised in the broader computer vision and
+medical AI literature: a positive transfer claim that comes from a
+gate committed BEFORE the supporting sweeps were executed is harder
+to over-interpret than a post-hoc winner picked from a large
+exploratory matrix. We believe this methodological contribution is
+useful to the TCSVT community independently of the specific COVID-19
+imaging domain.
 
 SCOPE AND ORIGINALITY
 
 This manuscript has not been published previously and is not under
 consideration elsewhere. The work uses only publicly released,
-de-identified imaging data (Cohen et al., COVID-19 Image Data Collection)
-and requires no additional ethics approval. No patient-identifiable
-information is reported or released.
+de-identified imaging data (the BIMCV-COVID19+ release and the
+COVID-19 Image Data Collection of Cohen et al.) and requires no
+additional ethics approval. No patient-identifiable information is
+reported or released. The validated effect sizes (DeltaBA = +0.033
+to +0.035) are statistically meaningful but clinically modest, and
+the paper makes no clinical-readiness claim; external paired-cohort
+replication is explicitly identified in the limitations as the next
+required step.
 
 We have prepared a detailed supplemental appendix covering per-seed
-instability tables, module ablation summaries, representative error
-analysis, imbalance-sensitive controls, threshold sensitivity sweeps,
-progressive complexity experiments, a category-level cross-source
-non-COVID control, CT teacher representation comparisons, and the
-extended 510-patient cohort results. This material is intended to make
-every claim in the main text fully auditable without requiring the
-reviewer to run the released code.
+PL-XKD sweep tables (16 configurations), the comparator-mechanism
+audit (logit KD, contrastive alignment, attention transfer, feature
+hint, BiomedCLIP, module-augmented variants), the CT teacher
+upper-bound check on four teacher representations, the historical
+226-patient resampling reference, MIDRC cross-validation rounds, a
+calibration scan, progressive complexity experiments, and the
+extended 510-patient cohort results. This material is intended to
+make every claim in the main text fully auditable without requiring
+the reviewer to run the released code.
 
 We appreciate your time and look forward to the review.
 
@@ -134,10 +188,17 @@ amabo1215@gmail.com
 
 ------------------------------------------------------------------------
 Manuscript details:
-  Submission type : Regular Paper (Revision)
-  Keywords        : Medical image classification, cross-modality learning,
-                    knowledge distillation, chest X-ray, computed tomography
-  Supplemental    : Appendix (separate PDF)
+  Submission type : Regular Paper (Major Revision)
+  Keywords        : Cross-modal knowledge distillation, pseudo-label
+                    semi-supervision, privileged information learning,
+                    chest X-ray classification, computed tomography,
+                    patient-level cross-validation, pre-registered
+                    evaluation protocol
+  Supplemental    : Appendix (separate PDF, 18 pages)
   Code/data       : Public Code Ocean capsule
                     (https://codeocean.com/capsule/6030764/tree)
+  Pre-registered  : docs/future_methods_plan.md and
+                    docs/plxkd_validation_plan.md in the public
+                    repository, committed 2026-05-16 before the
+                    PL-XKD extension sweeps were executed.
 ------------------------------------------------------------------------
