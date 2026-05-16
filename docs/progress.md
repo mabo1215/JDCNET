@@ -70,27 +70,29 @@
 
 - **2026-05-16 Method 1 (Cross-Modal Contrastive Alignment) 已完成，全部 4 cells FAIL**：在 `docs/future_methods_plan.md` 计划的 Method 1 上，新增 `src/jdcnet_exp/train_contrastive.py`（两阶段：Stage 1 InfoNCE 对 paired (X-ray, CT) 预训练 ResNet-18 双编码器 + 投影头；Stage 2 weighted-CE 微调 X-ray 编码器 + 分类头），以及 `src/ops/remote_3090_bimcv_contrastive_cv.sh` 与 `remote_3090_bimcv_contrastive_summarize.sh`。3090 远端跑 60 runs（teachers={mid, 3slice} × temperatures={0.07, 0.20} × 5 folds × 3 seeds，GPU 2/3 并行 4 concurrent；约 28 min 完成 60/60，0 failures）。结果拉回 `src/results/bimcv_contrastive_cv_3090_20260516/`。所有 4 cells 均未通过 pre-specified gate（mean ΔBA ≥ +0.03 且 CI lower > 0）：最好的 cell 是 3slice tau=0.20，ΔBA=+0.008 [-0.020, +0.037]，7/15 positive。结论：feature-space contrastive alignment 在 510-patient 规模下未把 CT teacher upper-bound 信号转化为 X-ray 学生的可验证增益。
 
+- **2026-05-17 方法重命名 PL-XKD → CG-XKD（Confidence-Gated Cross-Modal Distillation）**：根据用户对"Pseudo-Label"潜在 reviewer 误读（中文"伪标签"似伪造、英文 pseudo 似不真实）的担忧，将主方法重命名为 Confidence-Gated Cross-Modal Distillation (CG-XKD)，使用"confidence-gated"作为机制描述符（已在被引文献 wu2023krd、amara2022bdkd 中确立）。所有 paper（`paper/main.tex` 标题、abstract、contributions、methodology Section 3.3、appendix tab+section）、figure（`paper/figs/cgxkd_mechanism.png` 重新生成，diagram 中"CG-XKD loss"标签）、cover letter（`docs/cover_letter.txt` 全文重写）、validation plan（重命名 `docs/plxkd_validation_plan.md` → `docs/cgxkd_validation_plan.md`）均已同步。math 中 τ_pseudo → τ_gate，L_pseudo → L_aux 也已替换。Labels 已重命名 (sec:plxkd → sec:cgxkd, tab:pseudolabel_510 → tab:cgxkd_510, fig:plxkd_mechanism → fig:cgxkd_mechanism)。代码路径如 `src/jdcnet_exp/train_pseudolabel.py` 与 `src/results/bimcv_pseudolabel_*` 因牵涉运行历史保留旧名，不在本次重命名内。Build 验证：30 pages（main 12 + appendix 18）。
+
 - **2026-05-16 Method 2 (CT Pseudo-Label Semi-Supervised) 三轮扫描完成，VALIDATED (2/16 cells pass)**：新增 `src/jdcnet_exp/train_pseudolabel.py` 及配套 ops 脚本，共 240 runs 跨三阶段（initial 120 + Extension A λ=1.5 hard 60 + Extension B soft-KL λ=1.0 60）在 3090 GPU 2/3 运行。结果分别拉回 `src/results/bimcv_pseudolabel_cv_3090_20260516/`、`bimcv_pseudolabel_lam15_3090_20260516/`、`bimcv_pseudolabel_soft_3090_20260516/`。**两个 cells 通过 pre-specified gate（mean ΔBA ≥ +0.03 AND CI lower > 0）**：
   - `3slice τ=0.70 λ=1.00 (soft-KL)`：ΔBA=+0.0345 [+0.0112, +0.0571]，10/15 positive — **PASS** ✓
   - `mid τ=0.80 λ=1.50 (hard)`：ΔBA=+0.0329 [+0.0074, +0.0584]，10/15 positive — **PASS** ✓
   15/16 configurations 为正 mean ΔBA。学生约恢复了 Stage A 教师上界 ~2/3 的 head-room（teacher upper-bound: mid +0.045, 3slice +0.051）。**结论：Method 2 VALIDATED，Methods 3–5 不需要。** `paper/appendix.tex` pseudolabel 小节已更新为 16-row 全结果表，gate verdict 改为 VALIDATED。`docs/future_methods_plan.md` 已更新状态。
 
-- **2026-05-16 论文综合重构为 PL-XKD validation 框架**：根据用户决策（"找到有效路径就修改原有框架"），把 paper 从 evidence-bounded negative audit 反转为 PL-XKD 验证型论文。
-  - **新计划文件**：`docs/plxkd_validation_plan.md` 综合记录策略转向、风险、逐步实施。
+- **2026-05-16 论文综合重构为 CG-XKD validation 框架**：根据用户决策（"找到有效路径就修改原有框架"），把 paper 从 evidence-bounded negative audit 反转为 CG-XKD 验证型论文。
+  - **新计划文件**：`docs/cgxkd_validation_plan.md` 综合记录策略转向、风险、逐步实施。
   - **Paper 主要修改**（`paper/main.tex`）：
-    - 标题：`Cross-Modal Pseudo-Label Distillation for CT-to-X-ray Disease Classification: A Pre-Registered Validation Study`
-    - Abstract：以 PL-XKD 为主，列两个 PASS cells 的 ΔBA，6 个 comparator 全部 FAIL
-    - Contributions：4 条，PL-XKD validated architecture 为 #1，pre-registered protocol 为 #2，comprehensive mechanism comparison 为 #3
-    - Methodology Section 3.3：新增 PL-XKD 数学定义（confidence mask M、hard CE 和 soft-KL 两个 variant、Eq. 2/3）和机制解释
+    - 标题：`Confidence-Gated Cross-Modal Distillation for CT-to-X-ray Disease Classification: A Pre-Registered Validation Study`
+    - Abstract：以 CG-XKD 为主，列两个 PASS cells 的 ΔBA，6 个 comparator 全部 FAIL
+    - Contributions：4 条，CG-XKD validated architecture 为 #1，pre-registered protocol 为 #2，comprehensive mechanism comparison 为 #3
+    - Methodology Section 3.3：新增 CG-XKD 数学定义（confidence mask M、hard CE 和 soft-KL 两个 variant、Eq. 2/3）和机制解释
     - Methodology Section 3.4 (renamed from Pilot Scaffold)：legacy JDCNet 降级为 Comparator Mechanisms
-    - Hypotheses：从 H1-H5 改为 H0-H5，H1=PL-XKD validated transfer, H4=mechanism-channel isolation
-    - Experiments §4.5：renamed `PL-XKD Validation under the Pre-Registered Statistical Gate`，含 Tier 1 (PL-XKD headline) / Tier 2 (Comparator audit) / Tier 3 (Teacher upper-bound) 三个 subsubsection
+    - Hypotheses：从 H1-H5 改为 H0-H5，H1=CG-XKD validated transfer, H4=mechanism-channel isolation
+    - Experiments §4.5：renamed `CG-XKD Validation under the Pre-Registered Statistical Gate`，含 Tier 1 (CG-XKD headline) / Tier 2 (Comparator audit) / Tier 3 (Teacher upper-bound) 三个 subsubsection
     - Experiments §4.6：新增 `Historical Feasibility Reference: 226-Patient Resampling`，把原 primary 表降为历史参考
-    - Deployment Efficiency：强调 PL-XKD 零部署成本，与 supervised baseline 完全相同
+    - Deployment Efficiency：强调 CG-XKD 零部署成本，与 supervised baseline 完全相同
     - Limitations：从 negative-result 风格改为 validated-method 风格（单 cohort、二分类任务、ResNet18 backbone 等限制）
-    - Conclusion：完全重写，以 PL-XKD validated 为主，6 个 comparators 全部 fail 为辅
+    - Conclusion：完全重写，以 CG-XKD validated 为主，6 个 comparators 全部 fail 为辅
   - **构建状态**：`paper/main.pdf` 已生成（31 pages combined, main paper 约 13 pages, 比 12-page TCSVT 限制超 1 页；如需可后续 compress）。Cross-reference 警告仅 1359 行需要再跑一次 xr 重建。
-  - **未做**：架构图（PL-XKD mechanism diagram）暂未新增；如需 figures 可后续单独迭代。Cover letter 暂未重写。
+  - **未做**：架构图（CG-XKD mechanism diagram）暂未新增；如需 figures 可后续单独迭代。Cover letter 暂未重写。
 
 - **2026-05-16 遗留区清理完成**：已核对旧的 Stage A 写入论文条目：`paper/main.tex` 已包含 Extended BIMCV paired 510-patient 数据集行、4.5× cohort scaling test 段落、contribution 与 limitations 更新；`paper/appendix.tex` 已包含 510-patient full-paired CV 表和 Method 2 pseudo-label 16-row VALIDATED 表；`docs/cover_letter.txt` 已包含 reviewer (iii) 的 510-patient 扩容回应；`paper/main.pdf` 与 `paper/appendix.pdf` 已存在。旧的 caption 压缩项属于最终投稿排版优化，不需要作者决策，因此不再放在“遗留问题”区。
 
