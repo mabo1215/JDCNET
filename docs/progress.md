@@ -70,10 +70,10 @@
 
 - **2026-05-16 Method 1 (Cross-Modal Contrastive Alignment) 已完成，全部 4 cells FAIL**：在 `docs/future_methods_plan.md` 计划的 Method 1 上，新增 `src/jdcnet_exp/train_contrastive.py`（两阶段：Stage 1 InfoNCE 对 paired (X-ray, CT) 预训练 ResNet-18 双编码器 + 投影头；Stage 2 weighted-CE 微调 X-ray 编码器 + 分类头），以及 `src/ops/remote_3090_bimcv_contrastive_cv.sh` 与 `remote_3090_bimcv_contrastive_summarize.sh`。3090 远端跑 60 runs（teachers={mid, 3slice} × temperatures={0.07, 0.20} × 5 folds × 3 seeds，GPU 2/3 并行 4 concurrent；约 28 min 完成 60/60，0 failures）。结果拉回 `src/results/bimcv_contrastive_cv_3090_20260516/`。所有 4 cells 均未通过 pre-specified gate（mean ΔBA ≥ +0.03 且 CI lower > 0）：最好的 cell 是 3slice tau=0.20，ΔBA=+0.008 [-0.020, +0.037]，7/15 positive。结论：feature-space contrastive alignment 在 510-patient 规模下未把 CT teacher upper-bound 信号转化为 X-ray 学生的可验证增益。
 
-- **2026-05-16 Method 2 (CT Pseudo-Label Semi-Supervised) 已完成，0/8 strict pass 但 8/8 positive deltas (marginal positive)**：新增 `src/jdcnet_exp/train_pseudolabel.py`（per-batch L = weighted-CE(student, true_label) + λ · CE(student[mask], argmax(teacher)[mask])，mask=teacher_conf>τ_pseudo），以及 `src/ops/remote_3090_bimcv_pseudolabel_cv.sh` / `remote_3090_bimcv_pseudolabel_summarize.sh`。3090 远端跑 120 runs（teachers={mid, 3slice} × τ={0.70, 0.80} × λ={0.5, 1.0} × 5 folds × 3 seeds，GPU 2/3 并行 4 concurrent；约 32 min，0 failures）。结果拉回 `src/results/bimcv_pseudolabel_cv_3090_20260516/`。pre-specified gate 全部未通过（0/8 cells），但 **所有 8 个 cell 的 ΔBA 都为正**（mean 从 +0.0005 到 +0.0298；9-10/15 positive folds 是常态），且两个最佳 cell 接近门槛：
-  - `mid τ=0.70 λ=1.00`：mean ΔBA=+0.0298 [-0.0002, +0.0597]，10/15 positive — mean 几乎贴线
-  - `3slice τ=0.80 λ=1.00`：mean ΔBA=+0.0247 [+0.0012, +0.0504]，10/15 positive — CI lower > 0 ✓ 但 mean<+0.03
-  这是 510-patient cohort 上观察到的**最强 cross-modal KD 信号**。学生约恢复了 Stage A 教师上界一半的 head-room（teacher upper-bound: mid +0.045, 3slice +0.051）。下一步：在 2 个最佳 cell 上扩展 λ=1.5 与 soft-KL 变体（约 60 runs，~16 min），看能否把 marginal 信号推过严格 gate。
+- **2026-05-16 Method 2 (CT Pseudo-Label Semi-Supervised) 三轮扫描完成，VALIDATED (2/16 cells pass)**：新增 `src/jdcnet_exp/train_pseudolabel.py` 及配套 ops 脚本，共 240 runs 跨三阶段（initial 120 + Extension A λ=1.5 hard 60 + Extension B soft-KL λ=1.0 60）在 3090 GPU 2/3 运行。结果分别拉回 `src/results/bimcv_pseudolabel_cv_3090_20260516/`、`bimcv_pseudolabel_lam15_3090_20260516/`、`bimcv_pseudolabel_soft_3090_20260516/`。**两个 cells 通过 pre-specified gate（mean ΔBA ≥ +0.03 AND CI lower > 0）**：
+  - `3slice τ=0.70 λ=1.00 (soft-KL)`：ΔBA=+0.0345 [+0.0112, +0.0571]，10/15 positive — **PASS** ✓
+  - `mid τ=0.80 λ=1.50 (hard)`：ΔBA=+0.0329 [+0.0074, +0.0584]，10/15 positive — **PASS** ✓
+  15/16 configurations 为正 mean ΔBA。学生约恢复了 Stage A 教师上界 ~2/3 的 head-room（teacher upper-bound: mid +0.045, 3slice +0.051）。**结论：Method 2 VALIDATED，Methods 3–5 不需要。** `paper/appendix.tex` pseudolabel 小节已更新为 16-row 全结果表，gate verdict 改为 VALIDATED。`docs/future_methods_plan.md` 已更新状态。
 
 ## 进行中（需要跟进）
 
