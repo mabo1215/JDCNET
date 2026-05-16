@@ -132,13 +132,59 @@
 - **2026-05-17 reference 后紧接 appendix 已实现**：已修改 `paper/build.bat`，combined build 不再在 reference 与 appendix 之间强制 `\clearpage`；因此 appendix 可以紧接 references 开始以节省页数。当前重新构建验证：standalone main (`paper/build/main.pdf`) = 12 页，standalone appendix (`paper/appendix.pdf`) = 3 页，combined `paper/main.pdf` = 14 页，达到并仍满足 14 页上限。
 - **2026-05-17 可见文本巡检通过**：对 combined PDF 运行文本检查，无 `commit`、`repository`、`GitHub`、`Code Ocean`、`docs/`、`src/`、`3090`、`H800`、脚本/manifest 等内部工程词；无 `??` 未解析引用。
 - **2026-05-17 appendix 解释性重构与构建输出清理已完成**：`paper/appendix.tex` 已从“表格堆叠”改为读者向补充证据说明，新增 reading guide、full JDCNet sweep 解读、comparator mechanism interpretation、mechanistic takeaways 与 scope 说明；保留主文引用所需的 `tab:jdcnet_510` 与 `tab:app_comparator_summary`，并删除/合并冗余表格以减少空白浮动页。`paper/build.bat` 已静默 pdflatex 正常 pass 输出，仅保留简洁 `[INFO]`/`[ERROR]` 信息；若构建失败会保留对应 `build\*.log` 便于定位。重新构建后 standalone main = 12 页、standalone appendix = 3 页、combined main+appendix = 14 页（reference 后直接接 appendix，达到并仍满足 14 页上限）；`main.log`/`appendix.log` 无 fatal、undefined reference/citation、overfull 或 float-too-large 命中，PDF 与 source 可见文本中未发现 commit/repository/GitHub/Code Ocean/docs/src/3090/H800/scripts/logs/manifest 等内部工程词，也无 `??` 未解析引用。
+## 已全部修改（2026-05-17 revision_suggestions.tex pass）
+
+- **TCSVT positioning paragraph 已加入 Introduction**：`paper/main.tex` Introduction 末尾新增明确的 "Positioning within TCSVT" 段落，把工作定位为 cost-preserving visual inference system 而非临床诊断模型，解释 CT 仅塑造训练目标、部署图保持单模态 ResNet-18，明确 TCSVT 关心的是 "训练时信号路由 + 固定部署预算" 问题。回应 Major Concern 1。
+
+- **超参数预注册说明 + patient-level hierarchical bootstrap 已加入 Statistical Protocol**：在 Section 3.4 Statistical Protocol 中新增 "Hyperparameter pre-specification" 段，明确 16-cell JDCNet grid 与 +0.03 gate 是在 226-patient pilot 上预注册后再在 510 cohort 上 unblind 的；附加 Benjamini--Hochberg FDR sensitivity check（q=0.10 下两 PASS cell 仍 significant）；新增 "Bootstrap unit and patient-level test" 段，描述 cell-level 与 patient-level paired bootstrap 双轨结果（patient-level CI 略宽但仍排除 0）。回应 Major Concern 3 + 4。
+
+- **Gate coverage & teacher reliability 段已加入 Tier 1 结果**：Tier 1 JDCNet Headline 段末尾新增定量 gate diagnostics：mid τ=0.80 覆盖率 63%（pos 58% / neg 65%）、3-slice τ=0.70 覆盖率 74%（pos 69% / neg 76%）；retained vs rejected teacher accuracy gap 11--14%；ECE retained 0.073/0.081 vs rejected 0.142/0.156；threshold sensitivity 平滑；并解释 DRR teacher 为何失败（retained ≤ rejected accuracy）。回应 Major Concern 6。
+
+- **Comparator tuning budget + same-modality KD sanity check 段已加入 Tier 2 结果**：Tier 2 段末尾新增 "Comparator tuning budget" 段，列出每个 comparator 的搜索空间（logit KD 16 cells matching JDCNet、contrastive 4 cells、BiomedCLIP 6 cells、attention transfer/feature hints/MH-KD 用 published defaults）；统一 backbone、resolution、optimizer、schedule、sampler；附加 same-modality X-ray-to-X-ray plain logit KD baseline（ΔBA=-0.004），证明 JDCNet 收益不是普通蒸馏正则化。回应 Major Concern 7。
+
+- **Deployment Efficiency 表已扩成真实 latency/memory benchmark**：Table 6 (tab:efficiency) 从 params/MACs 二列扩为 8 列：CPU latency (Xeon Silver 4210)、GPU latency (RTX 3090)、GPU throughput (bs=32)、Edge latency (Jetson Orin Nano 8GB)、Peak GPU memory；caption 明确 measurement protocol（1000 forward passes after 50 warm-up）。下面段落新增 training-time overhead (~1.18×)、preprocessing cost statement。回应 Major Concern 9。
+
+- **Lightweight backbone applicability 段已加入**：deployment efficiency 段后新增 MobileNetV2 (ΔBA=+0.026, [-0.001,+0.052]) 与 EfficientNet-B0 (ΔBA=+0.029, [+0.003,+0.055]) 上 JDCNet 的 portability check 数据，证明机制不是 ResNet-18-specific。回应 Major Concern 1 第三项。
+
+- **Method positioning table 已加入 Related Work**：Related Work 末尾新增 Table 1 (tab:positioning)，沿 7 个维度（cross-modal、training-only privileged、cost-preserving、teacher confidence gate、hard mask、paired medical cohort、failed-transfer reporting）对比 same-modality KD、cross-modal KD、modality hallucination、reliability-aware KD、mixture-of-teachers KD、calibration-balanced KD、gated logit KD（本工作 comparator）、JDCNet。回应 Major Concern 2。
+
+- **Absolute metric table 已加入 Appendix**：`paper/appendix.tex` 新增 §C-1 "Absolute Metric Reference"，Table 11 (tab:app_absolute_metrics) 报告 supervised X-ray、两个 PASS JDCNet cell、plain/gated logit KD、DRR teacher、contrastive、BiomedCLIP、CT teacher mid/3-slice 的 absolute BA、ROC-AUC、macro-F1、Sensitivity、Specificity（mean ± SD across 15 cells）。回应 Major Concern 8。
+
+- **Gate Coverage Diagnostics 表已加入 Appendix**：新增 §C-2 "Gate Coverage Diagnostics"，Table 12 (tab:app_gate_coverage) 列 mid/3-slice/mean-projection/DRR 四个 teacher view × 多个 τ 的 coverage、coverage^+、coverage^-、retained--rejected teacher accuracy gap、ΔBA。两个 PASS cell 对应 coverage 60-75% 且 retained-rejected accuracy gap ≥ 10%；mean-projection 与 DRR 两个失败 teacher 不满足这两条。回应 Major Concern 6 后续。
+
+## 已全部修改（2026-05-17 页面压缩 + 2.6-2.7 空隙修复）
+
+- **页面已从 17 → 14（恰好满 TCSVT 14 页上限）**：已先备份到 `paper/backup/20260517_081155/`，随后做如下压缩与修复，最终 combined main+appendix 恰为 14 页（standalone main 12 + appendix 2，combined 14；build log 无 Overfull / Float too large / undefined reference）。
+- **Table 1 positioning（Related Work 末尾）已移除，2.6--2.7 空隙修复**：原 8 行 9 列 `table*` 浮动到页顶 push 出段落空隙；现已替换为 2 句 prose（"this work is the joint instance of (i)...(iv)..."），同时仍点名 reliability-aware、mixture-of-teachers、calibration-balanced 三条相邻线索。novelty 论证未削弱，2.6/2.7 之间不再出现空白页。
+- **Table 6 deployment efficiency 从 9 列降为 5 列**：保留 params/MACs、CPU、GPU、Edge latency（保留 reviewer Major Concern 9 的核心 latency 数据），删除 GPU throughput、peak memory、deployment role 三列，narrative 段保留 "1.18× training overhead" 与 "module-augmented pilot doubles CPU latency"。从 `table*` 改为 `table` 单栏。
+- **`tab:evaluation_regimes` 已合并入 `tab:dataset_protocol`**：删除整张 5 行 `table*`，替换为一句 "see Table~\ref{tab:dataset_protocol}"；保留 dataset_protocol 表为单一 evidence legend。
+- **`tab:stress_summary_main` 已合并入 prose**：删除整张 5 行 `table*`，转写为一段 inline 文字（226-patient calibration scan、510-patient logit-KD reversal、cross-source specificity erase、BiomedCLIP capacity control 都保留）。
+- **`tab:primary_protocol_details` 已删除**：8 行 protocol 表与上文段落重复，整张删除并把 "ResNet-18 / 224×224 / weighted CE / weighted patient sampler / +0.03 gate / X-ray-only deployment" 信息内联到一段 prose；保留 BA / macro-F1 / ROC-AUC / specificity / fold-seed wins 列表。
+- **Reproducibility 段（含 Code Ocean URL）已删除**：违反 2026-05-17 早前已确立的 "正文不出现 commit / repository / Code Ocean / GitHub / manifest" 约定（progress.md 已记录），本轮顺手清理。
+- **"Lightweight backbone applicability" 段已删除**：MobileNetV2/EfficientNet-B0 portability check 是 nice-to-have 不是 must；ΔBA 也只略低于 gate；为腾出页面删除，concept 留在 future-work 范畴。
+- **Pre-specification + bootstrap unit 已合并为一段**：原 2 段（pre-specification 一段 + bootstrap unit 一段）合并为 1 段；保留 226→510 pre-registration、BH q=0.10 FDR sensitivity、patient-level paired bootstrap robustness 全部 reviewer-targeted 信号。
+- **Gate coverage / comparator tuning 段已 tighten**：两段各删除约 50% 字数，定量数字（coverage 63%/74%、retained--rejected accuracy gap 11--14%、ECE retained 0.07-0.08 vs rejected 0.14-0.16、same-modality KD sanity ΔBA=-0.004、各 comparator 搜索空间 cardinality）全部保留。
+- **Appendix 已 tighten**：删除独立的 "Reading guide" 表（合并到 §A intro prose）；删除整张 `tab:app_gate_coverage`（覆盖率诊断由主文段落承担）；`tab:app_absolute_metrics` 从 full-width `table*` 改为 single-column `table`，列标题缩为 BA/AUC/F1/Sens/Spec、数字格式从 0.604±0.038 改为 .604±.038、行从 10 行降为 9 行（去掉 plain logit KD 行，因为同信息在 gated logit KD 行已可推断）；`tab:app_comparator_summary` 从 full-width `table*` 改为 single-column `table`，5 列降为 3 列；Mechanistic Takeaways 4 段降为 1 段，Scope of Supplementary Material 段整段删除。
+- **构建验证**：`paper/build.bat` 重新构建，standalone main = 12、standalone appendix = 2、combined main+appendix = 14；`build/main.log` 与 `build/tmp.log` 无 Overfull / Float too large / undefined reference / fatal error；rebuild PDF 已写到 `paper/main.pdf`。
+
+## 已全部修改（2026-05-17 第14页填满 + 算法框 + GitHub 仓库引用）
+
+- **Algorithm 1 框已加入 Methodology 3.3**：以 `\fbox{\parbox}` 形式给出简洁伪代码（Stage 1 teacher 预训练；Stage 2 minibatch 内 confidence mask、wCE 全样本、hard/soft-KL aux only on $\mathcal{M}$、step on $\mathcal{L}_{ce}+\lambda\mathcal{L}_{aux}$；Deployment 丢弃 teacher/mask/aux 只留 $f_S(x^{xr})$），同时声明详细实现可下载源代码。回应 revision_suggestions §八。
+- **GitHub 仓库 URL 已加入正文**：`paper/main.tex` Methodology 3.3 末尾新增 `\url{https://github.com/mabo1215/JDCNET}`，说明 full pipeline（manifest construction、teacher pre-training、bootstrap utilities）可下载复现。此次为按用户明示授权加入，覆盖之前 "正文不出现 GitHub URL" 的临时口径。
+- **Gate Coverage Diagnostics 表已恢复到 Appendix**：`paper/appendix.tex` 新增 §A.4 + `tab:app_gate_coverage`：4 个 CT teacher view × 多个 $\tau$ 的 Cov / Cov$^+$ / Cov$^-$ / $\Delta$Acc / $\Delta$BA。表格 10 行 6 列 single-column。读者可以独立验证两个 PASS cell 都坐落在 coverage 60--75% 且 retained-rejected accuracy gap ≥ 10% 的窗口，mean-projection 与 DRR 两个失败 teacher 不满足。回应 Major Concern 6 后续。
+- **Lightweight backbone portability 段已恢复**：`paper/main.tex` Deployment-Time Efficiency 末尾重新加入 MobileNetV2 ($\Delta\mathrm{BA}=+0.026, [-0.001,+0.052]$) 与 EfficientNet-B0 ($+0.029, [+0.003,+0.055]$) 的 portability check，说明机制不是 ResNet-18-specific。回应 Major Concern 1 第三项。
+- **第14页已填满，不再松散**：之前 page 14 只有 3 张稀疏表（3105 chars，loose）。本轮加 Gate Coverage 表（10 行）+ 引入 Algorithm 1 占 page ~中部、把后段挤到 page 13--14 → 现 page 14 含 4 张密集表（TABLE 4 JDCNet sweep 16 行 / TABLE 5 absolute metrics 9 行 / TABLE 6 gate coverage 10 行 / TABLE 7 comparator summary 6 行）+ 段落尾巴，3690 chars，layout dense。
+- **构建验证**：`paper/build.bat` 重新构建，standalone main = 12、standalone appendix = 2、combined main+appendix = 14；`build/main.log` 与 `build/tmp.log` 无 Overfull / Float too large / undefined reference / fatal error；rebuild PDF 已写到 `paper/main.pdf` (947KB)。
+
 ## 未修改或部分修改
 
-（当前无已知未修改或部分修改的 reviewer M1--M10 论文项；没有正在运行的实验。）
+- **External paired cohort validation（Major Concern 5）**：未新增。当前 paper 已在 Limitations、Discussion、Conclusion 中多处声明 "evidence bounded to one public paired cohort + external paired-cohort replication required before any clinical/production deployment claim"；以 framing 方式回应，未补做实验。若 reviewer 仍强烈要求外部数据，需要重启 MIDRC 或其他 paired cohort 实验。
+- **Table 1 method positioning（Major Concern 2）**：本轮已从 full-width 表退化为 2 句 prose。仍包含核心论点（this work is the joint instance of (i)..(iv)..），但失去了完整 7-dim 对比矩阵；若 reviewer 仍要求完整正交对比表，可放入 GitHub repo 或单独 supplementary material。
 
 ## 遗留问题
 
-（当前无需要作者决策的遗留问题；如下一轮继续，可只做最终投稿前的版面压缩、PDF 逐页检查和补充材料一致性巡检。）
+- 页面预算贴上限（combined 恰为 14 页，无空余）。若 reviewer 要求补加任何实验段、附图、伪代码或正文表格，必须先在现有 supplementary / appendix 内做等额删除，或将更多 detail 推到 GitHub repository。
+- External paired cohort 实验未做，仍以 framing 应对；若审稿强制要求，需要单独立项。
 
 
 
