@@ -1,293 +1,375 @@
-\documentclass[11pt]{article}
-\usepackage[a4paper,margin=1in]{geometry}
-\usepackage{enumitem}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{xcolor}
-\usepackage{hyperref}
+\section*{Review Report for IEEE Transactions on Circuits and Systems for Video Technology (TCSVT)}
 
-\title{Review Report for IEEE Transactions on Circuits and Systems for Video Technology}
-\author{}
-\date{}
+\subsection*{Overall Recommendation}
+\textbf{Recommendation: Major Revision before submission to TCSVT.}
 
-\begin{document}
-\maketitle
+The paper proposes JDCNet, a confidence-gated cross-modal distillation framework that uses CT teacher predictions as training-only auxiliary supervision for an X-ray-only student classifier. The central idea is potentially interesting for efficient visual inference because the deployment path uses only X-ray and therefore does not increase inference-time modality requirements. The manuscript also makes a serious effort to report patient-level cross-validation, matched baselines, mechanism-level ablations, bootstrap confidence intervals, and deployment-time efficiency.
 
-\section*{Manuscript}
-\textbf{Title:} Evidence-Bounded Evaluation of Cross-Modal CT-to-X-ray Knowledge Distillation under Paired-Cohort Constraints
+However, in its current form, the paper is not yet ready for IEEE TCSVT submission. The main concerns are: 
+(1) the manuscript is far beyond the TCSVT regular-paper length limit if the appendix is included in the submitted PDF; 
+(2) the TCSVT circuits/systems/video-technology motivation is still weaker than the medical-imaging narrative; 
+(3) there are severe internal inconsistencies in dataset descriptions, backbone definitions, parameter counts, and equation references; 
+(4) the claimed novelty and ``first'' statement require stronger positioning against cross-modal distillation, privileged information learning, modality hallucination, and medical foundation-model baselines; 
+(5) the empirical effect size is modest and the validation remains single-cohort, so the claims should be carefully bounded.
 
-\section*{Overall Recommendation}
-\textbf{Recommendation: Reject in the current form, but encourage a substantially revised resubmission.}
-
-The manuscript addresses an interesting and practically meaningful question: whether CT can serve as training-only privileged supervision for an X-ray-only deployed classifier under same-patient paired-cohort constraints. The paper is commendably cautious in its interpretation and provides extensive negative-result evidence, repeated patient-level resampling, imbalance-sensitive analysis, and reproducibility material. However, in its current form, the work is not yet suitable for IEEE Transactions on Circuits and Systems for Video Technology (TCSVT).
-
-The main reasons are: (i) the manuscript does not comply with TCSVT length and abstract requirements; (ii) the connection to the circuits-and-systems/video-technology scope is still weak; (iii) the primary paired cohort is extremely small and cannot support a strong journal-level technical claim; (iv) the proposed module stack is empirically not validated; and (v) the paper reads more like an exhaustive audit report or negative-result technical report than a focused TCSVT article with a clearly established technical contribution.
-
-A revised version could become publishable if it is reframed as a concise evidence-bounded visual-systems audit paper, reduced to the TCSVT page limit, strengthened with a clearer systems contribution, and supported by a cleaner primary experimental protocol.
-
-\section*{Reviewer Confidence}
-\textbf{Confidence: 4/5.}
-
-The review is based on the full manuscript, including the main text, appendix, experimental tables, and the stated TCSVT submission requirements.
-
-\section*{Summary of the Paper}
-The paper studies cross-modal knowledge distillation from CT to chest X-ray. The teacher uses CT during training, while the deployed student uses only X-ray at inference. The paper compares student-only X-ray learning, late fusion, same-modality distillation, plain cross-modal logit KD, attention transfer, feature hints, generic KD baselines, and a module-augmented variant referred to as Full JDCNet with DPE/MHRA/DFPN.
-
-The main result is largely negative. Plain cross-modal logit KD and attention transfer show the strongest directional behavior in the primary ten-resample paired-cohort experiment, but their paired advantage over supervised X-ray is not statistically significant. Full JDCNet does not improve over the stripped-down plain KD baseline. Larger BIMCV, MIDRC, DRR-teacher, and calibration follow-ups also fail to establish a statistically reliable cross-modal transfer advantage. The manuscript therefore positions itself as an evidence-bounded audit protocol and negative-result benchmark rather than a validated architecture paper.
-
-\section*{TCSVT Compliance Assessment}
+\subsection*{TCSVT Compliance Check}
 
 \begin{table}[h]
 \centering
-\small
+\caption{TCSVT-oriented compliance checklist.}
 \begin{tabular}{p{0.28\linewidth}p{0.62\linewidth}}
-\toprule
-\textbf{TCSVT Requirement / Expectation} & \textbf{Assessment} \\
-\midrule
-Scope fit & The topic involves image understanding and efficient visual inference, which can be related to TCSVT. However, the current paper is mainly framed as medical-image classification and evidence auditing. The circuits/systems/video-technology contribution is not yet sufficiently explicit. \\
-Page limit & The manuscript is approximately 31 pages, including a long appendix. This is far beyond the TCSVT Transactions Paper limit. This alone may lead to administrative rejection. \\
-Abstract & The abstract is over the recommended 150--200 word range and contains too many abbreviations and detailed numerical results. It should be shortened and made more self-contained. \\
-Technical contribution & The paper provides a useful audit protocol and negative-result benchmark, but it does not validate the named JDCNet architecture. For TCSVT, the systems contribution must be sharper. \\
-Figures and tables & Several figures and tables are dense and difficult to read in two-column format. The paper should reduce the number of main-text tables and move detailed stress tests to supplementary material. \\
-References & The related work is broad, but the paper should cite more directly relevant TCSVT/IEEE works on efficient visual systems, cross-modal learning, medical image/video analysis, and deployment-oriented visual inference. \\
-Reproducibility & The Code Ocean capsule and manifest-based reporting are strengths. However, exact data-preparation hashes, split identifiers, and executable reproduction commands should be made more prominent in the main paper. \\
-\bottomrule
+\hline
+\textbf{Item} & \textbf{Assessment and required action} \\
+\hline
+Scope & The paper has a possible systems angle because it studies training-only privileged modality transfer with no extra deployment cost. However, the current narrative is still closer to medical imaging than to TCSVT. Strengthen the circuits/systems angle through latency, memory, MACs, edge deployment, energy, and deployment constraints. \\
+Page limit & The current PDF is approximately 30 pages including appendix. For TCSVT, the main manuscript must be compressed to the regular-paper limit. Move most appendix material to supplementary material and keep the main text self-contained. \\
+Abstract length & The abstract is currently too long. Reduce it to 150--200 words and remove excessive numerical detail. \\
+Novelty statement & The manuscript states that JDCNet is the first validated CT-to-X-ray cross-modal transfer method under a pre-registered statistical gate. This should be softened unless the related-work search is exhaustive and independently verifiable. \\
+Experimental rigor & Patient-level CV and paired deltas are strengths. However, the reported gains are small and from a single paired cohort. External validation or stronger claim restriction is needed. \\
+Reproducibility & The public artifact is a strength, but the manuscript must provide commit hashes, immutable DOI/capsule identifier, exact manifest version, and scripts for reproducing the exact tables. \\
+\hline
 \end{tabular}
 \end{table}
 
-\section*{Strengths}
-\begin{enumerate}[label=\textbf{S\arabic*.},leftmargin=*]
-    \item \textbf{Important practical question.} The training-only CT supervision setting is practically meaningful because many deployment environments can only acquire or process X-ray at inference time.
+\subsection*{Summary of Strengths}
 
-    \item \textbf{Conservative and honest interpretation.} The paper does not overclaim a positive result. It clearly states that cross-modal KD is not statistically superior to supervised X-ray under the available paired-cohort scale.
-
-    \item \textbf{Good emphasis on patient-level evaluation.} The use of patient-level splits and same-case repeated resampling is appropriate and much stronger than image-level random splitting.
-
-    \item \textbf{Useful negative-result evidence.} The finding that added module complexity does not help is valuable, especially because many cross-modal distillation papers overstate architectural gains on small datasets.
-
-    \item \textbf{Reproducibility effort.} The release of manifests, repeated-run summaries, and a Code Ocean capsule is a strong point and aligns well with modern reproducibility expectations.
+\begin{enumerate}
+    \item \textbf{Clear deployment constraint.} The paper studies a practically meaningful setting: CT is available only during training, while inference must remain X-ray-only.
+    
+    \item \textbf{Cost-aware design.} The proposed confidence-gated auxiliary supervision is attractive because the teacher branch is removed at deployment, preserving the inference-time structure of the student model.
+    
+    \item \textbf{Better-than-usual evaluation discipline.} The use of patient-level cross-validation, matched supervised baselines, paired deltas, bootstrap confidence intervals, and explicit gate criteria is stronger than many small-cohort medical-imaging submissions.
+    
+    \item \textbf{Useful negative evidence.} The manuscript reports that several alternative mechanisms fail the same gate. This is scientifically useful and can support the claim that the transfer channel, not merely the teacher representation or backbone capacity, is critical.
+    
+    \item \textbf{Reproducibility orientation.} The paper repeatedly refers to manifests, scripts, decision reports, and a public artifact. This is a strong point for TCSVT if made immutable and easy to verify.
 \end{enumerate}
 
-\section*{Major Concerns}
+\subsection*{Major Concerns and Required Revisions}
 
-\subsection*{M1. The manuscript is far beyond the TCSVT page limit}
-The current PDF is approximately 31 pages. TCSVT Transactions Paper submissions are expected to be much shorter. The manuscript should be reduced to a focused 12--14 page journal article. The current appendix contains many post-hoc experiments, tables, and diagnostic analyses that should be moved to supplementary material or to the Code Ocean capsule.
+\subsubsection*{M1. The manuscript is not yet formatted as a TCSVT-ready regular paper}
 
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Reduce the main manuscript to the TCSVT page limit.
-    \item Keep only the essential main evidence: problem formulation, primary paired-cohort results, BIMCV/MIDRC summary, deployment efficiency, and final negative-result conclusion.
-    \item Move detailed per-seed results, calibration scans, threshold sweeps, DRR pilots, MIDRC fold tables, and power analyses to supplementary material.
-    \item Replace long narrative appendix sections with a compact reproducibility table and external capsule instructions.
+\textbf{Concern.}
+The submitted PDF contains the full appendix and reaches approximately 30 pages. This is not suitable as a TCSVT main manuscript. The abstract is also longer than the TCSVT recommended 150--200 word range.
+
+\textbf{Required revision.}
+Compress the main manuscript to a self-contained TCSVT paper and move extensive sweep tables, stress tests, and historical experiments to supplementary material.
+
+\textbf{Suggested main-paper structure.}
+\begin{enumerate}
+    \item Introduction: 1.5--2 pages.
+    \item Related Work: 1.5--2 pages.
+    \item Method: 2 pages.
+    \item Experimental Protocol: 1.5 pages.
+    \item Main Results: 3--4 pages.
+    \item Deployment Efficiency: 1 page.
+    \item Limitations and Conclusion: 1 page.
 \end{enumerate}
 
-\subsection*{M2. The TCSVT scope fit is not yet convincing}
-TCSVT is not primarily a medical imaging journal. The paper must more clearly explain its contribution to visual systems, efficient image/video understanding, and deployment-oriented inference. Currently, much of the manuscript reads as a medical AI evaluation paper. The visual-systems angle is mentioned, but it is not developed enough.
-
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Reframe the paper around \emph{training-only privileged modality learning for efficient visual deployment}.
-    \item Emphasize the X-ray-only inference path, latency, model size, and deployment constraints as central systems contributions.
-    \item Clarify why this is relevant to TCSVT beyond the medical application.
-    \item Add comparisons or discussion with TCSVT-relevant works on efficient visual recognition, cross-modal visual learning, multimodal compression/distillation, and deployment-oriented image/video analysis.
-\end{enumerate}
-
-\subsection*{M3. The abstract is too long and too detailed}
-The abstract is over the recommended length and contains many abbreviations and detailed numerical claims. It currently reads like a compressed results table rather than a concise journal abstract.
-
-\textbf{Required revision:}
-Shorten the abstract to 150--200 words, define only essential terms, and avoid excessive acronyms such as DPE/MHRA/DFPN, DRR, and Path-C unless they are central to the paper.
-
-\textbf{Suggested revised abstract:}
+\textbf{Suggested abstract replacement.}
 \begin{quote}
-We study whether chest computed tomography (CT) can provide training-only privileged supervision for an X-ray-only classifier under same-patient paired-cohort constraints. The goal is to test whether a richer auxiliary modality can improve a lightweight deployment path without requiring CT at inference. We compare supervised X-ray learning, late fusion, same-modality distillation, cross-modal logit distillation, attention transfer, feature-hint transfer, generic knowledge-distillation baselines, and a module-augmented variant. Under patient-level repeated resampling, cross-modal logit distillation and attention transfer show the strongest directional behavior, but their advantage over supervised X-ray is not statistically significant. The module-augmented variant underperforms the stripped-down control, and larger BIMCV/MIDRC stress tests do not establish a reliable cross-modal gain. These results do not validate a new architecture. Instead, they provide a reproducible evidence-bounded audit protocol showing that, at the current paired-cohort scale, CT-to-X-ray distillation remains effectively tied with supervised X-ray learning. The study highlights the need for larger same-patient cohorts and stronger transfer mechanisms before positive cross-modal claims can be considered reliable.
+\small
+We present JDCNet, a confidence-gated cross-modal distillation framework for training an X-ray classifier with CT supervision while preserving an X-ray-only deployment path. A CT teacher is used only during training; at inference, the deployed student receives only X-ray input and has the same parameter, MAC, and latency budget as the supervised X-ray baseline. JDCNet applies an auxiliary teacher target only when the CT teacher confidence exceeds a threshold, using either a hard argmax target or a temperature-scaled soft-KL target. On 510 same-patient paired BIMCV cases under patient-level 5-fold cross-validation, two pre-specified configurations pass a statistical transfer gate against the matched supervised baseline: a 3-slice CT teacher with soft-KL supervision and a mid-slice CT teacher with hard supervision. Under the same protocol, gated logit distillation, contrastive feature alignment, attention transfer, feature hints, BiomedCLIP fine-tuning, and a module-augmented variant do not pass the gate. These results suggest that confidence-gated auxiliary targets are more transferable than uniformly softened logits for this CT-to-X-ray setting, although external paired-cohort validation remains necessary.
 \end{quote}
 
-\subsection*{M4. The technical contribution is weakened by the negative architecture result}
-The paper introduces or discusses Full JDCNet with DPE, MHRA, and DFPN, but the experiments show that the module stack does not improve over plain cross-modal logit KD. This creates a mismatch between architectural naming and empirical conclusion. A paper titled or framed around JDCNet would be difficult to accept because the architecture is not validated.
+\subsubsection*{M2. TCSVT scope needs a stronger circuits/systems framing}
 
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Avoid presenting JDCNet as the central contribution.
-    \item Rename Full JDCNet as a \emph{module-augmented stress-test variant}.
-    \item Make the audit protocol, not the failed architecture, the primary contribution.
-    \item If the authors want to keep JDCNet as a contribution, they must provide a revised architecture that consistently improves over plain logit KD on a sufficiently powered cohort.
+\textbf{Concern.}
+The manuscript is currently dominated by medical-imaging and COVID-19 classification framing. TCSVT can accept image/video learning papers, but the paper must clearly contribute to video/image systems, efficient deployment, or circuits-and-systems-oriented visual processing. The present systems argument is present but not yet dominant enough.
+
+\textbf{Required revision.}
+Reframe the paper as an efficient visual inference system under a training-only privileged-modality constraint. Move clinical language into the background and limitations. Emphasize:
+\begin{enumerate}
+    \item single-modality deployment under auxiliary-modality training;
+    \item deployment cost invariance;
+    \item MACs, parameters, latency, memory, and energy;
+    \item edge/embedded inference relevance;
+    \item modality-availability constraints as a systems problem.
 \end{enumerate}
 
-\subsection*{M5. The primary paired cohort is too small for a strong journal-level claim}
-The paired X-ray target cohort contains only 26 images from 19 patients, with only four negative patients. Even repeated resampling cannot fully solve this limitation because each validation split contains only one negative case. The paper appropriately acknowledges this, but the amount of analysis performed on this tiny cohort is disproportionate to its evidential strength.
-
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Clearly distinguish between feasibility evidence, primary evidence, and post-hoc stress tests.
-    \item Avoid reporting too many decimal-level metrics on tiny validation splits.
-    \item Provide exact patient IDs or anonymized split indices for every resample in the reproducibility package.
-    \item Use the larger BIMCV/MIDRC results as the main support if they are intended to carry the paper.
-    \item Alternatively, explicitly position the original paired cohort only as a motivating pilot.
-\end{enumerate}
-
-\subsection*{M6. The statistical analysis still risks pseudo-precision}
-The paper uses repeated resampling, Wilcoxon tests, bootstrap CIs, and many post-hoc comparisons. However, because the same small patient pool is repeatedly reused, these resamples are not equivalent to independent validation cohorts. Some p-values and confidence intervals may therefore give an impression of greater precision than the data support.
-
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Add a short statistical caveat explaining that resamples are correlated because they reuse the same patient pool.
-    \item Prefer hierarchical or patient-level bootstrap/permutation analysis where possible.
-    \item Correct or clearly mark multiple-comparison tests as exploratory.
-    \item Report effect sizes and win/loss counts alongside p-values.
-    \item Avoid interpreting uncorrected p-values against generic KD baselines as strong evidence.
-\end{enumerate}
-
-\subsection*{M7. The paper contains too many post-hoc experiments}
-The appendix contains BIMCV stress tests, Path-C re-splits, GAP-KD follow-ups, MIDRC rounds, same-source BIMCV CV, calibration scans, DRR pilots, and power analysis. These are useful, but the presentation is too sprawling and makes the core message difficult to follow.
-
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Define one primary endpoint before presenting results.
-    \item Group all post-hoc analyses into one compact ``stress-test summary'' table.
-    \item Move detailed post-hoc narratives to supplementary material.
-    \item State explicitly which experiments were pre-specified and which were exploratory.
-\end{enumerate}
-
-\subsection*{M8. Baseline selection should be strengthened and simplified}
-The paper includes many KD baselines, but the most important deployment baselines are not fully integrated into the main argument. For example, the ImageNet-pretrained ResNet18 baseline achieves perfect results on the tiny fixed split, but this result is not meaningful enough as presented. BiomedCLIP is used only as a frozen feature extractor, which may be too weak a comparison.
-
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Use a consistent backbone family for supervised, teacher, and KD comparisons.
-    \item Include stronger X-ray-only baselines trained or fine-tuned on relevant chest X-ray data.
-    \item Consider foundation-model baselines with fine-tuning, not only frozen linear probing.
-    \item For CT teachers, compare mid-slice, multi-slice, volume aggregation, and DRR teachers under the same protocol.
-    \item Remove baselines that repeatedly collapse unless they are needed for a specific failure-mode argument.
-\end{enumerate}
-
-\subsection*{M9. The CT representation is under-specified for a cross-modal medical claim}
-The main paired experiment selects the most central axial CT slice. This is a severe simplification of CT information and may not reflect the actual disease-relevant region. If CT is claimed to be a richer teacher modality, the teacher should exploit CT more meaningfully.
-
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Justify why a single central axial slice is sufficient.
-    \item Add or emphasize multi-slice/volume teacher experiments.
-    \item Report how CT-X-ray temporal offsets are handled and whether disease progression could confound pairing.
-    \item Clarify whether CT and X-ray labels are patient-level, study-level, or image-level labels.
-\end{enumerate}
-
-\subsection*{M10. Clinical validity and dataset bias remain serious limitations}
-The paper uses public COVID imaging collections that are known to contain source artifacts and potential shortcut biases. The cross-source non-COVID control collapses toward all-positive prediction, which is a serious warning sign.
-
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Make the shortcut-learning and source-bias risk more prominent in the main text.
-    \item Do not imply diagnostic generalization.
-    \item Add a dataset-bias paragraph near the main experimental results, not only in the appendix.
-    \item If possible, add an external same-patient paired validation cohort with adequate negative support.
-\end{enumerate}
-
-\subsection*{M11. The deployment-efficiency analysis is useful but not central enough}
-For TCSVT, the deployment-time systems view should be a main contribution. The latency table is useful, but it appears late and does not drive the paper's argument.
-
-\textbf{Required revision:}
-\begin{enumerate}[leftmargin=*]
-    \item Move deployment efficiency into the main experimental narrative.
-    \item Report CPU/GPU latency, MACs, parameters, memory, and throughput for all deployable student variants.
-    \item Discuss the cost-benefit trade-off: Full JDCNet is more expensive but not more accurate.
-    \item If possible, include an edge-device or embedded-platform measurement, which would strengthen the TCSVT systems fit.
-\end{enumerate}
-
-\subsection*{M12. The paper's main conclusion should be sharper}
-The paper is honest but sometimes too verbose. The central conclusion should be stated more directly: the study does not validate CT-to-X-ray KD as superior to supervised X-ray at the current evidence scale.
-
-\textbf{Required revision:}
-Use a sharper conclusion:
+\textbf{Suggested title revision.}
 \begin{quote}
-At the available paired-cohort scale, CT teachers are feasible but do not yield a statistically reliable improvement over supervised X-ray learning. Added transfer modules increase complexity without improving the deployed student. The main contribution is therefore an evidence-bounded audit protocol and negative-result benchmark, not a validated cross-modal architecture.
+\small
+\textit{JDCNet: Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray Inference}
 \end{quote}
 
-\section*{Minor Concerns}
-
-\begin{enumerate}[label=\textbf{m\arabic*.},leftmargin=*]
-    \item Several abbreviations are introduced too early or used without sufficient motivation, including DPE, MHRA, DFPN, DRR, GAP-KD, and Path-C.
-    \item The title is accurate but long. A shorter title would improve readability.
-    \item The term ``JDCNet'' should either be removed or clearly described as a legacy/internal label.
-    \item Some figures are too small for IEEE two-column format. Figure labels and legends should be enlarged.
-    \item Many tables contain too much information. Main-text tables should be reduced to the minimum necessary evidence.
-    \item The paper alternates between ``artifact'' and ``artefact.'' Use one spelling consistently.
-    \item Institution names should be checked for IEEE style, e.g., ``Guilin'' rather than ``Gui Lin.''
-    \item References should be checked for complete IEEE style, DOI information where available, and final publication venues rather than arXiv-only entries where possible.
-    \item The Code Ocean capsule is a strength, but the paper should include exact reproduction commands.
-    \item The ethics statement should also mention dataset licenses and redistribution restrictions.
-    \item The abstract should not include excessive numerical details that are better placed in the Results section.
-    \item The contribution bullets should be reduced from broad claims to three concise, defensible claims.
-\end{enumerate}
-
-\section*{Suggested Restructuring for a TCSVT Resubmission}
-
-\subsection*{Recommended New Structure}
-\begin{enumerate}[leftmargin=*]
-    \item \textbf{Introduction}:
-    Define the problem as training-only privileged modality learning for efficient visual deployment. Explain why this is a TCSVT visual-systems problem.
-
-    \item \textbf{Related Work}:
-    Cover cross-modal distillation, privileged information, efficient visual inference, medical image learning, and evidence robustness.
-
-    \item \textbf{Evidence-Bounded Protocol}:
-    Present the patient-level paired evaluation protocol, split rules, metrics, and statistical criteria.
-
-    \item \textbf{Methods}:
-    Describe the teacher-student setup, plain logit KD, attention transfer, and the optional module-augmented variant. Keep this concise.
-
-    \item \textbf{Experiments}:
-    Present only the main cohort, the larger BIMCV/MIDRC stress summary, and deployment efficiency.
-
-    \item \textbf{Discussion}:
-    Explain why the result is negative, what this implies for future paired CT/CXR studies, and what evidence scale is needed next.
-
-    \item \textbf{Conclusion}:
-    State clearly that the contribution is an audit protocol and negative-result benchmark.
-\end{enumerate}
-
-\subsection*{Suggested New Title}
+\textbf{Suggested introduction sentence.}
 \begin{quote}
-Evidence-Bounded Audit of Training-Only CT Supervision for X-ray-Only Visual Inference
+\small
+This work studies a systems-level visual inference problem: how to exploit an expensive auxiliary modality during training while preserving a fixed-cost, single-modality deployment path at inference.
 \end{quote}
 
-or
+\subsubsection*{M3. Backbone and efficiency numbers are internally inconsistent}
 
+\textbf{Concern.}
+The main text repeatedly states that the student is a standard ResNet-18, but the deployment-efficiency table reports only approximately $0.094$M parameters for the student. A standard ResNet-18 has roughly 11M parameters, so the reported parameter count is inconsistent with the claimed backbone. The paper also alternates between 128$\times$128 training resolution and 224$\times$224 deployment-efficiency measurement. This undermines the deployment-cost claim, which is central for TCSVT.
+
+\textbf{Required revision.}
+The authors must define exactly which student backbone is used in each experiment:
+\begin{enumerate}
+    \item custom lightweight CNN;
+    \item standard torchvision ResNet-18;
+    \item modified/narrow ResNet-18;
+    \item ImageNet-pretrained ResNet-18;
+    \item BiomedCLIP ViT-B/16.
+\end{enumerate}
+For each backbone, report parameters, MACs, input size, training resolution, testing resolution, and latency under the same measurement protocol.
+
+\textbf{Required table.}
+\begin{table}[h]
+\centering
+\caption{Required backbone and cost clarification.}
+\begin{tabular}{p{0.17\linewidth}p{0.16\linewidth}p{0.12\linewidth}p{0.12\linewidth}p{0.12\linewidth}p{0.17\linewidth}}
+\hline
+\textbf{Experiment} & \textbf{Backbone} & \textbf{Input} & \textbf{Params} & \textbf{MACs} & \textbf{Latency device} \\
+\hline
+Supervised X-ray & To specify & To specify & To specify & To specify & To specify \\
+JDCNet student & To specify & To specify & To specify & To specify & To specify \\
+CT teacher & To specify & To specify & To specify & To specify & Training only \\
+Module-augmented KD & To specify & To specify & To specify & To specify & To specify \\
+BiomedCLIP & ViT-B/16 & To specify & To specify & To specify & To specify \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Suggested wording.}
 \begin{quote}
-When Does CT-to-X-ray Distillation Help? An Evidence-Bounded Visual-Systems Audit under Paired-Cohort Constraints
+\small
+Unless otherwise stated, the main 510-patient experiments use \underline{[exact backbone name]} with input resolution \underline{[resolution]}. The deployment-cost table reports only the student inference path after removing the CT teacher. Parameter and MAC counts are computed with \underline{[tool/version]} using the same input resolution as the reported latency benchmark.
 \end{quote}
 
-\section*{Required Revision Checklist}
+\subsubsection*{M4. Dataset descriptions are confusing and sometimes contradictory}
+
+\textbf{Concern.}
+The manuscript mixes several cohorts: the Cohen COVID-19 Image Data Collection, BIMCV-COVID19+, a 226-patient balanced cohort, a 510-patient BIMCV cohort, a 512-patient stress test, a 228-patient balanced BIMCV subset, MIDRC experiments, and cross-source normal controls. The main experiment is supposed to be the 510-patient BIMCV paired cohort, but Section 4 begins by saying the study is evaluated on the Cohen COVID-19 Image Data Collection. This creates serious confusion about which dataset supports the headline claim.
+
+\textbf{Required revision.}
+Separate the datasets into:
+\begin{enumerate}
+    \item \textbf{Primary validation cohort:} 510 same-patient paired BIMCV cases.
+    \item \textbf{Historical feasibility cohort:} 226-patient earlier paired subset.
+    \item \textbf{Stress-test / exploratory cohorts:} 512-patient BIMCV stress test, MIDRC pilot, cross-source controls.
+\end{enumerate}
+Only the primary cohort should be used to support the headline claim.
+
+\textbf{Suggested replacement for the opening of the Experiments section.}
+\begin{quote}
+\small
+The primary evidence in this paper is obtained from the 510-patient same-patient paired BIMCV cohort. The earlier 226-patient cohort and MIDRC/cross-source experiments are retained only as historical feasibility or stress-test analyses and are not used to establish the main claim.
+\end{quote}
+
+\subsubsection*{M5. Equation numbering and method references are incorrect}
+
+\textbf{Concern.}
+The JDCNet loss is numbered as Eq.~(1), while the comparator logit-KD objective is numbered as Eq.~(2). However, the text later states that the comparator uses Eq.~(1) and that JDCNet is Eq.~(3). This is mathematically confusing and must be fixed.
+
+\textbf{Required revision.}
+Use explicit equation labels:
+\begin{verbatim}
+\label{eq:jdcnet_loss}
+\label{eq:logit_kd_loss}
+\end{verbatim}
+Then refer to them by name:
+\begin{verbatim}
+Eq.~\eqref{eq:jdcnet_loss}
+Eq.~\eqref{eq:logit_kd_loss}
+\end{verbatim}
+
+\textbf{Suggested corrected wording.}
+\begin{quote}
+\small
+The legacy comparator family optimizes the logit-KD objective in Eq.~\eqref{eq:logit_kd_loss}, whereas JDCNet optimizes the confidence-gated auxiliary objective in Eq.~\eqref{eq:jdcnet_loss}.
+\end{quote}
+
+\subsubsection*{M6. The novelty claim is too strong without additional evidence}
+
+\textbf{Concern.}
+The statement ``the first cross-modal CT-to-X-ray transfer method validated under a pre-registered statistical gate on 100+ same-patient paired patients with public data'' is narrow and possibly defensible, but it reads as overly strong. Reviewers may challenge it unless the authors provide a systematic literature table covering cross-modal medical distillation, privileged information learning, modality hallucination, CT-to-CXR synthesis/translation, and multimodal thoracic learning.
+
+\textbf{Required revision.}
+Either provide a detailed novelty comparison table or soften the claim.
+
+\textbf{Suggested softened wording.}
+\begin{quote}
+\small
+To the best of our knowledge, this is among the first studies to evaluate training-only CT-to-X-ray distillation under a pre-specified patient-level statistical gate on a public same-patient paired cohort.
+\end{quote}
+
+\textbf{Required related-work table.}
+\begin{table}[h]
+\centering
+\caption{Positioning against related cross-modal and privileged-modality methods.}
+\begin{tabular}{p{0.20\linewidth}p{0.16\linewidth}p{0.16\linewidth}p{0.18\linewidth}p{0.18\linewidth}}
+\hline
+\textbf{Work} & \textbf{Modalities} & \textbf{Training-only auxiliary modality?} & \textbf{Same-patient pairing?} & \textbf{Pre-specified statistical gate?} \\
+\hline
+Modality hallucination & RGB/depth or action modalities & Yes & No/varies & No \\
+Cross-modal distillation & RGB/depth or other modalities & Yes & Varies & No \\
+Medical multimodal fusion & CT/X-ray/text & Usually no & Varies & No \\
+JDCNet & CT/X-ray & Yes & Yes & Yes \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection*{M7. The empirical gain is small and must be carefully bounded}
+
+\textbf{Concern.}
+The two passing JDCNet configurations improve balanced accuracy by only about $+0.033$ to $+0.035$. Although the bootstrap confidence intervals are positive, the effect is modest and still within a single-cohort evaluation setting. The current conclusion sometimes sounds stronger than the evidence supports.
+
+\textbf{Required revision.}
+The conclusion should explicitly state that the evidence validates the \emph{transfer-channel mechanism under this cohort and protocol}, not clinical utility or general deployment readiness.
+
+\textbf{Suggested limitation sentence.}
+\begin{quote}
+\small
+The observed gains should be interpreted as evidence that confidence-gated auxiliary targets are a promising transfer channel under this cohort and protocol, not as evidence of clinical readiness or guaranteed external generalization.
+\end{quote}
+
+\subsubsection*{M8. Pre-registration needs stronger proof}
+
+\textbf{Concern.}
+The manuscript states that the gate was committed before the extension sweeps, but the paper does not provide an immutable commit hash, timestamped archive, DOI, or exact file snapshot. Since the positive result depends heavily on the pre-registered gate, reviewers will expect verifiable evidence.
+
+\textbf{Required revision.}
+Provide:
+\begin{enumerate}
+    \item repository URL;
+    \item exact commit hash;
+    \item timestamp;
+    \item archived DOI or Code Ocean capsule identifier;
+    \item exact filenames for the pre-registration plan;
+    \item command used to reproduce Table~28.
+\end{enumerate}
+
+\textbf{Suggested wording.}
+\begin{quote}
+\small
+The transfer gate and sweep matrix were fixed before running Extension-A and Extension-B. The immutable record is available at commit \texttt{<commit-hash>} in \texttt{docs/future\_methods\_plan.md} and archived in \texttt{<DOI/capsule-ID>}.
+\end{quote}
+
+\subsubsection*{M9. The experimental narrative is too complex for the main paper}
+
+\textbf{Concern.}
+The main paper currently contains historical fixed-split results, 226-patient resampling, 510-patient validation, 512-patient stress tests, MIDRC pilots, BiomedCLIP frozen probes, BiomedCLIP fine-tuning, DRR experiments, and many negative controls. This makes the paper look like an experimental log rather than a polished TCSVT article.
+
+\textbf{Required revision.}
+Keep only the following in the main text:
+\begin{enumerate}
+    \item primary 510-patient JDCNet validation;
+    \item CT teacher upper-bound result;
+    \item matched comparator audit;
+    \item deployment-cost table;
+    \item one concise limitations paragraph.
+\end{enumerate}
+Move all historical and exploratory experiments to supplementary material.
+
+\subsubsection*{M10. The clinical/ethics discussion should be more precise}
+
+\textbf{Concern.}
+The paper states that no additional IRB approval is required because the data are public and de-identified. This is plausible, but the statement should be tied to dataset licenses and institutional policy. Also, the paper should avoid implying diagnostic usefulness.
+
+\textbf{Required revision.}
+Add a paragraph clarifying:
+\begin{enumerate}
+    \item no patient-level re-identification was attempted;
+    \item no pixel data are redistributed;
+    \item the work is a methodological systems study;
+    \item the model is not intended for clinical decision-making;
+    \item external validation is mandatory before any deployment claim.
+\end{enumerate}
+
+\subsection*{Minor Comments}
+
+\begin{enumerate}
+    \item The abstract contains too many numbers. Keep only the two passing configurations and move other details to the results section.
+    
+    \item Use consistent terminology: choose one among ``JDCNet'', ``confidence-gated KD'', and ``confidence-gated cross-modal distillation'', and define all variants once.
+    
+    \item Avoid all-caps ``FAIL'' in the abstract. Use ``do not pass the gate'' for a more academic tone.
+    
+    \item Replace ``largest publicly-available same-patient paired thoracic cohort known to us'' with a more cautious statement unless supported by a systematic dataset survey.
+    
+    \item Clarify whether the 510-patient BIMCV cohort uses one CXR per patient or multiple CXR images per patient. The paper alternates between image-level and patient-level counts.
+    
+    \item Report confidence-gate active ratios for the two passing JDCNet configurations.
+    
+    \item Report sensitivity, specificity, macro-F1, ROC-AUC, and PR-AUC for the two passing configurations in one main table.
+    
+    \item Add calibration results for JDCNet specifically, not only for historical methods.
+    
+    \item Use ``balanced accuracy'' consistently as ``BA'' after first definition.
+    
+    \item Replace ``student recovers roughly two-thirds of the CT teacher head-room'' with an explicit formula:
+    \[
+    \mathrm{Recovery} =
+    \frac{\mathrm{BA}_{\mathrm{JDCNet}}-\mathrm{BA}_{\mathrm{Xray}}}
+    {\mathrm{BA}_{\mathrm{CT}}-\mathrm{BA}_{\mathrm{Xray}}}.
+    \]
+    
+    \item The deployment-efficiency table should include batch size, device, PyTorch version, CUDA version, precision, and whether CPU latency uses single-thread or multi-thread execution.
+    
+    \item Figures 2 and 3 are difficult to interpret because historical and primary evidence are visually mixed. Separate historical diagnostics from the main result.
+    
+    \item The paper should explicitly state whether validation hyperparameters were selected using test folds. If the same 5-fold CV was used for both selection and reporting, nested CV or a validation split is preferred.
+    
+    \item The comparison with BiomedCLIP should include input preprocessing, image normalization, whether the visual tower was fully fine-tuned, and parameter count.
+    
+    \item The manuscript should include a clear statement that late fusion is not deployment-realistic because it requires CT at inference.
+\end{enumerate}
+
+\subsection*{Suggested Main Result Table}
 
 \begin{table}[h]
 \centering
-\small
-\begin{tabular}{p{0.08\linewidth}p{0.72\linewidth}p{0.12\linewidth}}
-\toprule
-\textbf{ID} & \textbf{Required Action} & \textbf{Priority} \\
-\midrule
-R1 & Reduce the manuscript to the TCSVT page limit. & Critical \\
-R2 & Shorten the abstract to 150--200 words. & Critical \\
-R3 & Strengthen the TCSVT systems/video-technology framing. & Critical \\
-R4 & Reframe the contribution as an evidence-bounded audit protocol, not a validated JDCNet architecture. & Critical \\
-R5 & Move most appendix experiments to supplementary material. & Critical \\
-R6 & Clearly mark pre-specified versus post-hoc experiments. & Major \\
-R7 & Improve statistical treatment of repeated resampling and multiple comparisons. & Major \\
-R8 & Add stronger and cleaner supervised/foundation-model baselines. & Major \\
-R9 & Justify CT slice selection or use stronger CT teacher representations. & Major \\
-R10 & Promote deployment-efficiency analysis to the main paper. & Major \\
-R11 & Improve figure/table readability for IEEE two-column format. & Major \\
-R12 & Check IEEE reference formatting and add relevant TCSVT/IEEE citations. & Minor/Major \\
-\bottomrule
+\caption{Suggested compact main-result table for TCSVT submission.}
+\begin{tabular}{p{0.25\linewidth}p{0.14\linewidth}p{0.16\linewidth}p{0.16\linewidth}p{0.16\linewidth}}
+\hline
+\textbf{Method} & \textbf{BA} & \textbf{$\Delta$BA vs. X-ray} & \textbf{95\% CI} & \textbf{Gate} \\
+\hline
+Supervised X-ray & -- & -- & -- & Reference \\
+CT teacher upper bound & -- & +0.045 / +0.051 & Positive & Pass \\
+JDCNet, 3-slice, soft-KL & -- & +0.0345 & [+0.0112, +0.0571] & Pass \\
+JDCNet, mid-slice, hard & -- & +0.0329 & [+0.0074, +0.0584] & Pass \\
+Plain logit KD & -- & Negative or near zero & Crosses zero & Fail \\
+Gated logit KD & -- & Negative or near zero & Crosses zero & Fail \\
+Contrastive alignment & -- & +0.008 best & Crosses zero & Fail \\
+BiomedCLIP fine-tune & -- & +0.002 & Crosses zero & Fail \\
+\hline
 \end{tabular}
 \end{table}
 
-\section*{Confidential Comments to the Editor}
-This manuscript is unusually honest and reproducible, and its negative-result framing is scientifically useful. However, it is not ready for TCSVT in its present form. The manuscript is far over the journal's page limit, its TCSVT systems contribution is underdeveloped, and the central architecture is not empirically validated. The paper may be valuable after major restructuring as a concise evidence-bounded audit of training-only privileged modality learning for efficient visual inference. I recommend rejection in the current form, with encouragement to resubmit after substantial revision.
+\subsection*{Suggested Revised Contribution List}
 
-\section*{Final Recommendation}
-\textbf{Reject / Resubmit after major restructuring.}
+\begin{enumerate}
+    \item We formulate CT-to-X-ray distillation as a training-only privileged-modality problem for cost-preserving X-ray deployment.
+    
+    \item We propose a confidence-gated auxiliary target that transfers CT teacher predictions only when the teacher is sufficiently confident, while keeping the true-label X-ray loss always active.
+    
+    \item We validate the method on a 510-patient same-patient paired BIMCV cohort using patient-level 5-fold cross-validation, paired deltas, and a pre-specified statistical gate.
+    
+    \item We show that several alternative transfer channels, including logit KD, gated logit KD, contrastive alignment, attention transfer, feature hints, module-augmented KD, and BiomedCLIP fine-tuning, do not pass the same gate.
+    
+    \item We report deployment-time cost and show that the validated JDCNet student preserves the same inference-time path as the supervised X-ray baseline.
+\end{enumerate}
 
-The work has potential, but acceptance would require: formal TCSVT compliance, a much shorter and more focused manuscript, stronger systems framing, clearer statistical treatment, and a revised contribution statement that honestly centers the negative-result audit rather than an unsupported architecture claim.
+\subsection*{Suggested Revised Conclusion}
 
-\end{document}
+\begin{quote}
+\small
+This paper studied training-only CT supervision for cost-preserving X-ray deployment. Under a 510-patient same-patient BIMCV protocol with patient-level 5-fold cross-validation and a pre-specified transfer gate, two confidence-gated JDCNet configurations improved balanced accuracy over the matched supervised X-ray baseline while preserving the same X-ray-only inference path. In contrast, uniformly softened logit distillation, feature-space contrastive alignment, attention transfer, feature hints, module-augmented KD, and BiomedCLIP fine-tuning did not pass the same gate. These findings suggest that the transfer channel, rather than teacher availability alone, is the key bottleneck in CT-to-X-ray privileged-modality learning. The result remains bounded to a single public paired cohort and binary COVID/non-COVID classification; independent paired-cohort validation is required before any clinical or production deployment claim.
+\end{quote}
+
+\subsection*{Final Assessment}
+
+The paper has a promising idea and a stronger evaluation discipline than many small-cohort medical-imaging papers. However, it must be substantially reorganized before TCSVT submission. The highest-priority fixes are:
+\begin{enumerate}
+    \item compress the main paper to the TCSVT page limit;
+    \item strengthen the visual-systems and deployment-efficiency framing;
+    \item fix backbone, parameter-count, input-resolution, and equation-number inconsistencies;
+    \item make the primary 510-patient BIMCV result the clear center of the paper;
+    \item move historical and exploratory experiments to supplementary material;
+    \item soften novelty and clinical implications;
+    \item provide immutable reproducibility evidence for the pre-registration and result tables.
+\end{enumerate}
+
+If these revisions are completed, the manuscript could become a credible TCSVT submission as an efficient visual inference / privileged-modality distillation paper. Without these revisions, the paper is likely to face either desk rejection for formatting/scope issues or major reviewer criticism for internal inconsistency and over-claiming.
