@@ -21,9 +21,40 @@ evaluated under 5-fold patient-level CV, 3+ seeds, same 510-patient BIMCV cohort
 
 ---
 
-## Method 1: Cross-Modal Contrastive Alignment (InfoNCE) ⭐⭐⭐
+## Method 1: Cross-Modal Contrastive Alignment (InfoNCE) — FAIL (2026-05-16)
 
-### Why This Has Not Been Tried
+### Status: ATTEMPTED at 510-patient scale, all 4 cells fail the validation gate
+
+Run tag `bimcv_contrastive_cv_20260516` (60 runs: 2 teachers × 2 temperatures × 5 folds × 3 seeds; 4× RTX 3090, AMP fp16).
+Two-stage pipeline implemented in `src/jdcnet_exp/train_contrastive.py`:
+Stage 1 InfoNCE pretrain on paired (X-ray, CT) batches; Stage 2 weighted-CE
+fine-tune of the X-ray encoder + linear head against the labelled 510-patient
+paired manifest, scored on the held-out fold test split with the existing
+`jdcnet_exp.evaluate` pipeline.
+
+| Variant | tau | Delta BA mean [95% CI] | +/0/- | Pass |
+|---|---:|---:|---:|---:|
+| 3slice | 0.07 | +0.0027 [-0.0226, +0.0296] | 7/0/8 | NO |
+| 3slice | 0.20 | +0.0080 [-0.0201, +0.0371] | 7/1/7 | NO |
+| mid | 0.07 | -0.0084 [-0.0384, +0.0268] | 5/0/10 | NO |
+| mid | 0.20 | -0.0051 [-0.0305, +0.0200] | 5/0/10 | NO |
+
+Best cell: 3slice tau=0.20, ΔBA=+0.008 — fails both the mean ≥ +0.03 and the
+CI-lower > 0 sub-criteria. Detailed numbers in
+`src/results/bimcv_contrastive_cv_3090_20260516/bimcv_contrastive_decision_report.md`.
+
+Interpretation: feature-space contrastive alignment can match (3slice) but does
+not consistently exceed the supervised X-ray baseline at this cohort scale.
+The CT-side disease signal that passes the teacher upper-bound gate
+(mid +0.045 / 3slice +0.051) is not transferred via patient-paired InfoNCE
+positives — likely because the 397-patient negative pool dominates the batch,
+and the modality gap means CT/X-ray positive pairs are not significantly more
+similar than well-chosen negative pairs after projection.
+
+→ Continue to Method 2 (CT pseudo-label semi-supervised). The contrastive
+mechanism is not the bottleneck-breaker the upper-bound result suggested.
+
+### Why This Has Not Been Tried (original motivation)
 All previous attempts pass **logits** from CT teacher to X-ray student. The fundamental problem is that CT and X-ray occupy incompatible feature spaces — logit matching forces the student to adopt CT's output distribution which is misaligned with what X-ray features can support. Contrastive alignment directly bridges the **feature space** using paired patients as supervision signal.
 
 ### Theoretical Basis
@@ -180,12 +211,10 @@ Feature hint (already tried) maps X-ray features directly to CT features via MSE
 ## Recommended Execution Order
 
 ```
-1. Method 1 (Contrastive alignment)  ← Start here
-   → If passes gate: write up, submit
-   → If fails: continue to Method 2
+1. Method 1 (Contrastive alignment)  ← FAIL (2026-05-16, 60 runs, 0/4 cells pass)
 
-2. Method 2 (CT pseudo-label semi-supervised)
-   → Can run in parallel with Method 1 (independent implementation)
+2. Method 2 (CT pseudo-label semi-supervised)  ← NEXT
+   → Can run independently of Method 1
    → If passes gate: write up, submit
 
 3. Method 3 (Grad-CAM spatial supervision)

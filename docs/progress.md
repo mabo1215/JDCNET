@@ -68,6 +68,8 @@
   - **决策**：不触发 Stage B（MIDRC 559）/ Stage C（X-ray pretrain）；转为"definitive negative at 4.5× cohort scale"写作框架。
   - 结果在 `src/results/bimcv_full_paired_cv_3090_20260516/`；计划与分析在 `docs/tmp/report515.md` §7。
 
+- **2026-05-16 Method 1 (Cross-Modal Contrastive Alignment) 已完成，全部 4 cells FAIL**：在 `docs/future_methods_plan.md` 计划的 Method 1 上，新增 `src/jdcnet_exp/train_contrastive.py`（两阶段：Stage 1 InfoNCE 对 paired (X-ray, CT) 预训练 ResNet-18 双编码器 + 投影头；Stage 2 weighted-CE 微调 X-ray 编码器 + 分类头），以及 `src/ops/remote_3090_bimcv_contrastive_cv.sh` 与 `remote_3090_bimcv_contrastive_summarize.sh`。3090 远端跑 60 runs（teachers={mid, 3slice} × temperatures={0.07, 0.20} × 5 folds × 3 seeds，GPU 2/3 并行 4 concurrent；约 28 min 完成 60/60，0 failures）。结果拉回 `src/results/bimcv_contrastive_cv_3090_20260516/`。所有 4 cells 均未通过 pre-specified gate（mean ΔBA ≥ +0.03 且 CI lower > 0）：最好的 cell 是 3slice tau=0.20，ΔBA=+0.008 [-0.020, +0.037]，7/15 positive。结论：feature-space contrastive alignment 在 510-patient 规模下未把 CT teacher upper-bound 信号转化为 X-ray 学生的可验证增益。下一步根据 plan 继续 Method 2（CT pseudo-label semi-supervised）；当前未触发论文主线重写，但应在 appendix 增补 Method 1 阴性结果以增强 "definitive negative at 4.5× cohort scale" 叙事。
+
 ## 进行中（需要跟进）
 
 （当前无运行中的实验）
