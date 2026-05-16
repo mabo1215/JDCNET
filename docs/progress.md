@@ -205,13 +205,13 @@
 
 - **是否允许披露并引用 2026-03-31 arXiv pilot？**
   - 需要你提供/决策：Stage 9 认为这是 TCSVT prior-version / similarity 风险的 MUST FIX。建议答复 `A: 是，允许在正文或 cover letter 中披露并区分贡献`。
-  - A:
+  - A: 不用披露，我会更新arxiv上我自己的论文。使得同步。
 - **是否有外部 paired cohort 或 MIDRC/其他 paired 数据可以用于 Stage 10 扩展验证？**
   - 需要你提供/决策：若没有，Stage 10 将继续以“single public paired cohort, no clinical readiness” framing 回应；若有，请提供数据位置、标签定义和可运行预算。
-  - A:
+  - A: 可以自行在src/ 调研下载 download的代码有 
 - **是否使用过 AI 生成内容，需不需要 IEEE Acknowledgments disclosure？**
   - 需要你提供/决策：请说明是否有 AI-generated text/figures/images/code 进入论文；若仅语法润色，也请决定是否自愿披露。
-  - A:
+  - A: 暂时不披露
 - **是否有 latency variability、memory、edge power 或 patient-level bootstrap 原始结果？**
   - 需要你提供/决策：若有，请提供输出文件或实验记录位置；若没有，将在 Stage 10 写成未测量限制或重新查找/生成。
-  - A:
+  - A: 有，在3090的4卡机器上。不过篇幅有限，如果不重要暂不写入论文。
