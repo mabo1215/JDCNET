@@ -124,7 +124,6 @@
 - **配置同步已完成**：已确认 `.codex/config.toml` 与 `agents/.codex/config.toml` 内容一致，满足 repository rule 中的同步要求。
 - **构建验证已完成**：已运行 `paper/build.bat`，构建成功并生成 `paper/main.pdf`；本轮文稿修改无 fatal LaTeX error。
 
-
 - **2026-05-17 论文面向读者化清理与压缩已完成**：已按用户要求先备份到 `paper/backup/20260517_015930/`；随后删除正文/附录中的 commit hash、public repository、Code Ocean、GitHub、manifest、脚本/本地运行环境等面向内部执行记录的叙述。正文只保留读者需要的 fixed gate、实验设计、结果和限制，不再出现“Pre-specified versus exploratory analyses”段落或代码/仓库证据链。
 - **2026-05-17 页数压缩已完成**：`paper/appendix.tex` 曾从长附录压缩为 compact supplementary evidence，为后续回填和解释性重构腾出版面；当前最终页数以下方最新构建记录为准，仍满足“正文 ≤13、appendix ≤3、总计 ≤14”的硬约束。
 - **2026-05-17 TCSVT ethics/data 位置决策**：已检查 TCSVT/IEEE author guidance；TCSVT 页面强调 manuscript 要清楚说明问题、贡献、novelty、相关工作与区别，允许 supplementary datasets/materials；IEEE Author Center 鼓励 data/code sharing，但未要求在 TCSVT 主文放独立 Code/Data section。正文因此仅保留一句 public de-identified data / aggregate results / no clinical-readiness 的读者必要说明；详细数据、伦理、可复现性和代码说明应放在 cover letter 或 submission/supplementary material，而不是主文主体。
@@ -132,6 +131,7 @@
 - **2026-05-17 reference 后紧接 appendix 已实现**：已修改 `paper/build.bat`，combined build 不再在 reference 与 appendix 之间强制 `\clearpage`；因此 appendix 可以紧接 references 开始以节省页数。当前重新构建验证：standalone main (`paper/build/main.pdf`) = 12 页，standalone appendix (`paper/appendix.pdf`) = 3 页，combined `paper/main.pdf` = 14 页，达到并仍满足 14 页上限。
 - **2026-05-17 可见文本巡检通过**：对 combined PDF 运行文本检查，无 `commit`、`repository`、`GitHub`、`Code Ocean`、`docs/`、`src/`、`3090`、`H800`、脚本/manifest 等内部工程词；无 `??` 未解析引用。
 - **2026-05-17 appendix 解释性重构与构建输出清理已完成**：`paper/appendix.tex` 已从“表格堆叠”改为读者向补充证据说明，新增 reading guide、full JDCNet sweep 解读、comparator mechanism interpretation、mechanistic takeaways 与 scope 说明；保留主文引用所需的 `tab:jdcnet_510` 与 `tab:app_comparator_summary`，并删除/合并冗余表格以减少空白浮动页。`paper/build.bat` 已静默 pdflatex 正常 pass 输出，仅保留简洁 `[INFO]`/`[ERROR]` 信息；若构建失败会保留对应 `build\*.log` 便于定位。重新构建后 standalone main = 12 页、standalone appendix = 3 页、combined main+appendix = 14 页（reference 后直接接 appendix，达到并仍满足 14 页上限）；`main.log`/`appendix.log` 无 fatal、undefined reference/citation、overfull 或 float-too-large 命中，PDF 与 source 可见文本中未发现 commit/repository/GitHub/Code Ocean/docs/src/3090/H800/scripts/logs/manifest 等内部工程词，也无 `??` 未解析引用。
+
 ## 已全部修改（2026-05-17 revision_suggestions.tex pass）
 
 - **TCSVT positioning paragraph 已加入 Introduction**：`paper/main.tex` Introduction 末尾新增明确的 "Positioning within TCSVT" 段落，把工作定位为 cost-preserving visual inference system 而非临床诊断模型，解释 CT 仅塑造训练目标、部署图保持单模态 ResNet-18，明确 TCSVT 关心的是 "训练时信号路由 + 固定部署预算" 问题。回应 Major Concern 1。
@@ -176,17 +176,42 @@
 - **第14页已填满，不再松散**：之前 page 14 只有 3 张稀疏表（3105 chars，loose）。本轮加 Gate Coverage 表（10 行）+ 引入 Algorithm 1 占 page ~中部、把后段挤到 page 13--14 → 现 page 14 含 4 张密集表（TABLE 4 JDCNet sweep 16 行 / TABLE 5 absolute metrics 9 行 / TABLE 6 gate coverage 10 行 / TABLE 7 comparator summary 6 行）+ 段落尾巴，3690 chars，layout dense。
 - **构建验证**：`paper/build.bat` 重新构建，standalone main = 12、standalone appendix = 2、combined main+appendix = 14；`build/main.log` 与 `build/tmp.log` 无 Overfull / Float too large / undefined reference / fatal error；rebuild PDF 已写到 `paper/main.pdf` (947KB)。
 
+## 已全部修改（2026-05-17 Pipeline Stage 9 独立评审）
+
+- **Stage 9 独立评审已完成并覆盖重写 `docs/revision_suggestions.tex`**：已按 TCSVT 目标期刊重新从 `paper/main.tex`、`paper/main.pdf`、`paper/appendix.tex`、`paper/appendix.pdf` 做 EIC + Methodology + Domain + Systems + Devil's Advocate 五视角联合评审，旧 `revision_suggestions` 内容未作为输入；新文件为英文 LaTeX，可独立编译，综合结论为 Major Revision，并含 R1--R10 的 Stage 10 修改路线。
+- **`docs/revision_suggestions.tex` 两份重复评审已去重合并（2026-05-17）**：文件末尾追加的第二份中文整篇评审已删除，当前只保留单一英文 LaTeX 综合评审版本；同时把第二份中少量未覆盖但有价值的点并入现有 roadmap，包括 broader systems formulation、cohort construction/leakage audit，以及 deployment throughput/memory 与 training-vs-inference overhead 说明，避免同一文件中出现两套重复结论和两次 `\documentclass`。
+- **TCSVT 官网规格已核实并写回 venue 规则库**：已抓取 IEEE CASS/TCSVT 投稿指南、TCSVT transactions paper 页面、IEEE Author Center template / supplementary / AI disclosure 页面；`agents/pipeline/domain-venues.md` 已新增 TCSVT 条目和 2026-05-17 verified 标记，记录 14 页 transactions paper 上限、IEEEtran/template 要求、supplementary 单独上传、AI disclosure 与 CrossRef similarity 风险。
+- **Stage 9 附属输出已生成**：已新增 `docs/review_reports/` 下 6 个英文报告（EIC、methodology、domain、systems、devil's advocate、editorial synthesis）以及 `docs/revision_roadmap.md`，便于后续 Stage 10 逐项执行。
+- **Stage 9 PDF 输入已重新生成**：已运行 `paper/build.bat main` 与 `paper/build.bat appendix`，当前 `paper/main.pdf` 为 standalone main（13 页），`paper/appendix.pdf` 为 standalone appendix（2 页）；这符合 Stage 9 对 main 与 appendix 分开联合评审的输入要求。若后续投稿需要 combined main+appendix 版本，应在 Stage 10/12 完成修改后再运行默认 `paper/build.bat` 重新生成 combined PDF。
+
 ## 未修改或部分修改
 
-- **External paired cohort validation（Major Concern 5）**：未新增。当前 paper 已在 Limitations、Discussion、Conclusion 中多处声明 "evidence bounded to one public paired cohort + external paired-cohort replication required before any clinical/production deployment claim"；以 framing 方式回应，未补做实验。若 reviewer 仍强烈要求外部数据，需要重启 MIDRC 或其他 paired cohort 实验。
-- **Table 1 method positioning（Major Concern 2）**：本轮已从 full-width 表退化为 2 句 prose。仍包含核心论点（this work is the joint instance of (i)..(iv)..），但失去了完整 7-dim 对比矩阵；若 reviewer 仍要求完整正交对比表，可放入 GitHub repo 或单独 supplementary material。
+- **Stage 10-R1 TCSVT 模板、摘要和页数合规尚未修改**：当前 `paper/main.tex` 仍使用 `\documentclass[10pt,journal,compsoc]{IEEEtran}`；当前 abstract 约 211 词；Stage 9 建议确认 TCSVT/IEEE Template Selector 后移除或保留 `compsoc`，并将 abstract 压到 150--200 词。
+  - 需要你提供/决策：若你已有 TCSVT 官方模板包或 ScholarOne 生成的模板设置，请提供；否则默认下一步按 IEEEtran journal 非 compsoc 口径试改并重新构建。
+- **Stage 10-R2 早前 arXiv pilot / CrossRef similarity 风险尚未处理**：Stage 9 检出 2026-03-31 arXiv pilot 与当前稿件高度相关，当前正文/cover letter 尚未明确区分二者贡献。
+  - 需要你提供/决策：是否允许在正文 Related Work 或 cover letter 中显式引用/披露该 arXiv pilot，并把当前稿件定位为 510-patient expanded validation？
+- **Stage 10-R3 最近相关工作定位尚未补强**：Stage 9 要求补充 DANTE、K-MaT、MICCAI 2025 CXR--CTPA KD 等近期 privileged/cross-modal medical-transfer 工作，当前 `paper/ref.bib` 与 Related Work 尚未加入这些条目。
+  - 需要你提供/决策：无特别作者决策即可自动推进；若你希望避免引用某些 arXiv/conference work，请指定排除名单。
+- **Stage 10-R4/R5 patient-level uncertainty 与 confidence-gate reliability 仍需补表或补分析**：当前稿件已有 fold/seed gate、coverage、ECE 与 appendix 表，但 Stage 9 要求更保守地暴露 patient-level bootstrap、class-stratified retained/rejected accuracy、threshold sensitivity。
+  - 需要你提供/决策：若已有 patient-level bootstrap 原始输出或脚本位置，请提供；否则下一步将先在现有 `src/` 和实验输出中查找可复用数据，找不到时再标记为阻塞。
+- **Stage 10-R6 deployment benchmark 仍需 transactions-level 细节**：当前表有 CPU/GPU/Edge latency，但 Stage 9 要求补充 measurement environment、precision、batch、warm-up、timed trials、variability、preprocessing 是否计入、memory/power 是否测量。
+  - 需要你提供/决策：是否有 edge power、GPU memory、latency std/IQR 的原始测量；若没有，下一步将以“未测量/limitation”方式写入。
+- **Stage 10-R7 Algorithm/Figure 编号不一致尚未修复**：当前 PDF 文本显示 “Algorithm 2 gives ...”，框内显示 “Algorithm 1”，caption 仍是 Fig. 2。
+  - 需要你提供/决策：无作者决策需要，建议下一步自动改成真正 algorithm 环境，或统一改成 Fig. 2 training-procedure box。
+- **Stage 10-R8/R9 可复现性、supplementary、AI disclosure 尚未补齐**：当前正文含 GitHub/manifest/scripts 相关措辞；Stage 9 建议改成 reader-facing code/data/split availability，确认 appendix 是否 supplementary，并按 IEEE AI policy 决定是否加 Acknowledgments disclosure。
+  - 需要你提供/决策：是否使用过 AI 生成正文、图、代码或实验内容；若仅语法润色，也请决定是否自愿披露。
 
 ## 遗留问题
 
-- 页面预算贴上限（combined 恰为 14 页，无空余）。若 reviewer 要求补加任何实验段、附图、伪代码或正文表格，必须先在现有 supplementary / appendix 内做等额删除，或将更多 detail 推到 GitHub repository。
-- External paired cohort 实验未做，仍以 framing 应对；若审稿强制要求，需要单独立项。
-
-
-
-
-
+- **是否允许披露并引用 2026-03-31 arXiv pilot？**
+  - 需要你提供/决策：Stage 9 认为这是 TCSVT prior-version / similarity 风险的 MUST FIX。建议答复 `A: 是，允许在正文或 cover letter 中披露并区分贡献`。
+  - A:
+- **是否有外部 paired cohort 或 MIDRC/其他 paired 数据可以用于 Stage 10 扩展验证？**
+  - 需要你提供/决策：若没有，Stage 10 将继续以“single public paired cohort, no clinical readiness” framing 回应；若有，请提供数据位置、标签定义和可运行预算。
+  - A:
+- **是否使用过 AI 生成内容，需不需要 IEEE Acknowledgments disclosure？**
+  - 需要你提供/决策：请说明是否有 AI-generated text/figures/images/code 进入论文；若仅语法润色，也请决定是否自愿披露。
+  - A:
+- **是否有 latency variability、memory、edge power 或 patient-level bootstrap 原始结果？**
+  - 需要你提供/决策：若有，请提供输出文件或实验记录位置；若没有，将在 Stage 10 写成未测量限制或重新查找/生成。
+  - A:
