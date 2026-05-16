@@ -10,7 +10,7 @@ Dear Editor,
 
 We submit a major revision of the above manuscript and thank the
 reviewers for their detailed and constructive feedback. The revision
-introduces a new validated cross-modal transfer architecture (CG-XKD)
+introduces a new validated cross-modal transfer architecture (JDCNet)
 and reorganises the manuscript around it. The previously reported
 negative result on confidence-gated logit distillation is retained as a
 mechanism comparator, but it is no longer the primary scientific claim
@@ -32,8 +32,8 @@ gap, and (b) gains can be inflated by a single accidental split.
 
 WHAT THE PAPER CONTRIBUTES
 
-1. CG-XKD: a validated confidence-gated cross-modal distillation
-   architecture. CG-XKD uses the CT teacher's argmax (hard variant)
+1. JDCNet: a validated confidence-gated cross-modal distillation
+   architecture. JDCNet uses the CT teacher's argmax (hard variant)
    or temperature-scaled distribution (soft-KL variant) as an
    auxiliary supervisory target, applied only on samples where the
    teacher's confidence exceeds a threshold tau_gate, alongside the
@@ -52,7 +52,7 @@ WHAT THE PAPER CONTRIBUTES
 
    The deployed X-ray classifier is structurally identical to a
    standalone supervised ResNet-18 (0.094 M parameters, 14.62 ms CPU
-   latency on an NVIDIA H800 PCIe server), so CG-XKD adds zero
+   latency on an NVIDIA H800 PCIe server), so JDCNet adds zero
    inference-time cost. To the best of our knowledge, this is the
    first cross-modal CT-to-X-ray transfer method validated under a
    pre-registered statistical gate on 100+ same-patient paired
@@ -74,7 +74,7 @@ WHAT THE PAPER CONTRIBUTES
    previous submission. The previously reported 226-patient near-pass
    for gated logit KD (DeltaBA = +0.034, CI [-0.004, +0.073]) reverses
    to -0.014 to -0.064 on the 510-patient cohort, confirming it as a
-   small-sample artefact. Together, the positive CG-XKD result and the
+   small-sample artefact. Together, the positive JDCNet result and the
    six negative comparator results isolate the transfer-channel
    choice -- specifically the discrete or lightly-softened
    confidence-gated auxiliary target -- as the operative bottleneck, rather than
@@ -82,7 +82,7 @@ WHAT THE PAPER CONTRIBUTES
 
 3. Reproducibility artefact. We release manifests, training scripts,
    per-cell decision reports, the pre-registered plan
-   (docs/future_methods_plan.md, docs/cgxkd_validation_plan.md), and
+   (docs/future_methods_plan.md, docs/jdcnet_validation_plan.md), and
    a prepared BIMCV-COVID19+ paired stress-test resource (638
    same-patient subjects, 3,080 radiographs) as a public Code Ocean
    capsule (https://codeocean.com/capsule/6030764/tree) so that
@@ -101,7 +101,7 @@ have re-anchored the paper's primary endpoint on this extended
 cohort. Under the new cohort and the pre-registered gate, the
 multi-slice CT teachers pass the upper-bound feasibility gate
 (DeltaBA = +0.045 and +0.051, 95% CI lower bounds > +0.019), and
-CG-XKD passes the transfer gate in two of sixteen pre-registered
+JDCNet passes the transfer gate in two of sixteen pre-registered
 configurations (DeltaBA = +0.033 and +0.035 with positive bootstrap
 CI lower bounds). The previous 226-patient near-pass for gated logit
 KD is confirmed as a small-sample artefact at the larger scale,
@@ -113,14 +113,14 @@ difficult to position as a positive scientific contribution.
 
 Response: We agree that a pure negative result is harder to publish.
 The revision replaces that framing with a validated positive result
-(CG-XKD) supported by a pre-registered protocol AND by six
+(JDCNet) supported by a pre-registered protocol AND by six
 contemporaneous negative comparator results that establish what does
 not work under the same protocol, cohort, and gate. The negative
 results are retained because they isolate the transfer-channel choice
 as the operative bottleneck -- removing them would weaken the
 positive claim by removing its mechanism-isolation context.
 
-Concern: Risk of post-hoc cell selection within the CG-XKD sweep
+Concern: Risk of post-hoc cell selection within the JDCNet sweep
 matrix.
 
 Response: The two gate-clearing cells come from two independent
@@ -130,13 +130,13 @@ sweep matrix were committed to the public repository on 2026-05-16.
 Section IV.A of the revised manuscript and the Statistical Protocol
 subsection cite the exact commit. Of all 16 configurations evaluated,
 15 produce a positive mean DeltaBA and 9-10/15 fold-seed cells favour
-CG-XKD over the supervised baseline, indicating a system-wide
+JDCNet over the supervised baseline, indicating a system-wide
 positive direction rather than a single-cell outlier.
 
 WHY TCSVT
 
 The contribution is directly relevant to the TCSVT scope on
-efficient visual systems: CG-XKD is a training-time algorithm that
+efficient visual systems: JDCNet is a training-time algorithm that
 exploits a richer auxiliary modality (CT) to improve a lightweight
 deployed model (X-ray-only ResNet-18) without changing the inference
 cost. The mechanism comparison (soft-logit vs.\ confidence-gated vs.\
@@ -167,7 +167,7 @@ replication is explicitly identified in the limitations as the next
 required step.
 
 We have prepared a detailed supplemental appendix covering per-seed
-CG-XKD sweep tables (16 configurations), the comparator-mechanism
+JDCNet sweep tables (16 configurations), the comparator-mechanism
 audit (logit KD, contrastive alignment, attention transfer, feature
 hint, BiomedCLIP, module-augmented variants), the CT teacher
 upper-bound check on four teacher representations, the historical
@@ -198,7 +198,7 @@ Manuscript details:
   Code/data       : Public Code Ocean capsule
                     (https://codeocean.com/capsule/6030764/tree)
   Pre-registered  : docs/future_methods_plan.md and
-                    docs/cgxkd_validation_plan.md in the public
+                    docs/jdcnet_validation_plan.md in the public
                     repository, committed 2026-05-16 before the
-                    CG-XKD extension sweeps were executed.
+                    JDCNet extension sweeps were executed.
 ------------------------------------------------------------------------
