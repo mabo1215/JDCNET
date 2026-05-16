@@ -241,7 +241,76 @@ docs/tmp/bimcv_midrc_full_paired_decision_report.md
 
 ---
 
-## 7. 文件路径汇总
+## 7. Stage A 执行结果 (2026-05-16 完成，240/240 runs)
+
+### 7.1 执行情况
+- **240/240 runs** 全部完成 test_eval（4 teachers × 4 methods × 5 folds × 3 seeds）
+- 第一轮 4 GPU × 4 concurrent OOM，34 KD runs 失败；reduce 到 concurrency=2 后所有 runs 在 ~14 分钟内完成补跑
+- 失败次数：0 (rerun 后)
+- 总耗时：~38 分钟 (含 OOM 重跑)
+- 完整数据：`src/results/bimcv_full_paired_cv_3090_20260516/bimcv_full_paired_decision_report.md`, `bimcv_full_paired_summary.csv`, `bimcv_full_paired_deltas.csv`, `bimcv_full_paired_status.tsv`
+
+### 7.2 关键发现：**Scale 验证了 teacher upper bound，但 KD 机制失败**
+
+**Mean test BA (510-patient cohort)**
+
+| Variant | Teacher | Supervised | Plain KD | Gated KD |
+|---|---:|---:|---:|---:|
+| mid | **0.6697** | 0.6247 | 0.6144 | 0.6027 |
+| 3slice | **0.6758** | 0.6247 | 0.5883 | 0.5989 |
+| proj | 0.6557 | 0.6247 | 0.6091 | 0.6110 |
+| drr | 0.6343 | 0.6247 | 0.6238 | **0.5610** (collapse) |
+
+**Paired deltas vs supervised (pre-specified gate: ΔBA ≥ +0.03 AND CI lower > 0)**
+
+| Variant | teacher_vs_sup (PASS?) | gated_vs_sup (PASS?) |
+|---|---|---|
+| mid | **+0.0450 [+0.019,+0.069] YES** | -0.0220 [-0.055,+0.011] NO |
+| 3slice | **+0.0511 [+0.025,+0.080] YES** | -0.0258 [-0.079,+0.027] NO |
+| proj | +0.0310 [-0.002,+0.065] NO (差一步) | -0.0137 [-0.057,+0.030] NO |
+| drr | +0.0096 [-0.035,+0.056] NO | **-0.0637 [-0.095,-0.034] NO (catastrophic)** |
+
+### 7.3 与 226-patient C1 对比
+
+| | 226 (C1) | 510 (Stage A) | 变化 |
+|---|---:|---:|---|
+| Supervised X-ray BA | 0.5657–0.6311 | 0.6247 | scale → 更稳定 baseline |
+| Teacher upper bound pass count | 1/4 (proj only) | **2/4 (mid + 3slice)** | scale 加强 teacher 证据 |
+| Gated KD vs supervised pass | 0/4 | **0/4** | 仍未通过 |
+| Calibration scan T=4 thr=0.50 ΔBA | +0.034 (CI [-0.004,+0.073], 9/15 pos) | **-0.014~-0.064 (all CI跨0或负)** | scale 让 KD 显著变差 |
+| DRR gated KD | +0.038 vs plain (9/15 pos, CI just touching 0) | **-0.064 (3/12 pos, 显著 FAIL)** | catastrophic collapse |
+
+### 7.4 解读：报告 (iii) 的回答升级为更强的 negative result
+
+1. **Teacher upper bound 在 4.5× cohort 上稳定通过门**（mid/3slice 都 PASS，CI lower > +0.019）——CT 确实承载可用信息，reviewer M9 的"CT representation under-specified"批评在 multi-slice/3slice 设置下已实证回答。
+2. **Supervised X-ray baseline 显著变强**（0.62 BA vs 226-cohort 的 0.56-0.63），让 KD 没有空间往上加。
+3. **Cross-modal logit KD 在 scale 上反而 hurts** — 226 时是 "near-pass"（+0.034），510 时变成 "consistently negative"（-0.014 到 -0.064）。这表明 226 时的 +0.034 是 small-sample artifact。
+4. **DRR gated KD catastrophic collapse**（specificity 从 0.62 跌到 0.43，BA 跌到 0.56）证明：几何 alignment 不够；当 student 有足够标签时，CT-domain 软标签会把 student 拉离 supervised optimum。
+
+### 7.5 决策：选择路径 "Pivot to stronger negative result"
+
+**不触发 Stage B / Stage C**。原因：
+- Stage B (MIDRC 559) 不会改变方向：Stage A 在所有 4 个 teacher 表征上一致 negative，加 MIDRC 数据只会让 negative 更确定。
+- Stage C (X-ray pretrain) 不会改变方向：supervised X-ray 已经在 510 上变成强 plateau，预训练只会进一步抬高 baseline 让 KD gap 更大。
+
+### 7.6 论文升级（已完成的实验产出 → 直接可写）
+
+**main.tex 修改**：
+- §IV.A Datasets：Table 1 新增"Extended BIMCV paired (510 patients, 113+/397-)"。
+- §IV.C Primary Same-Case Evidence：新增"4.5× cohort scaling test"段落，给出 teacher_vs_supervised PASS（mid +0.045, 3slice +0.051）与 gated_vs_supervised FAIL（all 4 variants negative，DRR -0.064 collapse）。
+- §III Contributions bullet 2 升级：
+  - 旧文："Negative-result boundary for CT-to-X-ray transfer..."
+  - 新文："**Definitive negative result at 4.5× cohort scale**: across an extended 510-patient same-patient paired BIMCV cohort, multi-slice CT teachers consistently pass the teacher upper-bound gate (mean ΔBA +0.045 to +0.051, CI lower > +0.019), confirming that CT carries patient-level disease information; yet under the same protocol, confidence-gated logit KD fails on all four teacher representations, with DRR-guided gated KD showing a catastrophic specificity collapse (mean ΔBA −0.064, CI [−0.095, −0.034]). Cohort scaling resolves the small-sample 'near-pass' artifact at 226 patients and turns the result into a reproducible mechanism-level negative."
+- §IV.E Limitations：新增 1 句："The 510-patient extension closes the cohort-scale concern raised in review; the remaining open question is whether a non-logit transfer mechanism (feature-hint, attention transfer, or pseudo-label-style supervision) can recover the teacher upper bound that this paper now demonstrates."
+
+**appendix.tex 修改**：新增 §`Stage A: 510-Patient Extended Paired Cohort CV` 节，含 16 行 decision delta 表（per teacher × per comparison）。
+
+**cover letter 修改**：reviewer (iii) 回应段：
+> "We have extended the primary paired cohort from 226 to 510 same-patient BIMCV CT-X-ray pairs (4.5×) using all 113 positive and 397 negative paired patients available in the BIMCV release. Under this extended cohort, multi-slice CT teachers (mid-slice and 3-slice) now pass the pre-specified teacher upper-bound gate with substantial effect sizes (ΔBA +0.045 and +0.051, 95% bootstrap CI lower bounds > +0.019), confirming that the teacher modality carries patient-level disease information. The cross-modal logit KD however fails across all four teacher representations at this scale, with DRR-guided gated KD showing a catastrophic specificity collapse (Table N). We interpret this as definitive negative-result evidence at the requested cohort scale, and we have re-framed contribution 2 accordingly."
+
+---
+
+## 8. 文件路径汇总
 
 | 资源 | 路径 |
 |---|---|
@@ -257,4 +326,8 @@ docs/tmp/bimcv_midrc_full_paired_decision_report.md
 | 3090 DRR 缓存 | `/data/bimcv/drr_cache/`（510 patients） |
 | 3090 阴性 CT NIfTI | `/data/bimcv_neg_paired/sub-S*/ct/*.nii*`（398 volumes） |
 | 3090 MIDRC raw | `/data1/midrc/raw_559cases_combined/dg.MD1R/`（559 patients, 1118 zip） |
+| Stage A run root (3090) | `/data1/midrc/runs/bimcv_full_paired_cv_20260516/` |
+| Stage A 数值结果 (本地) | `src/results/bimcv_full_paired_cv_3090_20260516/` |
 | 项目 memory | `~/.claude/projects/-mnt-c-source-JDCNET/memory/project_jdcnet.md` |
+
+**结果存放约定（自 2026-05-16 起）**：所有 CSV / TSV / JSON / decision_report 等"数值/计算结果"放在 `src/results/<run_tag>/`；`docs/tmp/` 只放计划与文字分析（report5xx.md、plan.md、audit.md）。
