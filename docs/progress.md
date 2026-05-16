@@ -19,6 +19,8 @@
 - **R8 可复现性**：实现化用词改为读者向开源声明（代码、split definitions、训练配置、bootstrap 工具在 `https://github.com/mabo1215/JDCNET` 开源；BIMCV 不再分发像素）。
 - **页面压缩到 14 页**：删除 Transformers 子节；合并 `Privileged Information` 与 `Cross-Modal Distillation`；精简 Evidence Robustness、Introduction Motivation、Limitations、Discussion；`ref.bib` 从 58 → 30 条，对应未引用条目全部移除。
 
+- **14页复核（2026-05-17）**：再次编译 `paper/build.bat`，确认 combined `paper/main.pdf` 为 14 页；为消除最后一页溢出，压缩 Appendix 的 gated-logit KD 温度/阈值扫描说明，移除该扫描的独立表格，并将机制总结并入同一段落；同步更新正文对该附录内容的引用。
+
 ## 用户已确认的决策
 
 - **不披露 arXiv pilot**：用户将自行更新 arXiv 上的预印本以与 TCSVT 稿件同步，因此不在论文中加入"Relation to prior arXiv version"段落。
