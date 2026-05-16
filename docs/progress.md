@@ -27,6 +27,8 @@
 
 - **伦理/知情同意表述（2026-05-17）**：建议提交表单选 `Yes`（使用人类影像数据），同时说明本研究为公开去标识化 BIMCV 数据的二次分析。`paper/main.tex` Methods 和 `docs/cover_letter.txt` 已补充 institutional research-committee approval/anonymization/no new consent 表述，重新编译 combined PDF 仍为 14 页。
 
+- **Cover letter 初投版（2026-05-17）**：`docs/cover_letter.txt` 已从 revised/major revision 语气改为 initial submission 语气，删除 reviewer/response/revision 表述，保留简短人工风格、headline 结果、TCSVT 相关性、伦理说明和 GitHub 链接。
+
 ## 用户已确认的决策
 
 - **不披露 arXiv pilot**：用户将自行更新 arXiv 上的预印本以与 TCSVT 稿件同步，因此不在论文中加入"Relation to prior arXiv version"段落。

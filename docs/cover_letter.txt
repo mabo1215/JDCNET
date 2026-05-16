@@ -1,4 +1,4 @@
-﻿Cover Letter - Revised Manuscript
+﻿Cover Letter
 Submission to IEEE Transactions on Circuits and Systems for Video Technology (TCSVT)
 
 Title: JDCNet: Confidence-Gated Privileged-Modality Distillation for
@@ -6,10 +6,10 @@ Title: JDCNet: Confidence-Gated Privileged-Modality Distillation for
 
 Dear Editor,
 
-We are pleased to submit the revised manuscript, "JDCNet:
-Confidence-Gated Privileged-Modality Distillation for Cost-Preserving
-X-ray Inference," for consideration in IEEE Transactions on Circuits and
-Systems for Video Technology.
+We are pleased to submit our manuscript, "JDCNet: Confidence-Gated
+Privileged-Modality Distillation for Cost-Preserving X-ray Inference," for
+consideration in IEEE Transactions on Circuits and Systems for Video
+Technology.
 
 This paper studies a practical visual-inference setting in which CT is
 available during training but the deployed model must use X-ray alone. We
@@ -19,9 +19,8 @@ confidence exceeds a fixed threshold; at test time, the CT branch and the
 auxiliary loss are removed. The deployed student is therefore the same
 single-modality ResNet-18 X-ray classifier as the supervised baseline.
 
-The revised manuscript is centered on one bounded claim. On a 510-patient
-same-patient paired BIMCV cohort, using patient-level 5-fold
-cross-validation and seeds 42--44, two JDCNet settings pass the fixed
+On a 510-patient same-patient paired BIMCV cohort, using patient-level
+5-fold cross-validation and seeds 42--44, two JDCNet settings pass the fixed
 transfer gate against the matched supervised X-ray baseline:
 
 - 3-slice CT teacher with soft-KL target: Delta BA = +0.0345,
@@ -33,10 +32,10 @@ The CT teacher upper-bound rows also show positive head-room on the same
 patients. In contrast, plain and gated logit distillation, DRR-guided logit
 transfer, contrastive alignment, attention transfer, feature hints,
 BiomedCLIP fine-tuning, and the historical module-augmented pilot do not
-pass the same gate. This comparison is important to the paper: the result is
-not presented as a general claim that any CT-to-X-ray distillation works,
-but as evidence that confidence-gated auxiliary targets are the supported
-transfer channel in this cohort.
+pass the same gate. We therefore present a bounded claim: confidence-gated
+auxiliary targets are the supported transfer channel in this cohort, while
+external paired-cohort replication is still required before any deployment
+claim.
 
 The systems relevance for TCSVT is that JDCNet uses the richer CT modality
 only at training time while preserving the deployed X-ray inference graph.
@@ -44,19 +43,16 @@ The manuscript reports parameters, MACs, memory, and CPU/GPU/edge latency to
 verify that the selected JDCNet student adds no inference-time cost relative
 to the supervised X-ray baseline.
 
-We have also tightened the manuscript to the current 14-page TCSVT package,
-kept the smaller historical experiments in the appendix only as context, and
-made the limitations explicit. The claim is limited to one public paired
-cohort and binary COVID-19/non-COVID classification; independent paired-cohort
-replication is needed before any clinical or production deployment claim.
+The manuscript is prepared as a 14-page TCSVT submission package. The study
+is a secondary analysis of publicly released, de-identified human imaging
+data. The original BIMCV release reports institutional research-committee
+approval and anonymization/de-identification by the data custodians; we did
+not collect new patient data, obtain new consent, attempt re-identification,
+or redistribute patient pixels.
 
 The work has not been published previously and is not under consideration
-elsewhere. It is a secondary analysis of publicly released, de-identified
-human imaging data. The original BIMCV release reports institutional
-research-committee approval and anonymization/de-identification by the data
-custodians; we did not collect new patient data, obtain new consent, attempt
-re-identification, or redistribute patient pixels. Source code, split
-definitions, training configurations, and analysis utilities are released at:
+elsewhere. Source code, split definitions, training configurations, and
+analysis utilities are released at:
 
 https://github.com/mabo1215/JDCNET
 
