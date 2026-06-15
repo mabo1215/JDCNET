@@ -1,301 +1,308 @@
-﻿# Future Methods Plan: Turning Negative KD Results into Positive
+# Future Methods Plan — Closing the TCSVT Rejection Reasons
 
-**Context**: JDCNet TCSVT revision. Stage A (510-patient BIMCV 5-fold CV) confirms CT teachers carry patient-level signal (mid-slice/3-slice pass teacher upper-bound gate: ΔBA +0.045/+0.051). However, all confidence-gated logit KD configurations fail; DRR-guided gated KD collapses (ΔBA −0.064). The bottleneck is the cross-modal **transfer mechanism**, not data scale or teacher quality. This document lists unexplored directions that could close the gap.
+**Context.** The TCSVT submission was **rejected** on three grounds (see
+`docs/revision_suggestions.tex`): (F1) evaluation is confined to a single
+510-patient cohort, so cross-domain generalization is undemonstrated and the
+result is exposed to dataset-specific bias; (F2) only relative gains
+(ΔBA ≈ +0.035) are reported while absolute baseline metrics are omitted, so
+clinical viability and baseline standing cannot be judged; (F3) the
+confidence-gated threshold is read off an uncalibrated teacher, which is
+vulnerable to overconfidence bias and could push the student to confidently
+learn wrong targets without any calibration safeguard.
 
----
+The validated transfer mechanism (confidence-gated CT→X-ray distillation,
+"JDCNet") is **not** in question — two cells already clear the fixed gate
+(3-slice soft-KL ΔBA +0.0345; mid hard +0.0329). The rejection is about
+**evaluation breadth, reporting completeness, and the calibration safeguard**.
+This plan lists the concrete experiments that turn each rejection reason into a
+defensible result, and how each runs on the remote 4× RTX 3090 box.
 
-## Confirmed Constraints (Do Not Re-Run)
+Validation gate (unchanged): **mean ΔBA ≥ +0.03 AND 95% bootstrap CI lower
+bound > 0**, 5-fold patient-level CV, seeds 42–44, vs. matched supervised
+baseline. For external cohorts the headline endpoint is absolute BA/ROC-AUC
+under domain shift with patient-level bootstrap CIs.
 
-- Plain logit KD: FAIL across all teacher variants, all cohort scales
-- Confidence-gated logit KD (T={2,4,8}, τ={0.50,0.55,0.60}): FAIL
-- Attention transfer (AT), feature hint: FAIL
-- CRD, DKD, DIST, modality-hallucination KD: FAIL
-- Prototype-augmented KD: FAIL
-- BiomedCLIP fine-tuned student: statistically tied with ResNet-18 supervised
-- DRR-guided gated KD: CATASTROPHIC COLLAPSE
-- Re-splitting / more seeds on same cohort: exhausted
-
-Pre-specified validation gate (applies to all new experiments):
-**mean ΔBA ≥ +0.03 AND 95% bootstrap CI lower bound > 0**
-evaluated under 5-fold patient-level CV, 3+ seeds, same 510-patient BIMCV cohort.
-
----
-
-## Method 1: Cross-Modal Contrastive Alignment (InfoNCE) — FAIL (2026-05-16)
-
-### Status: ATTEMPTED at 510-patient scale, all 4 cells fail the validation gate
-
-Run tag `bimcv_contrastive_cv_20260516` (60 runs: 2 teachers × 2 temperatures × 5 folds × 3 seeds; 4× RTX 3090, AMP fp16).
-Two-stage pipeline implemented in `src/jdcnet_exp/train_contrastive.py`:
-Stage 1 InfoNCE pretrain on paired (X-ray, CT) batches; Stage 2 weighted-CE
-fine-tune of the X-ray encoder + linear head against the labelled 510-patient
-paired manifest, scored on the held-out fold test split with the existing
-`jdcnet_exp.evaluate` pipeline.
-
-| Variant | tau | Delta BA mean [95% CI] | +/0/- | Pass |
-|---|---:|---:|---:|---:|
-| 3slice | 0.07 | +0.0027 [-0.0226, +0.0296] | 7/0/8 | NO |
-| 3slice | 0.20 | +0.0080 [-0.0201, +0.0371] | 7/1/7 | NO |
-| mid | 0.07 | -0.0084 [-0.0384, +0.0268] | 5/0/10 | NO |
-| mid | 0.20 | -0.0051 [-0.0305, +0.0200] | 5/0/10 | NO |
-
-Best cell: 3slice tau=0.20, ΔBA=+0.008 — fails both the mean ≥ +0.03 and the
-CI-lower > 0 sub-criteria. Detailed numbers in
-`src/results/bimcv_contrastive_cv_3090_20260516/bimcv_contrastive_decision_report.md`.
-
-Interpretation: feature-space contrastive alignment can match (3slice) but does
-not consistently exceed the supervised X-ray baseline at this cohort scale.
-The CT-side disease signal that passes the teacher upper-bound gate
-(mid +0.045 / 3slice +0.051) is not transferred via patient-paired InfoNCE
-positives — likely because the 397-patient negative pool dominates the batch,
-and the modality gap means CT/X-ray positive pairs are not significantly more
-similar than well-chosen negative pairs after projection.
-
-→ Continue to Method 2 (CT pseudo-label semi-supervised). The contrastive
-mechanism is not the bottleneck-breaker the upper-bound result suggested.
-
-### Why This Has Not Been Tried (original motivation)
-All previous attempts pass **logits** from CT teacher to X-ray student. The fundamental problem is that CT and X-ray occupy incompatible feature spaces — logit matching forces the student to adopt CT's output distribution which is misaligned with what X-ray features can support. Contrastive alignment directly bridges the **feature space** using paired patients as supervision signal.
-
-### Theoretical Basis
-InfoNCE / CLIP-style training: for each mini-batch of paired (CT, X-ray) patients, treat same-patient pairs as positives and all other patients as negatives. Minimise:
-
-```
-L_contrastive = -log [ exp(sim(f_CT, f_XR) / τ) / Σ_j exp(sim(f_CT, f_XR_j) / τ) ]
-```
-
-where `f_CT` and `f_XR` are projection-head outputs from CT and X-ray encoders respectively. After contrastive pre-training, discard CT encoder and fine-tune X-ray encoder + classifier on labeled data.
-
-### Implementation Plan
-
-**Stage 1 — Contrastive pre-training (paired patients only)**
-```
-CT encoder (ResNet-18, frozen or fine-tuned) → MLP projection head → 128-d embedding
-X-ray encoder (ResNet-18) → MLP projection head → 128-d embedding
-Loss: NT-Xent (SimCLR) or InfoNCE on paired same-patient (CT, X-ray) positives
-Data: 510 BIMCV paired patients (no labels needed at this stage)
-Epochs: 100–200; lr=1e-4; batch=128; temperature τ=0.07
-```
-
-**Stage 2 — Supervised fine-tuning (X-ray only)**
-```
-X-ray encoder (weights from Stage 1) → classification head
-Loss: weighted cross-entropy
-Data: 510 BIMCV paired patients with COVID labels
-Protocol: same 5-fold patient-level CV, 3 seeds (42–44)
-```
-
-**Key design choices to explore**:
-- `sim` function: cosine similarity (standard) vs. dot product
-- CT encoder: frozen ImageNet weights vs. fine-tuned on CT classification first
-- Projection head: 2-layer MLP (128→128→128) following SimCLR
-- Whether to include self-supervised X-ray augmentations in Stage 1
-
-### Reference Implementations
-- ConVIRT (Chexpert+radiology reports): same pre-training paradigm
-- MedCLIP (Wang et al. 2022, EMNLP): uses paired CXR+report
-- Local path to adapt: `src/jdcnet_exp/` — add `train_contrastive.py`
-
-### Expected Outcome
-If CT and X-ray share discriminative features at the embedding level (which the teacher upper-bound gate confirms they do), contrastive alignment should encode CT-relevant structure into the X-ray encoder without requiring logit-space compatibility.
+Remote infrastructure (all access **WSL-first** per USAGE.md):
+`mabo1215@10.147.20.176`, code `/data/JDCNET/src`, data `/data1`, helper
+`src/tmp_sync/ssh3090.sh`. Launch scaffold pattern:
+`src/ops/remote_3090_gapkd_sweep.sh`.
 
 ---
 
-## Method 2: CT Pseudo-Label Semi-Supervised — **VALIDATED** (2026-05-16)
+## Method A1 — Absolute-Metric Reporting (closes F2) ★ no new training
 
-### Status: VALIDATED — 2/16 cells pass both gate criteria across three sweep stages
+### Why
+F2 is fundamentally a reporting gap, not a modelling gap. The absolute metrics
+already exist in every run's `best_metrics.json`; they are currently buried in
+the appendix. The fix is to surface them in the abstract and main text.
 
-Three sweep stages run on the 510-patient BIMCV paired cohort (4× RTX 3090, AMP fp16):
-- **Initial sweep** (tag `bimcv_pseudolabel_cv_20260516`): 120 runs, 8 configurations (2 teachers × τ∈{0.70,0.80} × λ∈{0.5,1.0}, hard)
-- **Extension A** (tag `bimcv_pseudolabel_lam15_20260516`): 60 runs, λ=1.5 hard, same teacher×τ matrix
-- **Extension B** (tag `bimcv_pseudolabel_soft_20260516`): 60 runs, soft-KL target λ=1.0, same matrix
+### Plan
+1. For supervised X-ray baseline, CT teacher (mid + 3-slice), and the two
+   passing JDCNet cells, aggregate from existing artifacts:
+   absolute **balanced accuracy, ROC-AUC, macro-F1, sensitivity, specificity**,
+   each with patient-level bootstrap 95% CI.
+2. Emit a compact main-text table and 1–2 absolute numbers into the abstract
+   (e.g. "supervised X-ray BA = 0.XX → JDCNet BA = 0.YY, ΔBA = +0.035").
+3. Keep the relative ΔBA framing but never report it without the absolute pair.
 
-Per batch (hard variant):
+### Remote / local execution
+- Pure aggregation; no GPU training. Run the summarizer over existing
+  `src/results/bimcv_pseudolabel_*` and `bimcv_full_paired_cv_*` artifacts.
+- Reuse `jdcnet_exp.robust_stats_report` / `jdcnet_exp.summarize_runs` and the
+  existing bootstrap-CI utility to dump an `absolute_metrics_table`.
 
-    L = weighted-CE(student_logits, true_label)
-      + λ · CE(student_logits[mask], argmax(softmax(teacher_logits))[mask])
-
-with `mask = max(softmax(teacher_logits)) > τ_pseudo`.
-
-Complete results (all 16 configurations, sorted by ΔBA):
-
-| Variant | τ | λ | Type | ΔBA [95% CI] | +/0/- | Pass |
-|---|---:|---:|---|---:|---:|---:|
-| 3slice | 0.70 | 1.00 | soft-KL | **+0.0345 [+0.0112, +0.0571]** | 10/0/5 | **YES** |
-| mid | 0.80 | 1.50 | hard | **+0.0329 [+0.0074, +0.0584]** | 10/1/4 | **YES** |
-| mid | 0.70 | 1.00 | hard | +0.0298 [-0.0002, +0.0597] | 10/0/5 | NO |
-| mid | 0.70 | 1.50 | hard | +0.0296 [+0.0026, +0.0577] | 9/0/6 | NO |
-| mid | 0.70 | 1.00 | soft-KL | +0.0264 [+0.0017, +0.0547] | 10/0/5 | NO |
-| 3slice | 0.80 | 1.00 | soft-KL | +0.0258 [-0.0029, +0.0546] | 10/0/5 | NO |
-| 3slice | 0.80 | 1.00 | hard | +0.0247 [+0.0012, +0.0504] | 10/0/5 | NO |
-| 3slice | 0.70 | 0.50 | hard | +0.0239 [-0.0032, +0.0501] | 10/0/5 | NO |
-| mid | 0.80 | 1.00 | soft-KL | +0.0231 [-0.0083, +0.0544] | 9/0/6 | NO |
-| 3slice | 0.80 | 1.50 | hard | +0.0181 [-0.0105, +0.0464] | 9/0/6 | NO |
-| 3slice | 0.80 | 0.50 | hard | +0.0151 [-0.0185, +0.0479] | 9/0/6 | NO |
-| mid | 0.80 | 0.50 | hard | +0.0144 [-0.0063, +0.0358] | 10/0/5 | NO |
-| mid | 0.80 | 1.00 | hard | +0.0127 [-0.0177, +0.0423] | 10/0/5 | NO |
-| 3slice | 0.70 | 1.00 | hard | +0.0066 [-0.0182, +0.0330] | 7/0/8 | NO |
-| mid | 0.70 | 0.50 | hard | +0.0005 [-0.0247, +0.0264] | 7/0/8 | NO |
-| 3slice | 0.70 | 1.50 | hard | -0.0031 [-0.0315, +0.0253] | 9/0/6 | NO |
-
-Detailed numbers: `src/results/bimcv_pseudolabel_cv_3090_20260516/`, `src/results/bimcv_pseudolabel_lam15_3090_20260516/`, `src/results/bimcv_pseudolabel_soft_3090_20260516/`.
-
-Interpretation: 15/16 configurations produce positive mean ΔBA (9-10/15 fold/seed cells
-positive each). Two cells strictly clear the pre-specified gate, from independent extension
-sweeps (one hard, one soft-KL), confirming the result is not a single-cell artefact.
-The discrete/lightly-softened argmax-as-label channel transfers CT disease signal to the
-X-ray student at this cohort scale where all prior logit KD, attention transfer, and
-contrastive alignment mechanisms fail. The student recovers ~two-thirds of the teacher
-upper-bound head-room (mid +0.045, 3-slice +0.051 from Stage A).
-
-### Why This Has Not Been Tried (original motivation)
-All previous KD experiments use only the 510 paired patients. The prepared BIMCV-COVID19+ manifest (`src/results/bimcv_full_paired_cv_3090_20260516/` references 638 subjects, 3080 radiographs) contains many X-ray-only patients whose CT is not available. The CT teacher can generate pseudo-labels for the **paired** patients; those pseudo-labels can then supervise training on a larger X-ray-only pool.
-
-### Implementation Plan
-
-**Step 1 — Generate CT soft pseudo-labels**
-```
-Use trained CT teacher (mid-slice or 3-slice, which pass upper-bound gate)
-Apply to all 510 BIMCV paired patients → soft probability p_CT(y|CT)
-Threshold pseudo-label confidence: keep only predictions with max(p) > τ_pseudo (e.g., 0.70)
+```bash
+# from WSL — aggregate absolute metrics from existing run artifacts
+bash src/tmp_sync/ssh3090.sh 'cd /data/JDCNET/src && python3 -m jdcnet_exp.summarize_runs \
+  --runs runs/bimcv_pseudolabel_cv runs/bimcv_pseudolabel_soft runs/bimcv_pseudolabel_lam15 \
+  --metrics balanced_accuracy roc_auc macro_f1 sensitivity specificity --bootstrap 10000 \
+  --out /data1/reports/absolute_metrics_table.json'
 ```
 
-**Step 2 — Semi-supervised student training**
-```
-Training objective per batch:
-  - Paired patients with ground-truth label: L_hard (weighted CE)
-  - Paired patients with CT pseudo-label: λ * L_pseudo (KL or CE against p_CT)
-  - (Optional) Unlabeled X-ray patients: consistency regularisation
-```
-
-**Step 3 — Evaluate under same gate**
-```
-5-fold patient-level CV on the 510 paired patients
-Gate: mean ΔBA ≥ +0.03 AND CI lower > 0 vs. supervised baseline
-```
-
-### Key Differences from Failed Logit KD
-- Previous logit KD forces **every** CT prediction onto the student regardless of confidence
-- Pseudo-label approach uses CT only where it is confident, discarding noisy samples
-- The student learns from CT signal **before** seeing X-ray labels, not simultaneously
-
-### Hyper-parameters to Sweep
-- `τ_pseudo` ∈ {0.60, 0.70, 0.80} (pseudo-label confidence threshold)
-- `λ` ∈ {0.3, 0.5, 1.0} (pseudo-label loss weight)
-- Whether to use soft (KL) or hard (argmax) pseudo-labels
+**Status:** NOT STARTED. **Compute:** none. **Blocks:** abstract + main-text edits.
 
 ---
 
-## Method 3: CT Grad-CAM Spatial Attention Supervision ⭐⭐
+## Method A2 — Calibrate-Then-Gate Teacher (closes F3, primary) ★★★
 
-### Why This Has Not Been Tried
-The attention transfer (AT) baseline that was tried uses **feature activation norms** (Zagoruyko & Komodakis 2017) — a generic mechanism not specific to disease localization. CT volumes provide **semantic spatial information** (which lung regions are affected) that is absent in X-ray. Grad-CAM maps from a trained CT classifier identify disease-relevant voxels, which should correspond to X-ray disease-relevant regions.
+### Why
+The reviewer's sharpest methodological point: the gate trusts raw teacher
+softmax confidence. If the teacher is overconfident, the mask admits confidently
+wrong pseudo-targets. The fix is to **calibrate the teacher before gating** and
+gate on calibrated confidence.
 
-### Implementation Plan
+### Plan
+1. **Held-out calibration split.** Within each training fold, hold out a small
+   calibration subset (or use out-of-fold teacher predictions) never seen by the
+   teacher fit.
+2. **Temperature scaling.** Fit a single scalar temperature `T_cal` on the
+   calibration split by minimizing NLL (standard post-hoc calibration). Optional:
+   vector/Platt scaling as a secondary check.
+3. **Calibrated gate.** Replace `mask = max(softmax(z)) > τ` with
+   `mask = max(softmax(z / T_cal)) > τ`. Re-run the two passing JDCNet cells.
+4. **Report.** ECE / MCE and reliability diagrams **before vs. after**
+   calibration, on retained vs. rejected subsets. We already observe ECE drops
+   from 0.14–0.16 (rejected) to 0.07–0.08 (retained) under the raw gate; show the
+   calibrated gate makes this separation principled rather than incidental.
+5. **Pass criterion.** The two passing cells must still clear the fixed gate
+   under calibrated confidence (expected: equal or stronger, with lower ECE).
 
-**Step 1 — Extract CT Grad-CAM maps**
-```python
-# For each paired patient, run Grad-CAM on trained CT teacher
-# Output: spatial attention map A_CT ∈ R^{H×W} (projected to 2D)
-# Resize to 128×128 to match X-ray input resolution
+### Implementation
+- Extend `jdcnet_exp.calibration_report` (already computes ECE + reliability)
+  to fit and persist `T_cal` per fold/teacher.
+- Add a `teacher_temperature` field consumed by `train_pseudolabel.py` /
+  `distillation.py` when forming the confidence mask.
+
+### Remote execution
+```bash
+# 1) fit per-fold teacher temperature, write T_cal table
+bash src/tmp_sync/ssh3090.sh 'cd /data/JDCNET/src && python3 -m jdcnet_exp.calibration_report \
+  --teachers mid 3slice --fit-temperature --out /data1/reports/teacher_tcal.json'
+# 2) re-run the 2 passing cells with calibrated gate (sweep scaffold)
+bash src/ops/remote_3090_calibrated_gate.sh        # new script, mirrors remote_3090_gapkd_sweep.sh
+bash src/ops/remote_3090_calibrated_gate_summarize.sh
 ```
 
-**Step 2 — Add spatial alignment loss**
-```
-L_spatial = KL(normalize(A_CT) || normalize(GradCAM_XR))
-or: MSE(A_CT, GradCAM_XR) where both are normalised to sum=1
-
-Total loss = L_hard + α * L_spatial
-α ∈ {0.1, 0.3, 1.0}
-```
-
-**Step 3 — Evaluate under same gate**
-
-### Key Challenge
-CT Grad-CAM operates on 3D volume slices; must project to 2D consistently. Mid-slice or mean-projection Grad-CAM may be most compatible with X-ray geometry.
+**Status:** NOT STARTED. **Compute:** ~60 runs, ~1.5 h on 4×3090.
+**New files:** `src/ops/remote_3090_calibrated_gate.sh` (+ summarize),
+`teacher_temperature` plumbing in `train_pseudolabel.py`.
 
 ---
 
-## Method 4: Two-Stage Intermediate Modality Bridge ⭐
+## Method A3 — Overconfidence Stress Ablation (closes F3, evidence) ★★★
 
-### Motivation
-DRR failed catastrophically as a **teacher** but that failure was in the context of logit KD where the CT teacher domain gap collapsed specificity. A different use: train a CT→DRR feature mapping in Stage 1, then use DRR features (not raw logits) as the bridge to X-ray features in Stage 2.
+### Why
+To *prove* the calibration safeguard matters, show the failure mode the reviewer
+fears and then show the safeguard prevents it.
 
-```
-Stage 1: Train CT encoder → MLP → DRR encoder space  (paired CT + DRR)
-Stage 2: Align DRR feature space → X-ray feature space  (DRR + X-ray, same patient)
-Stage 3: Fine-tune X-ray classifier on labeled data
-```
+### Plan
+Three teacher confidence regimes feeding the identical gate + student:
+1. **Sharpened (overconfident) teacher:** apply `T < 1` (e.g. 0.5) so softmax is
+   artificially peaked → simulates an uncalibrated overconfident teacher.
+2. **Raw teacher:** current paper setting (`T = 1`).
+3. **Calibrated teacher:** `T = T_cal` from A2.
 
-This is a **gradual domain hop** (CT → DRR → X-ray) rather than a direct CT→X-ray jump.
+Report, for each regime: teacher ECE, gate coverage, fraction of admitted
+pseudo-labels that are *wrong*, and student ΔBA. Expected narrative: the
+sharpened teacher admits more wrong targets and degrades or destabilizes the
+student; the calibrated teacher admits fewer wrong targets and preserves the
+gate pass. This directly answers "an uncalibrated teacher could force the student
+to confidently learn incorrect distributions."
 
-### Why Lower Priority
-- DRR has already shown instability across seed groups (seeds 42–44 near-pass reversed by seeds 45–47)
-- Requires 3-stage training, more hyper-parameters, more failure modes
-- Attempt only if Methods 1 and 2 both fail
+### Remote execution
+- Same sweep scaffold, varying only the teacher temperature applied before
+  masking (`{0.5, 1.0, T_cal}`) for the two passing cells.
+
+**Status:** NOT STARTED. **Compute:** ~60 runs, ~1.5 h. Shares scaffold with A2.
 
 ---
 
-## Method 5: Multi-Task Auxiliary CT Feature Regression ⭐
+## Method A4 — External X-ray-Only Validation (closes F1, baseline) ★★★
 
-### Concept
-Add a secondary decoder head to the X-ray student that predicts CT-derived features (not the CT logit, but intermediate feature vector from the penultimate CT encoder layer).
+### Why
+F1's minimum viable answer: take the **frozen deployed X-ray student** trained on
+BIMCV and evaluate it, with no retraining, on independent external X-ray cohorts.
+This is a true out-of-distribution test of the deployed artifact and produces the
+absolute, cross-domain numbers the reviewer demands.
 
+### Plan
+1. **External cohorts.** Use the MIDRC pipeline already in the repo
+   (`prepare_midrc_dataset.py`) plus at least one additional public COVID CXR
+   set (preparation scaffolds exist: `download_noncovid_datasets.py`,
+   `prepare_covid_dataset.py`). Build patient-level external manifests on `/data1`.
+2. **Inference only.** Run the frozen BIMCV-trained student (supervised baseline
+   AND the two passing JDCNet cells) on each external manifest via
+   `jdcnet_exp.evaluate`.
+3. **Report absolute** BA / ROC-AUC / macro-F1 / sensitivity / specificity with
+   patient-level bootstrap CIs, per external cohort. The key comparison is
+   JDCNet-student vs. supervised-student **under domain shift** — does the
+   training-time CT signal still help when the test distribution moves?
+
+### Remote execution
+```bash
+# build external manifests
+bash src/tmp_sync/ssh3090.sh 'cd /data/JDCNET/src && python3 -m jdcnet_exp.prepare_midrc_dataset --out /data1/external/midrc'
+# frozen-student external inference (no training)
+bash src/ops/remote_3090_external_eval.sh   # iterates checkpoints × external manifests via jdcnet_exp.evaluate
 ```
-X-ray encoder → classification head (primary task)
-             → CT feature regression head (auxiliary task, L2 loss)
-```
 
-The auxiliary task forces the X-ray encoder to learn a representation that is CT-compatible at the feature level.
+**Status:** NOT STARTED. **Compute:** inference only, < 30 min single GPU.
+**Risk:** MIDRC is largely X-ray/CT but not necessarily same-patient paired; for
+A4 that is fine because A4 tests only the deployed X-ray student. Paired-cohort
+replication is B1.
 
-### Key Difference from Feature Hint
-Feature hint (already tried) maps X-ray features directly to CT features via MSE. Multi-task auxiliary regression adds a **separate head** so the classification gradient and CT-alignment gradient don't compete through the same bottleneck.
+---
+
+## Method B1 — External Paired-Cohort JDCNet Gate (closes F1, strongest) ★★
+
+### Why
+The decisive rebuttal to F1: replicate the *entire transfer claim* (teacher
+upper bound + JDCNet gate + comparator audit) on a second same-patient paired
+CT–X-ray cohort. If JDCNet passes the gate on a second cohort, the single-cohort
+criticism collapses.
+
+### Plan
+1. Assemble a second same-patient paired CT–X-ray cohort. Candidate sources: the
+   BIMCV-COVID19**−** negative release (`download_bimcv_neg_paired.py`,
+   `prepare_bimcv_neg_dataset.py` already exist) to build an independent paired
+   split, and/or MIDRC paired subjects where CT+CXR co-exist
+   (`prepare_midrc_teacher_variants.py`, `prepare_mixed_bimcv_midrc_cv.py`).
+2. Re-run the full pipeline on the new cohort: CT teacher pre-train → teacher
+   upper-bound gate → JDCNet 16-cell grid → comparator audit, all under the same
+   fixed gate and patient-level 5-fold CV.
+3. Report whether the two BIMCV-passing configurations also pass externally.
+
+### Remote execution
+- Largest job: mirror the 240-run sweep used for the BIMCV headline. Reuse the
+  config-gen + round-robin + screen scaffold; new tag e.g.
+  `paired_external_cv_3090_<date>`.
+
+**Status:** BLOCKED on data feasibility — needs confirmation that a genuinely
+**same-patient paired** external CT–X-ray cohort can be assembled at usable
+scale. **Compute (if unblocked):** ~240 runs, ~6 h on 4×3090.
+
+> **Author decision needed:** is an external same-patient paired CT–X-ray cohort
+> obtainable (BIMCV-neg paired build, MIDRC paired subjects, or other)? If yes,
+> B1 becomes the headline F1 rebuttal. If no, F1 is answered by A4 + B2.
+
+---
+
+## Method B2 — Cross-Source Transfer Matrix (closes F1, quantifies gap) ★★
+
+### Why
+Make the generalization gap explicit and honest: train on BIMCV, test on
+external (and reverse where data allows), reporting the absolute drop. This
+converts F1 from a fatal flaw into a transparent, quantified external-validity
+result.
+
+### Plan
+- 2×2 (or as data allows) train/test source matrix for the supervised baseline
+  and the JDCNet student; report absolute BA/AUC in every cell and the
+  same-source minus cross-source gap.
+- Reuse `prepare_mixed_bimcv_midrc_manifest.py` for the mixed/cross manifests.
+
+### Remote execution
+- ~30 runs, round-robin 4 GPU, ~1.5 h. New script
+  `src/ops/remote_3090_cross_source_matrix.sh`.
+
+**Status:** NOT STARTED. **Depends on** A4 manifests.
+
+---
+
+## Method B3 — Calibrated-Quantile Gate Sweep (closes F3, robustness) ★
+
+### Why
+Show the gate decision is not a fragile fixed-τ artifact once calibration is in
+place: replace the absolute threshold τ with a **calibrated-confidence quantile**
+(e.g. keep top-q most-confident calibrated predictions) and confirm the passing
+cells survive across q.
+
+### Plan
+- Sweep `q ∈ {0.5, 0.6, 0.7, 0.8}` on calibrated confidence for the two passing
+  cells; confirm ΔBA stays positive and smooth (no sharp-threshold cliff).
+
+### Remote execution
+- ~90 runs, ~2.5 h. Extends the A2 calibrated-gate scaffold with a quantile mask
+  mode.
+
+**Status:** NOT STARTED. **Depends on** A2.
 
 ---
 
 ## Recommended Execution Order
 
 ```
-1. Method 1 (Contrastive alignment)  ← FAIL (2026-05-16, 60 runs, 0/4 cells pass)
-
-2. Method 2 (CT pseudo-label semi-supervised)  ← VALIDATED (2026-05-16, 240 total runs)
-   Initial: 0/8 strict pass, 8/8 positive deltas
-   Extension A (λ=1.5 hard): 1/4 pass — mid τ=0.80 λ=1.50 ΔBA=+0.033 [+0.007, +0.058]
-   Extension B (soft-KL λ=1.0): 1/4 pass — 3slice τ=0.70 ΔBA=+0.035 [+0.011, +0.057]
-   → STOP. Method 2 clears the pre-specified gate. Methods 3–5 not needed.
-
-3. Method 3 (Grad-CAM spatial supervision)  ← NOT NEEDED (Method 2 VALIDATED)
-4. Method 4/5 (Bridge / Multi-task)  ← NOT NEEDED
+1. A1  Absolute metrics (no GPU)              → closes F2 immediately
+2. A2  Calibrate-then-gate (~1.5 h)           → closes F3 (mechanism)
+3. A3  Overconfidence ablation (~1.5 h)       → closes F3 (evidence)
+4. A4  External X-ray-only inference (<0.5 h) → closes F1 (baseline)
+5. B2  Cross-source matrix (~1.5 h)           → closes F1 (quantified gap)
+6. B3  Calibrated-quantile sweep (~2.5 h)     → F3 robustness
+7. B1  External paired gate (~6 h) IF DATA    → strongest F1 rebuttal
 ```
+
+A1–A4 are the minimum set that makes the paper resubmittable. B1 is the upgrade
+path that, if data permits, removes F1 entirely.
 
 ---
 
 ## Infrastructure Notes
 
-- **Compute**: 4× RTX 3090 at `10.147.20.176:/data1`; H800 at autodl (on-demand)
-- **Base code**: `src/jdcnet_exp/` — existing ResNet-18 5-fold CV pipeline
-- **Data**: BIMCV 510-patient paired manifest already prepared at `/data1/midrc/runs/bimcv_full_paired_cv_20260516/`
-- **Validation gate script**: `src/jdcnet_exp/` — reuse existing bootstrap CI + ΔBA computation
-- **New files to add**:
-  - `src/jdcnet_exp/train_contrastive.py` (Method 1)
-  - `src/jdcnet_exp/train_pseudolabel.py` (Method 2)
-  - `src/jdcnet_exp/extract_gradcam.py` (Method 3)
+- **Compute:** 4× RTX 3090 at `mabo1215@10.147.20.176`, code `/data/JDCNET/src`,
+  data `/data1`. All remote access **WSL-first** (`src/tmp_sync/ssh3090.sh`);
+  never assemble complex remote commands in PowerShell.
+- **Launch scaffold:** copy `src/ops/remote_3090_gapkd_sweep.sh` (config-gen →
+  per-GPU queue → detached `screen` → `jdcnet_exp.train`/`evaluate`) for each new
+  sweep; add a matching `*_summarize.sh`.
+- **Calibration:** `jdcnet_exp.calibration_report` (ECE + reliability) extended to
+  fit/persist per-fold teacher temperature.
+- **Pseudo-label trainer:** `jdcnet_exp.train_pseudolabel` gains a
+  `teacher_temperature` knob feeding the confidence mask.
+- **External data:** `prepare_midrc_dataset.py`, `download_bimcv_neg_paired.py`,
+  `prepare_bimcv_neg_dataset.py`, `prepare_mixed_bimcv_midrc_*` already present.
+- **New scripts to add:** `src/ops/remote_3090_calibrated_gate.sh` (+summarize),
+  `src/ops/remote_3090_external_eval.sh`, `src/ops/remote_3090_cross_source_matrix.sh`.
+- **Artifacts:** each sweep → `src/results/<tag>_3090_<date>/` with a
+  `*_decision_report.md` carrying ΔBA, 95% CI, win counts, PASS/FAIL, **and
+  absolute metrics**.
 
 ---
 
 ## Paper Integration
 
-If any method passes the gate:
-1. Replace "definitive negative result" framing in `paper/main.tex` Contribution 2
-2. Add new method to Section III (Methodology) with architecture diagram update
-3. Add results table to `paper/appendix.tex` under new subsection
-4. Update `docs/cover_letter.txt` response to Concern (iii) accordingly
-5. Re-run build.bat to verify page count stays ≤ 12 pages (main)
-
-If all methods fail:
-- Current paper framing (evidence-bounded negative result) is already the correct conclusion
-- No further experiments needed; submit as-is
+For each completed method:
+1. A1 → absolute-metric table in main text + abstract numbers (F2).
+2. A2/A3/B3 → "Calibration Safeguard" Methodology subsection + calibration
+   ablation table; update the gate-coverage/reliability paragraph (F3).
+3. A4/B1/B2 → new "External Validation" experiments tier with absolute
+   cross-domain numbers; soften single-cohort language in abstract, Introduction,
+   and Limitations (F1).
+4. Re-run `paper/build.bat`; confirm combined PDF ≤ 14 pages.
+5. Update `docs/cover_letter.txt` to a point-by-point response to F1/F2/F3.
+6. Update `docs/progress.md` (`## 已全部修改` / `## 未修改或部分修改` /
+   `## 遗留问题`).
 
 ---
 
-*Created: 2026-05-16. Based on Stage A 510-patient results in `src/results/bimcv_full_paired_cv_3090_20260516/bimcv_full_paired_decision_report.md`.*
+*Rewritten 2026-06-16 in response to the TCSVT reject decision in
+`docs/revision_suggestions.tex`. Roadmap + priorities: `docs/revision_roadmap.md`.*

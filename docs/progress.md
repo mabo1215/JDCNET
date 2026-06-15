@@ -1,5 +1,53 @@
 # 进度
 
+## 目标期刊变更与 ACM 格式改造（2026-06-16）
+
+- **目标 venue 变更**：由 IEEE TCSVT 改为 **ACM TOMM**（ACM Transactions on
+  Multimedia Computing, Communications, and Applications）。已更新 `USAGE.md`
+  的 `目标会议或期刊：...` 一行。
+- **论文格式改造（`paper/`）**：`paper/main.tex` 与 `paper/appendix.tex` 从
+  IEEEtran 全面改写为 **acmart**（`\documentclass[manuscript,screen]{acmart}`，
+  ACM 期刊投稿要求的单栏 manuscript 格式）。
+  - 题录元数据：`\acmJournal{TOMM}`、`\setcopyright`、CCS Concepts（`\ccsdesc`
+    + CCSXML）、`\keywords`，参考文献样式改为 `ACM-Reference-Format`，
+    `\bibliography{ref}`（移除 IEEEabrv）。
+  - 作者块改为 ACM `\author/\affiliation/\email`；移除 IEEE 专用宏
+    （`\IEEEPARstart`、`\markboth`、`\IEEEkeywords`、`\IEEEpeerreviewmaketitle`、
+    `\ifCLASSINFOpdf`/`\ifCLASSOPTIONcaptionsoff`）及 IEEE biography 段落。
+  - 正文中 "Positioning within TCSVT" 改为 "Positioning within multimedia
+    computing"，"TCSVT-ready" 改为 "TOMM-ready"。
+- **附录整合**：acmart 下 `xr/\externaldocument` 跨文档引用会触发
+  "Missing number" 致命错误（acmart 的 .aux 与 xr 不兼容）。改为把附录正文抽到
+  `paper/appendix_body.tex`，由 `main.tex` 在参考文献后用 `\appendix\input{appendix_body}`
+  原生引入；`appendix.tex` 仍可独立编译（同样 `\input` 该共享正文）。所有
+  附录交叉引用（如 `tab:jdcnet_510`）现已原生解析，无 undefined reference。
+- **构建验证**：`paper/build.bat` 编译通过——`main.pdf` 23 页（正文+附录，ACM
+  单栏 manuscript），`appendix.pdf` 6 页（独立附录）；无 undefined 引用/引文，
+  仅 1 处 overfull box。TOMM 为期刊无硬性页数上限，23 页可接受。
+- **双盲匿名化（2026-06-16）**：TOMM 为双盲评审。`main.tex` 与 `appendix.tex`
+  documentclass 加入 `review,anonymous` 选项——作者名显示为 "Anonymous
+  Author(s)"，affiliation/email/contact-info 与致谢自动隐藏，左侧加行号。正文中
+  唯一可识别信息（GitHub 链接 `mabo1215/JDCNet`）改为 "repository URL withheld
+  for double-blind review and provided to reviewers as anonymized supplementary
+  material"。附录正文无可识别信息。
+- **独立 title page（2026-06-16）**：新增 `paper/title_page.tex`（非匿名，单独
+  上传，评审看不到），含完整标题、5 位作者及单位/邮箱、通讯作者（Bo Ma）、
+  摘要、关键词，以及投稿信息块（目标期刊 TOMM、类别 Regular Paper、双盲）。
+  编译产出 `paper/title_page.pdf`。
+- **投稿类别**：选择 **Regular Paper（regular submission, no special issue）**。
+  非 survey/tutorial/editorial；arXiv 预印本不算会议论文故非 Conference Extension；
+  三个特刊（Foundation Models Meet 3D / Responsible & Explainable Multi-Modal
+  Fusion / Multimodal Embodied Agents）均不匹配本文（本文是 training-only
+  privileged-modality、单模态部署，非 multi-modal fusion）。
+- **构建复核（2026-06-16，匿名后）**：`main.pdf` 23 页（匿名，行号）、
+  `appendix.pdf` 6 页、`title_page.pdf` 2 页，均编译通过。
+- **Cover letter 改投 TOMM（2026-06-16）**：`docs/cover_letter.txt` 已从 TCSVT
+  改写为 ACM TOMM——更新抬头/EIC 称呼、投稿类别（Regular Paper）、多媒体计算
+  系统相关性表述；移除 14 页 TCSVT 表述与正文 GitHub 链接，改为接收后开源 +
+  双盲匿名说明（manuscript 匿名、作者信息在 title page 单独提供）；通讯作者
+  邮箱改为 rcn4743@aut.ac.nz。
+- **遗留**：尚未按 ACM 投稿要求做内容级精简/校对。
+
 ## 当前状态（2026-05-17 close）
 
 - **目标 venue**：IEEE TCSVT，transactions paper 14 页上限。

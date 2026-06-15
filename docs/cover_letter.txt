@@ -1,27 +1,30 @@
-﻿Cover Letter
-Submission to IEEE Transactions on Circuits and Systems for Video Technology (TCSVT)
+Cover Letter
+Submission to ACM Transactions on Multimedia Computing, Communications, and
+Applications (ACM TOMM)
 
 Title: JDCNet: Confidence-Gated Privileged-Modality Distillation for
        Cost-Preserving X-ray Inference
 
-Dear Editor,
+Submission category: Regular Paper (regular submission, no special issue)
+
+Dear Editor-in-Chief,
 
 We are pleased to submit our manuscript, "JDCNet: Confidence-Gated
 Privileged-Modality Distillation for Cost-Preserving X-ray Inference," for
-consideration in IEEE Transactions on Circuits and Systems for Video
-Technology.
+consideration as a Regular Paper in ACM Transactions on Multimedia Computing,
+Communications, and Applications.
 
-This paper studies a practical visual-inference setting in which CT is
-available during training but the deployed model must use X-ray alone. We
-propose JDCNet, a confidence-gated CT-to-X-ray distillation method. The CT
-teacher provides an auxiliary hard or lightly softened target only when its
-confidence exceeds a fixed threshold; at test time, the CT branch and the
-auxiliary loss are removed. The deployed student is therefore the same
+This paper studies a practical multimedia-systems setting in which a richer
+imaging modality (CT) is available during training but the deployed model must
+use X-ray alone. We propose JDCNet, a confidence-gated CT-to-X-ray distillation
+method. The CT teacher provides an auxiliary hard or lightly softened target
+only when its confidence exceeds a fixed threshold; at test time, the CT branch
+and the auxiliary loss are removed. The deployed student is therefore the same
 single-modality ResNet-18 X-ray classifier as the supervised baseline.
 
-On a 510-patient same-patient paired BIMCV cohort, using patient-level
-5-fold cross-validation and seeds 42--44, two JDCNet settings pass the fixed
-transfer gate against the matched supervised X-ray baseline:
+On a 510-patient same-patient paired BIMCV cohort, using patient-level 5-fold
+cross-validation and seeds 42--44, two JDCNet settings pass the fixed transfer
+gate against the matched supervised X-ray baseline:
 
 - 3-slice CT teacher with soft-KL target: Delta BA = +0.0345,
   95% CI [+0.0112, +0.0571].
@@ -30,37 +33,42 @@ transfer gate against the matched supervised X-ray baseline:
 
 The CT teacher upper-bound rows also show positive head-room on the same
 patients. In contrast, plain and gated logit distillation, DRR-guided logit
-transfer, contrastive alignment, attention transfer, feature hints,
-BiomedCLIP fine-tuning, and the historical module-augmented pilot do not
-pass the same gate. We therefore present a bounded claim: confidence-gated
-auxiliary targets are the supported transfer channel in this cohort, while
-external paired-cohort replication is still required before any deployment
-claim.
+transfer, contrastive alignment, attention transfer, feature hints, BiomedCLIP
+fine-tuning, and a module-augmented pilot do not pass the same gate. We
+therefore present a bounded claim: confidence-gated auxiliary targets are the
+supported transfer channel in this cohort, while external paired-cohort
+replication is still required before any deployment claim.
 
-The systems relevance for TCSVT is that JDCNet uses the richer CT modality
-only at training time while preserving the deployed X-ray inference graph.
-The manuscript reports parameters, MACs, memory, and CPU/GPU/edge latency to
-verify that the selected JDCNet student adds no inference-time cost relative
-to the supervised X-ray baseline.
+The relevance to ACM TOMM is that JDCNet treats cross-modal supervision as a
+training-time signal-routing problem under a fixed deployment budget: the richer
+CT modality shapes only the training objective, while the deployed graph remains
+a standard single-modality classifier. The manuscript reports parameters, MACs,
+memory, and CPU/GPU/edge latency to verify that the selected JDCNet student adds
+no inference-time cost relative to the supervised X-ray baseline, which we
+believe is of interest to the multimedia computing and communications community
+concerned with efficient, deployment-realistic multimodal systems.
 
-The manuscript is prepared as a 14-page TCSVT submission package. The study
-is a secondary analysis of publicly released, de-identified human imaging
-data. The original BIMCV release reports institutional research-committee
-approval and anonymization/de-identification by the data custodians; we did
-not collect new patient data, obtain new consent, attempt re-identification,
-or redistribute patient pixels.
+In accordance with the ACM TOMM double-blind review policy, the submitted
+manuscript is fully anonymized (author names, affiliations, and acknowledgments
+are removed, and code/repository identifiers are withheld and provided to
+reviewers only as anonymized supplementary material). Author-identifying
+information is supplied separately on the title page for editorial use only.
+
+The study is a secondary analysis of publicly released, de-identified human
+imaging data. The original BIMCV release reports institutional
+research-committee approval and anonymization/de-identification by the data
+custodians; we did not collect new patient data, obtain new consent, attempt
+re-identification, or redistribute patient pixels.
 
 The work has not been published previously and is not under consideration
-elsewhere. Source code, split definitions, training configurations, and
-analysis utilities are released at:
-
-https://github.com/mabo1215/JDCNET
+elsewhere. Source code, split definitions, training configurations, and analysis
+utilities will be released under an open-source licence upon acceptance.
 
 Thank you for your time and consideration.
 
 Sincerely,
 
-Bo Ma
+Bo Ma (corresponding author)
 Auckland University of Technology
-New Zealand
-amabo1215@gmail.com
+Auckland, New Zealand
+rcn4743@aut.ac.nz
