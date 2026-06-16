@@ -1,5 +1,18 @@
 # 进度
 
+## paper/ 目录整理（2026-06-16）
+
+- **拆分脚本归位**：`paper/split_main.ps1` 移入 `paper/build/split_main.ps1`，保持
+  paper 根目录干净；`build.bat` 改为调用 `%BUILD_ROOT%\split_main.ps1`；脚本内路径
+  改为以 `$PSScriptRoot`（=build/）的父目录为 paper 根、`main.aux` 在 build/；
+  `paper/.gitignore` 增加 `!build/split_main.ps1` 例外（build/* 默认被忽略）。
+- **附录单一源**：`appendix_body.tex` 内容合并进 `paper/appendix.tex` 并删除
+  `appendix_body.tex`。`appendix.tex` 用 `\ifdefined\JDCappendixincluded` 守卫
+  preamble/title/`\end{document}`：独立编译时走完整文档；被 `main.tex` 以
+  `\def\JDCappendixincluded{}\input{appendix}` 引入时只输出正文，combine 原生解析
+  全部交叉引用。根目录 .tex 仅剩 `main.tex / appendix.tex / title_page.tex`。
+- **复核通过**：main 23 页、combine 27 页、appendix 4 页，无 undefined 引用/引文。
+
 ## A2/A4 实验脚本就绪 + 远端不可达 + 构建告警修复（2026-06-16）
 
 - **构建告警根因修复**：`main.pdf` 拆分原用 poppler `pdfseparate`+`pdfunite`，在

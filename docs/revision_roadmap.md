@@ -1,175 +1,197 @@
-# Revision Roadmap — Rejection Response (TCSVT)
+# Revision Roadmap - TCSVT 拒稿后的修订路线图
 
-Decision received: **Reject**. This roadmap is the recovery plan that maps every
-stated rejection reason to concrete manuscript edits and remote-GPU experiments,
-in priority order. It supersedes the earlier "Stage 9 Revision Roadmap" content.
-
-Target venue: IEEE TCSVT (transactions paper, 14-page limit).
+本文档根据 `docs/revision_suggestions.tex` 重写。拒稿意见可以归纳为三点：单 cohort、只报相对提升、teacher gate 未校准。修订路线图只围绕这三点展开，避免引入无关的新故事。
 
 ---
 
-## 1. The Three Rejection Reasons (verbatim decomposition)
+## 1. 拒稿原因分解
 
-The reject decision rests on exactly three flaws. Everything below is scoped to
-closing these three and nothing else.
+| ID | 拒稿原因 | 必须补的证据 |
+|---|---|---|
+| F1 | 评估只限于 510 例单一 cohort，无法证明 cross-domain generalization，存在 dataset-specific bias | 外部 cohort 验证、跨源 train/test matrix；若可行，外部 same-patient CT-Xray paired replication |
+| F2 | 只报告相对提升，例如 `Delta BA = +0.035`，没有绝对 baseline 指标 | 主文和摘要补充 baseline/JDCNet 的 BA、AUC、F1、sensitivity、specificity 和 CI |
+| F3 | confidence gate 来自未校准 teacher，可能因 overconfidence 让 student 学错 target distribution | teacher temperature scaling、calibrated confidence gate、overconfidence ablation、ECE/reliability 图 |
 
-- **F1 — Single-cohort evaluation.** The evaluation is restricted to one
-  510-patient cohort, so cross-domain generalization is not demonstrated and the
-  findings are susceptible to dataset-specific bias.
-- **F2 — Relative-only reporting.** Only relative gains are reported (e.g.
-  ΔBA = +0.035); absolute baseline metrics are omitted, so the true clinical
-  viability and baseline standing of the model cannot be judged.
-- **F3 — Uncalibrated-teacher overconfidence.** The confidence-gated threshold
-  is taken from the teacher without any calibration safeguard, so an
-  overconfident teacher could force the student to confidently learn incorrect
-  target distributions.
-
-Severity ordering: **F1 ≫ F3 > F2**. F1 is the blocking issue (requires new
-data and new runs), F3 is a methodological credibility issue (requires new runs
-but on existing data), F2 is primarily a reporting issue (mostly aggregation of
-existing artifacts, low compute).
+优先级：F1 最大，F3 次之，F2 最容易修复但必须立即补齐。
 
 ---
 
-## 2. Priority-Ordered Action List
+## 2. P0: 投稿前必须完成
 
-### P0 — Must fix before any resubmission
+| ID | 对应问题 | 行动 | 输出 |
+|---|---|---|---|
+| A1 | F2 | 汇总现有 artifact 的绝对指标 | absolute metrics table，摘要中的绝对 BA/AUC |
+| A2 | F3 | teacher temperature scaling + calibrated confidence gate | calibrated gate 结果、ECE/MCE、reliability diagram |
+| A3 | F3 | overconfidence stress ablation，比较 `T=0.5`, `T=1`, `T=T_cal` | 证明未校准过度自信会伤害 gate，校准可缓解 |
+| A4 | F1 | frozen X-ray student 在外部 X-ray cohort 上推理 | external BA/AUC/F1/sens/spec + bootstrap CI |
 
-| ID | Reason | Action | Compute |
-|----|--------|--------|---------|
-| A1 | F2 | Report absolute BA / ROC-AUC / macro-F1 / sensitivity / specificity for supervised X-ray baseline, CT teacher, and the two passing JDCNet cells in the **abstract and main text**, not only the appendix. | None (aggregate existing `best_metrics.json`) |
-| A2 | F3 | Add teacher temperature-scaling calibration on a held-out calibration split; gate on **calibrated** confidence; report pre/post ECE and reliability diagrams. | Low (re-score frozen teachers + short student re-runs) |
-| A3 | F3 | Add an overconfidence stress ablation: an intentionally uncalibrated/over-sharpened teacher vs. the calibrated teacher, showing the gate degrades without calibration and the safeguard recovers it. | Low–Medium |
-| A4 | F1 | External-cohort validation: deploy the frozen X-ray student on ≥1 independent external X-ray cohort (MIDRC + one public COVID CXR set) and report absolute metrics under domain shift. | Medium |
-
-### P1 — Strongly expected by reviewers
-
-| ID | Reason | Action | Compute |
-|----|--------|--------|---------|
-| B1 | F1 | If any external **paired** CT–X-ray cohort can be assembled, re-run the full JDCNet gate on it (true cross-domain replication of the transfer claim). | High |
-| B2 | F1 | Cross-source train/test transfer matrix (train BIMCV → test external, and reverse if feasible) to quantify the generalization gap explicitly. | Medium |
-| B3 | F3 | Calibration-aware gate sweep: replace the fixed τ with a calibrated-confidence quantile gate; show the passing cells are stable to the calibration choice. | Medium |
-
-### P2 — Defensive / robustness
-
-| ID | Reason | Action |
-|----|--------|--------|
-| C1 | F1 | Reframe the contribution as evidence-bounded but now multi-cohort; soften any single-cohort language throughout main.tex and the abstract. |
-| C2 | F2 | Add an absolute-metric table to the abstract-adjacent results so a reader can read baseline standing without the appendix. |
-| C3 | F3 | Add a short "Calibration Safeguard" subsection to Methodology describing the calibrate-then-gate procedure. |
-
-Experiment designs for A2–A4, B1–B3 are detailed in
-[`docs/future_methods_plan.md`](future_methods_plan.md).
+P0 完成后，论文至少能明确回应全部三条拒稿原因。
 
 ---
 
-## 3. Remote 3090 Operating Plan
+## 3. P1: 强烈建议完成
 
-All remote compute runs on the **4× RTX 3090** box reachable over ZeroTier.
+| ID | 对应问题 | 行动 | 价值 |
+|---|---|---|---|
+| B1 | F1 | 外部 same-patient paired CT-Xray cohort 上重跑完整 JDCNet gate | 最强 F1 反驳；若通过，可主张 transfer mechanism 跨 cohort 复现 |
+| B2 | F1 | cross-source transfer matrix | 把泛化问题量化成 same-source vs cross-source gap |
+| B3 | F3 | calibrated-quantile gate sweep | 证明 gate 对阈值选择稳定，不是单点偶然 |
+
+若 B1 因数据不可得无法完成，A4 + B2 是 F1 的现实替代方案。
+
+---
+
+## 4. 远端 3090 使用路线
+
+### 4.1 机器与路径
 
 - Host: `mabo1215@10.147.20.176`
-- Code root: `/data/JDCNET/src`
-- Data root: `/data1` (large datasets, manifests, runs)
-- Results pulled back to: `src/results/<tag>/`
+- GPU: 4x RTX 3090
+- Remote code root: `/data/JDCNET/src`
+- Remote data root: `/data1`
+- Local helper: `src/tmp_sync/ssh3090.sh`
+- 推荐运行环境：WSL-first
 
-### 3.1 WSL-first rule (mandatory, from USAGE.md)
+### 4.2 当前连接阻塞
 
-All SSH / SCP / rsync / screen inspection / remote script execution **must** go
-through `wsl bash ...` or a repository `.sh` script. Do **not** assemble complex
-remote commands in PowerShell. Anything with pipes, redirection, here-docs,
-`$()`, regex, or nested quoting must be written as a `.sh` script and invoked via
-WSL. Use the existing helper:
+用户当前执行：
 
 ```bash
-# one-off remote command (from WSL)
-bash src/tmp_sync/ssh3090.sh 'hostname; nvidia-smi --query-gpu=index,memory.used --format=csv,noheader'
+ssh mabo1215@10.147.20.176
+# ssh: connect to host 10.147.20.176 port 22: No route to host
 ```
 
-### 3.2 Launch pattern (reuse the proven sweep scaffold)
+本机复查也显示：
 
-New sweeps follow the exact structure of `src/ops/remote_3090_gapkd_sweep.sh`:
+- Windows `ping 10.147.20.176`: 100% timeout
+- WSL `nc -vz -w 3 10.147.20.176 22`: `No route to host`
 
-1. Generate per-cell config JSONs into `src/configs/<sweep>/`.
-2. Build a per-GPU queue script, round-robin across GPUs 0–3.
-3. Launch each GPU queue in a detached `screen` session.
-4. Each run executes `python3 -m jdcnet_exp.train --config <cfg>` (or the
-   relevant `jdcnet_exp` entry point) writing `best_metrics.json` + `best.pt`.
-5. A `*_summarize.sh` companion aggregates `best_metrics.json` into ΔBA tables.
+结论：这是网络路由/overlay 网络问题，不是 SSH 密码、密钥或用户名问题。远端实验目前被阻塞。
+
+### 4.3 恢复连接前的检查清单
+
+本地 WSL：
 
 ```bash
-# typical lifecycle (all from WSL)
-bash src/ops/<new_sweep>.sh                 # generate configs + launch screens
-bash src/tmp_sync/ssh3090.sh 'screen -ls'   # confirm sessions are up
-bash src/ops/<new_sweep>_summarize.sh        # aggregate when done
-bash src/tmp_sync/pull_3090_gapkd_sweep_results.sh   # pull artifacts back
+ip route
+ping -c 2 -W 2 10.147.20.176
+nc -vz -w 3 10.147.20.176 22
 ```
 
-### 3.3 GPU budget per task
+Windows：
 
-| Task | Runs | Layout | Wall time (4×3090) |
-|------|------|--------|--------------------|
-| A2 calibrated-gate re-run (2 passing cells × calib on/off) | 4 cfg × 15 fold/seed = 60 | round-robin 4 GPU | ~1.5 h |
-| A3 overconfidence ablation (calib vs sharpened teacher) | ~4 cfg × 15 = 60 | round-robin | ~1.5 h |
-| A4 external X-ray inference (frozen student, no training) | inference only | single GPU | < 30 min |
-| B1 external paired JDCNet gate (if cohort exists) | 16 cfg × 15 = 240 | round-robin | ~6 h |
-| B2 cross-source transfer matrix | ~30 runs | round-robin | ~1.5 h |
-| B3 calibrated-quantile gate sweep | ~6 cfg × 15 = 90 | round-robin | ~2.5 h |
+```powershell
+ping 10.147.20.176
+tracert -d 10.147.20.176
+```
 
-### 3.4 Artifact hygiene
+远端管理员需要确认：
 
-- Each sweep writes to its own `src/results/<tag>_3090_<YYYYMMDD>/`.
-- A decision report (`*_decision_report.md`) per sweep records ΔBA, 95% CI,
-  fold/seed win counts, and PASS/FAIL against the fixed gate.
-- Absolute metrics (BA/AUC/F1/sens/spec) are extracted alongside ΔBA so F2 is
-  never re-opened.
-- Pull only `best_metrics.json`, decision reports, and figures back to Windows;
-  leave `best.pt` checkpoints on `/data1`.
+```bash
+ip addr | grep 10.147.20.176
+systemctl status ssh || service ssh status
+ss -tlnp | grep ':22'
+nvidia-smi
+```
 
----
+只有当以下命令成功后，才启动训练：
 
-## 4. Fixed Validation Gate (unchanged across all new experiments)
+```bash
+bash src/tmp_sync/ssh3090.sh 'hostname; nvidia-smi'
+```
 
-A configuration passes only if:
+### 4.4 标准运行模式
 
-> **mean ΔBA ≥ +0.03 AND 95% percentile-bootstrap CI lower bound > 0**,
-> evaluated under patient-level 5-fold CV with seeds 42–44 (n = 15 paired
-> fold/seed cells), against the matched supervised baseline.
+所有复杂远端命令写成 `.sh` 脚本，不在 PowerShell 中拼复杂引号。每个 sweep 使用以下模式：
 
-For external cohorts (F1), the headline endpoint is **absolute** balanced
-accuracy and ROC-AUC of the deployed student under domain shift, reported with
-patient-level bootstrap CIs; the ΔBA gate applies only where a matched in-cohort
-baseline exists.
+1. 在 `src/configs/<sweep>/` 生成配置。
+2. 将任务 round-robin 分到 GPU 0-3。
+3. 用 detached `screen` 启动每个 GPU queue。
+4. 每个 run 写出 `best_metrics.json`、`best.pt`、日志。
+5. summarize 脚本汇总 Delta BA、absolute metrics、CI、PASS/FAIL。
 
----
+典型生命周期：
 
-## 5. Manuscript Integration Checklist
-
-- [ ] Abstract: add absolute BA/AUC for baseline + JDCNet; add one external-cohort
-      number; remove "single cohort" as the only evidence framing. (A1, A4, C1)
-- [ ] Methodology: add "Calibration Safeguard" subsection (calibrate-then-gate). (C3)
-- [ ] Experiments: add absolute-metric table to main text. (A1, C2)
-- [ ] Experiments: add external-cohort section (Tier 4). (A4, B1, B2)
-- [ ] Experiments: add teacher-calibration + overconfidence ablation. (A2, A3, B3)
-- [ ] Related Work / Limitations: update single-cohort caveat to multi-cohort. (C1)
-- [ ] Rebuild `paper/build.bat`; confirm combined PDF ≤ 14 pages.
-- [ ] Sync `docs/cover_letter.txt` and `docs/progress.md`.
+```bash
+bash src/ops/<new_sweep>.sh
+bash src/tmp_sync/ssh3090.sh 'screen -ls'
+bash src/ops/<new_sweep>_summarize.sh
+```
 
 ---
 
-## 6. Stop Conditions
+## 5. GPU 任务预算
 
-- **Best case:** B1 external paired gate passes → upgrade from "bounded single
-  cohort" to "replicated cross-cohort"; strongest possible rebuttal of F1.
-- **Expected case:** no external paired cohort obtainable; A4 + B2 demonstrate
-  the deployed student degrades gracefully under domain shift with reported
-  absolute numbers → F1 addressed as a transparent external-validity result,
-  F2/F3 fully closed. This is sufficient for resubmission.
-- **Floor:** if external data is entirely unobtainable, A1–A3 still close F2 and
-  F3; F1 is then answered by an explicit, quantified single-cohort scope
-  statement plus a domain-shift inference result on whatever public X-ray-only
-  set is available.
+| Task | Runs | 预计时间 | 备注 |
+|---|---:|---:|---|
+| A1 absolute metrics | 0 GPU | 立即 | 汇总现有 JSON |
+| A2 calibrated gate | 约 60 | 约 1.5 h | 两个已通过配置，5-fold x 3 seeds |
+| A3 overconfidence ablation | 约 60 | 约 1.5 h | `T=0.5`, `T=1`, `T=T_cal` |
+| A4 external X-ray inference | inference only | < 0.5 h | frozen checkpoints |
+| B1 external paired gate | 约 240 | 约 6 h | 依赖 paired data |
+| B2 cross-source matrix | 约 30 | 约 1.5 h | 依赖 external manifest |
+| B3 calibrated quantile sweep | 约 90 | 约 2.5 h | 依赖 A2 |
 
 ---
 
-*Rewritten 2026-06-16 in response to the TCSVT reject decision recorded in
-`docs/revision_suggestions.tex`. Experiment-level detail: `docs/future_methods_plan.md`.*
+## 6. 具体执行顺序
+
+### Step 1: 先做不依赖 GPU 的 F2 修复
+
+- 汇总已有 `best_metrics.json`。
+- 生成 absolute metrics table。
+- 修改摘要和 main results，使所有相对提升都有绝对 baseline/JDCNet 数值支撑。
+
+### Step 2: 恢复远端 3090 连接
+
+- 修复 `No route to host`。
+- 确认 `ssh`、`screen`、`nvidia-smi` 可用。
+- 确认 `/data/JDCNET/src` 与本地 repo 同步。
+
+### Step 3: 完成 F3 方法修复
+
+- 实现 teacher temperature scaling。
+- gate 改为 calibrated confidence。
+- 重跑 A2。
+- 做 A3 overconfidence ablation。
+- 若时间允许，做 B3 quantile gate sweep。
+
+### Step 4: 完成 F1 外部验证
+
+- 先做 A4 frozen external X-ray inference。
+- 再做 B2 cross-source matrix。
+- 若 same-patient paired CT-Xray 外部数据可得，做 B1。
+
+### Step 5: 论文整合
+
+- Abstract: 加 absolute BA/AUC + external result。
+- Methods: 加 `Calibration Safeguard`。
+- Experiments: 加 absolute table、external validation、calibration ablation。
+- Limitations: 如无 B1，说明 paired external replication 受数据可得性限制。
+- Cover letter: 按 F1/F2/F3 逐条回应。
+
+---
+
+## 7. Manuscript Checklist
+
+- [ ] Abstract 中同时报告 baseline 和 JDCNet 绝对 BA/AUC。
+- [ ] Main text 中加入 absolute metrics table。
+- [ ] Methodology 中加入 temperature scaling 和 calibrated gate。
+- [ ] Experiments 中加入 ECE/reliability diagram。
+- [ ] Experiments 中加入 overconfidence ablation。
+- [ ] Experiments 中加入 external validation。
+- [ ] 若可行，加入 paired external replication。
+- [ ] 更新 `docs/cover_letter.txt`。
+- [ ] 更新 `docs/progress.md`。
+- [ ] 运行 `paper/build.bat` 并确认页数限制。
+
+---
+
+## 8. Stop Conditions
+
+- Best case: B1 通过，说明 JDCNet transfer claim 在外部 paired cohort 上复现。
+- Expected case: A1-A4 + B2 完成，说明论文已经补齐绝对指标、校准机制和外部域验证。
+- Minimum case: A1-A4 完成，至少可以有针对性回应三条拒稿原因。
+- Blocked case: 若 3090 长期不可达，则先完成 A1、数据 manifest、代码脚本和论文结构改写；训练结果等待网络恢复。
+
+最后更新：2026-06-16。
