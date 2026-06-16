@@ -40,6 +40,8 @@ EPOCHS=${EPOCHS:-50}
 INPUT_SIZE=${INPUT_SIZE:-224}
 AMP=${AMP:-true}
 LEARNING_RATE=${LEARNING_RATE:-3e-4}
+MODEL_BACKBONE=${MODEL_BACKBONE:-resnet18}
+DRY_RUN=${DRY_RUN:-false}
 
 mkdir -p "$RUN_ROOT" "$CONFIG_DIR" "$LOG_DIR" "$MANIFEST_DIR"
 STATUS="$LOG_DIR/status.tsv"; touch "$STATUS"
@@ -48,7 +50,7 @@ log(){ printf '%s\t%s\n' "$(date -Is)" "$*" | tee -a "$STATUS"; }
 log "CALIB_GATE_START tag=$TAG cells=[$CELLS] temps=[$TEMPS] folds=[$FOLDS] seeds=[$SEEDS] gpus=[$GPUS]"
 cd "$ROOT"
 
-export ROOT TAG CV_DIR PREFIX SUP_RUN_ROOT RUN_ROOT CONFIG_DIR LOG_DIR MANIFEST_DIR CELLS TEMPS FOLDS SEEDS BATCH_SIZE NUM_WORKERS EPOCHS INPUT_SIZE AMP LEARNING_RATE
+export ROOT TAG CV_DIR PREFIX SUP_RUN_ROOT RUN_ROOT CONFIG_DIR LOG_DIR MANIFEST_DIR CELLS TEMPS FOLDS SEEDS BATCH_SIZE NUM_WORKERS EPOCHS INPUT_SIZE AMP LEARNING_RATE MODEL_BACKBONE
 "$PYTHON_BIN" - <<'PY'
 import json, os, re
 from pathlib import Path
@@ -65,6 +67,7 @@ seeds = [int(x) for x in os.environ['SEEDS'].split()]
 batch = int(os.environ['BATCH_SIZE']); workers = int(os.environ['NUM_WORKERS'])
 epochs = int(os.environ['EPOCHS']); input_size = int(os.environ['INPUT_SIZE'])
 amp = os.environ['AMP'].lower() == 'true'; lr = float(os.environ['LEARNING_RATE'])
+model_backbone = os.environ.get('MODEL_BACKBONE', 'resnet18')
 
 variant_dirs = {
     'mid': Path('/dev/shm/bimcv_ct_mid'),
@@ -99,7 +102,7 @@ def temp_tag(T):
 base_model = {
     'name': 'student', 'num_classes': 2, 'input_size': input_size,
     'use_dpe': False, 'use_mhra': False, 'use_dfpn': False,
-    'paired_input': True, 'backbone': 'resnet18',
+    'paired_input': True, 'backbone': model_backbone,
 }
 
 
@@ -177,6 +180,11 @@ print('calibrated-gate configs', len(names), 'common_patients', len(common))
 PY
 
 log "CONFIGS_GENERATED $(wc -l < "$LOG_DIR/cell_names.txt")"
+
+if [ "$DRY_RUN" = "true" ]; then
+  log "DRY_RUN configs only; not launching screen queues"
+  exit 0
+fi
 
 write_queue() {
   local gpu="$1"; shift

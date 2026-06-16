@@ -34,6 +34,9 @@ INPUT_SIZE=${INPUT_SIZE:-224}
 BATCH_SIZE=${BATCH_SIZE:-128}
 NUM_WORKERS=${NUM_WORKERS:-8}
 GPUS=${GPUS:-"0 1 2 3"}
+MODEL_NAME=${MODEL_NAME:-student}
+MODEL_BACKBONE=${MODEL_BACKBONE:-resnet18}
+DRY_RUN=${DRY_RUN:-false}
 
 mkdir -p "$OUT_ROOT" "$LOG_DIR" "$CONFIG_DIR"
 STATUS="$LOG_DIR/status.tsv"; touch "$STATUS"
@@ -48,7 +51,7 @@ log "EXTERNAL_EVAL_START tag=$EXT_TAG manifest=$EXT_MANIFEST split=$EXT_SPLIT"
 
 # Build one eval config per checkpoint, collect (gpu-round-robin) job list.
 JOBS="$LOG_DIR/jobs.tsv"; : > "$JOBS"
-export EXT_MANIFEST EXT_SPLIT INPUT_SIZE BATCH_SIZE NUM_WORKERS CONFIG_DIR OUT_ROOT
+export EXT_MANIFEST EXT_SPLIT INPUT_SIZE BATCH_SIZE NUM_WORKERS CONFIG_DIR OUT_ROOT MODEL_NAME MODEL_BACKBONE
 gi=0
 for spec in $CKPT_SPECS; do
   label="${spec%%=*}"; glob="${spec#*=}"
@@ -67,9 +70,9 @@ cfg = {
     'manifest_path': os.environ['EXT_MANIFEST'],
     'output_dir': os.path.join(os.environ['OUT_ROOT'], runname),
     'seed': 42,
-    'model': {'name': 'student', 'num_classes': 2, 'input_size': int(os.environ['INPUT_SIZE']),
+    'model': {'name': os.environ['MODEL_NAME'], 'num_classes': 2, 'input_size': int(os.environ['INPUT_SIZE']),
               'use_dpe': False, 'use_mhra': False, 'use_dfpn': False,
-              'paired_input': False, 'backbone': 'resnet18'},
+              'paired_input': False, 'backbone': os.environ['MODEL_BACKBONE']},
     'data': {'train_split': 'train', 'val_split': os.environ['EXT_SPLIT'],
              'train_modalities': ['xray'], 'val_modalities': ['xray'],
              'batch_size': int(os.environ['BATCH_SIZE']), 'num_workers': int(os.environ['NUM_WORKERS']),
@@ -87,6 +90,11 @@ done
 N=$(wc -l < "$JOBS")
 log "EVAL_JOBS=$N"
 [ "$N" -eq 0 ] && { log "no checkpoints matched; check CKPT_SPECS globs"; exit 1; }
+
+if [ "$DRY_RUN" = "true" ]; then
+  log "DRY_RUN configs/jobs only; not running evaluation"
+  exit 0
+fi
 
 mapfile -t gpus < <(printf '%s\n' $GPUS)
 i=0
