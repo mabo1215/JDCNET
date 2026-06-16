@@ -68,6 +68,11 @@ class PseudoLabelConfig:
     lambda_pseudo: float = 0.5
     soft: bool = False
     soft_temperature: float = 1.0
+    # Calibration temperature applied to the teacher logits *before* computing the
+    # confidence used by the gate mask (calibrate-then-gate). 1.0 reproduces the
+    # original raw-confidence gate; T>1 softens (better-calibrated, fewer admitted);
+    # T<1 sharpens (over-confident stress test). The argmax target is unaffected.
+    teacher_temperature: float = 1.0
 
 
 def set_seed(seed: int) -> None:
@@ -176,6 +181,7 @@ def run_training(config_path: str | Path) -> None:
     best_score = -1.0
     history: list[dict[str, object]] = []
     pseudo_temp = max(pseudo_cfg.soft_temperature, 1e-3)
+    gate_temp = max(float(getattr(pseudo_cfg, "teacher_temperature", 1.0)), 1e-3)
     tau = float(pseudo_cfg.tau_pseudo)
     lam = float(pseudo_cfg.lambda_pseudo)
 
@@ -200,8 +206,12 @@ def run_training(config_path: str | Path) -> None:
 
             with torch.no_grad():
                 teacher_logits = teacher(teacher_images)
-                teacher_prob = torch.softmax(teacher_logits, dim=1)
-                teacher_conf, teacher_pred = teacher_prob.max(dim=1)
+                # Gate on calibrated confidence: scale logits by the calibration
+                # temperature before the softmax used for masking. argmax (and thus
+                # the hard pseudo-label) is invariant to this scaling; only which
+                # samples clear the confidence threshold changes.
+                gate_prob = torch.softmax(teacher_logits / gate_temp, dim=1)
+                teacher_conf, teacher_pred = gate_prob.max(dim=1)
                 mask = teacher_conf > tau
 
             with torch.autocast(device_type="cuda", dtype=torch.float16, enabled=use_amp):

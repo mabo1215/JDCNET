@@ -1,5 +1,26 @@
 # 进度
 
+## A2/A4 实验脚本就绪 + 远端不可达 + 构建告警修复（2026-06-16）
+
+- **构建告警根因修复**：`main.pdf` 拆分原用 poppler `pdfseparate`+`pdfunite`，在
+  acmart/hyperref 的"recursive dicts"结构上会逐页重复解析，导致刷屏的
+  `Syntax Warning: Found recursive dicts` 并使 `pdfseparate` 卡死/拖慢构建（多次
+  残留僵尸进程）。改用单遍 `pdftocairo -pdf -f 1 -l N`（约 1.7s、零告警、扁平化结构），
+  `pdfseparate`+`pdfunite` 仅作 fallback；`build.bat` 保留 `findstr /V` 过滤兜底。
+  重新构建通过：main 23 页、combine 27 页、appendix 4 页。
+- **A2 calibrate-then-gate 代码支持**：`jdcnet_exp/train_pseudolabel.py` 的
+  `PseudoLabelConfig` 新增 `teacher_temperature`，置信度 mask 改为对
+  `softmax(teacher_logits / T)` 取 max（argmax 目标不变；T=1 复现原始、T>1 软化/更校准、
+  T<1 过自信）。
+- **发射脚本就绪**（按既有 `remote_3090_bimcv_pseudolabel_cv.sh` 脚手架编写，`bash -n` 通过）：
+  - `src/ops/remote_3090_calibrated_gate.sh`：A2+A3，仅两 pass cell ×
+    温度 {1.0,0.5,2.0} × 5 折 × 3 seed = 90 runs，4×3090，screen+xargs。
+  - `src/ops/remote_3090_external_eval.sh`：A4，冻结学生在外部 X-ray manifest 上
+    只推理，汇总绝对指标（均值±SD）。
+- **远端 3090 当前不可达**：`mabo1215@10.147.20.176` ping 100% 丢包、ssh "No route
+  to host"（ZeroTier 链路或主机离线），**无法立即运行实验**。脚本与代码已就绪，
+  待链路恢复后一条命令即可发射。
+
 ## main/combine 拆分与正文恢复至 23 页（2026-06-16）
 
 - **PDF 结构调整**：`paper/main.pdf` 现在只含正文+参考文献（23 页，不含附录）；
