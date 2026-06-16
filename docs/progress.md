@@ -1,5 +1,28 @@
 # 进度
 
+## main/combine 拆分与正文恢复至 23 页（2026-06-16）
+
+- **PDF 结构调整**：`paper/main.pdf` 现在只含正文+参考文献（23 页，不含附录）；
+  完整的"正文+附录"合订本输出为 `paper/combine.pdf`（27 页）；`paper/appendix.pdf`
+  仍为独立附录（4 页）。
+- **实现方式**：acmart 下 `\newlabel` 格式与 `xr`/手工注入都不兼容，main-only 无法
+  在 LaTeX 内解析附录交叉引用。改为：`main.tex` 原生 `\input{appendix_body}` 生成
+  合订本 → `build.bat` 复制为 `combine.pdf` → `paper/split_main.ps1`（PowerShell +
+  poppler `pdfseparate`/`pdfunite`，本机无 python）读取 `\label{paper:appendixstart}`
+  的页码，截取 1..(起始页-1) 写回 `main.pdf`。引用编号全部正确。
+- **正文从 18 页恢复到 23 页**（TOMM 无页数上限）。从同谱系备份
+  `backup/20260517_015930/main.tex` 恢复并新增：Related Work 的 "Transformers and
+  Attention Mechanisms" 子节（+ViT/Swin 两条 bib）、更完整的 Knowledge Distillation
+  段、"Data Availability and Ethics" 子节、扩写的 Limitations（新增 Reporting 与
+  external-validation/calibration 段，呼应三条拒稿点）、Introduction 小样本评估
+  协议段、Discussion 的 Calibration 与 "Relevance to cost-preserving multimedia
+  inference systems" 段。把附录三张核心表（full JDCNet sweep、absolute metrics、
+  gate coverage）上移到正文（绝对指标进正文同时回应 F2），并补 3 张图
+  （seed instability、threshold sensitivity、grouped reliability diagrams）。
+- **校验**：`build.bat` 通过，main 恰好 23 页；无 undefined 引用/引文；仅 1 处
+  overfull box。`appendix_body.tex` 中被上移内容的引用已改写，独立 appendix.pdf
+  无 undefined 引用。
+
 ## 目标期刊变更与 ACM 格式改造（2026-06-16）
 
 - **目标 venue 变更**：由 IEEE TCSVT 改为 **ACM TOMM**（ACM Transactions on
@@ -46,11 +69,18 @@
   系统相关性表述；移除 14 页 TCSVT 表述与正文 GitHub 链接，改为接收后开源 +
   双盲匿名说明（manuscript 匿名、作者信息在 title page 单独提供）；通讯作者
   邮箱改为 rcn4743@aut.ac.nz。
+- **匿名代码提交包（2026-06-16）**：把 `src/` 下可复现方法代码拷贝到
+  `submit/code/`（`jdcnet_exp/`、`configs/`、`requirements.txt`、`README.md`），
+  排除 `tmp_sync/`（789MB、含 sshpass 凭据）、`ops/`（远端集群脚本、含主机 IP
+  10.147.20.176）、`results/`、`figures/`、checkpoints、原始数据与 `__pycache__`。
+  核心代码本身无作者/单位/GitHub/邮箱/主机 IP 等可识别信息；README 顶部加双盲
+  匿名说明。打包为 `submit/JDCNet_code_anonymous.zip`（48 文件、~139KB，使用
+  forward-slash 路径以兼容 Linux 解压），最终匿名扫描通过。
 - **遗留**：尚未按 ACM 投稿要求做内容级精简/校对。
 
 ## 当前状态（2026-05-17 close）
 
-- **目标 venue**：IEEE TCSVT，transactions paper 14 页上限。
+- **目标 venue**：ACM TOMM，transactions paper 23 页上限。
 - **方法名**：JDCNet（confidence-gated CT-to-X-ray distillation，X-ray-only deployment graph）。
 - **Headline 证据**：BIMCV 510-patient same-patient paired cohort，patient-level 5-fold × seeds 42–44。2/16 cells pass 固定 gate（mean ΔBA ≥ +0.03 且 bootstrap CI 排除 0）：
   - 3-slice soft-KL τ=0.70 λ=1.0：ΔBA=+0.0345 [+0.0112, +0.0571]
