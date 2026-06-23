@@ -1,5 +1,51 @@
 # 进度
 
+## 拒稿点复核 + venue 定为 TOMM + 下一步计划（2026-06-23）
+
+- **目标 venue 确认为 ACM TOMM**（用户本轮再次确认）。`USAGE.md` 第 33 行已从
+  IEEE TCSVT 改为 ACM TOMM；`paper/main.tex` 本就是
+  `\documentclass[manuscript,screen,review,anonymous]{acmart}` + `\acmJournal{TOMM}`
+  双盲，格式一致。**14 页 TCSVT 约束作废**（TOMM 期刊无页数上限）。
+- **三条拒稿点（F1/F2/F3，见 `docs/revision_suggestions.tex` / `docs/revision_roadmap.md`）
+  对照 `paper/combine.pdf` 现状**：
+  - **F2（缺绝对指标）= 已解决**：正文有 `tab:app_absolute_metrics`
+    （baseline BA .604/AUC .661 → JDCNet 3-slice .639/.701）；本轮已把绝对 BA/AUC
+    补进**摘要**（`main.tex` line 92）。
+  - **F3（teacher gate 未校准）= 仅论证性解决**：有 ECE 诊断（§415）、分组可靠性图
+    （`fig:calibration_reliability`）、Limitations 提出 temperature-scaling safeguard，
+    但 **A2 calibrated-gate / A3 overconfidence ablation 实验从未跑过**。
+  - **F1（单 cohort、无 cross-domain）= 未解决（最大风险）**：仅在 Limitations 承认，
+    并给出 cross-source control（specificity≈0）作为反例；**A4 外部 X-ray 推理 /
+    B1 外部 paired cohort 从未跑过**。
+- **阻塞**：3090（`10.147.20.176:22`）与 H800（`connect.westc.seetacloud.com:12437`，
+  DNS→`116.172.66.186`）本轮实测**均不可达**，依赖 GPU 的 A2/A3/A4 暂时无法运行。
+  脚本与代码均已就绪。
+
+### 下一步计划（未完成项 — 按优先级）
+
+- [ ] **P0-a｜重新编译论文（Windows）**：跑 `paper/build.bat`，确认摘要绝对指标改动
+      生效、无 undefined 引用/引文；产出 `main.pdf` / `combine.pdf`。WSL 无 pdflatex，
+      必须在 Windows 端完成。
+- [ ] **P0-b｜恢复可达 GPU**：重新拉起 H800 实例并记录新的 `host:port`，或等 3090
+      ZeroTier 链路恢复。验收：`bash src/tmp_sync/ssh3090.sh 'hostname; nvidia-smi'`
+      （或对应 H800 命令）成功。这是 F1/F3 实证的唯一卡点。
+- [ ] **P1-a｜A4 外部 X-ray 推理（关 F1，最高优先）**：GPU 可达后运行
+      `src/ops/remote_3090_external_eval.sh`，冻结学生在外部 X-ray manifest 上只推理，
+      汇总绝对 BA/AUC/F1/sens/spec + bootstrap CI（inference-only，<0.5h）。
+      把结果写进 Experiments 的 external-validation 段，替换当前"仅承认局限"的表述。
+- [ ] **P1-b｜A2 calibrated gate + A3 overconfidence ablation（关 F3）**：运行
+      `src/ops/remote_3090_calibrated_gate.sh`，两个 pass cell × T∈{1.0,0.5,2.0} ×
+      5 折 × 3 seed = 90 runs（~3h）。把"提议的 safeguard"升级为"做过的 ablation"，
+      正文补 calibrated-gate 结果 + 对比表。
+- [ ] **P2｜（若数据可得）B1 外部 same-patient paired CT–X-ray cohort 重跑完整 gate**：
+      `src/` 下已有数据下载脚手架，先调研可得性；这是对 F1 最强的正面回应。
+- [ ] **P3｜论文整合与定稿**：A4/A2/A3 结果回填后，更新 Abstract / Methods（Calibration
+      Safeguard）/ Experiments（external + calibration ablation）/ Limitations；同步
+      `docs/cover_letter.txt`（已是 TOMM 版）逐条回应 F1/F2/F3；重新编译复核。
+- [ ] **P4｜（可选，若改投会议）抓官方 CFP**：WACV 2027 Applications track 框架最契合，
+      截稿约 2026 年 7–8 月，需 WebSearch 抓官网确认日期并改回会议格式。当前默认留在
+      TOMM（无截稿压力）。
+
 ## paper/ 目录整理（2026-06-16）
 
 - **拆分脚本归位**：`paper/split_main.ps1` 移入 `paper/build/split_main.ps1`，保持
