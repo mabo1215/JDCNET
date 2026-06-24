@@ -148,7 +148,7 @@
   改写为 ACM TOMM——更新抬头/EIC 称呼、投稿类别（Regular Paper）、多媒体计算
   系统相关性表述；移除 14 页 TCSVT 表述与正文 GitHub 链接，改为接收后开源 +
   双盲匿名说明（manuscript 匿名、作者信息在 title page 单独提供）；通讯作者
-  邮箱改为 rcn4743@aut.ac.nz。
+  邮箱改为 amabo1215@gmail.com。
 - **匿名代码提交包（2026-06-16）**：把 `src/` 下可复现方法代码拷贝到
   `submit/code/`（`jdcnet_exp/`、`configs/`、`requirements.txt`、`README.md`），
   排除 `tmp_sync/`（789MB、含 sshpass 凭据）、`ops/`（远端集群脚本、含主机 IP
