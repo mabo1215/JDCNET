@@ -94,7 +94,8 @@ def main() -> None:
     drr_dir = Path(args.drr_dir)
     drr_patients = {patient_from_text(path.name) for path in drr_dir.glob("bimcv_S*.png")}
     drr_patients.discard(None)
-    common = sorted(p for p in patients if p in nifti_index and p in drr_patients)
+    # Process all patients with NIfTI files; drr_dir is informational only
+    common = sorted(p for p in patients if p in nifti_index)
 
     output_dirs = {
         "mid": Path(args.out_root) / "bimcv_ct_mid",

@@ -237,7 +237,7 @@ def student_manifest(t, fold):
         pid = str(row['patient_id']).replace('bimcv_', '')
         # Require both CT teacher variant AND student X-ray file present (12 source
         # patients have CT but no X-ray on disk → would crash the dataloader).
-        ok = pid in common and os.path.exists(str(row['image_path']))
+        ok = pid in common and Path(str(row['image_path'])).exists()
         keep.append(ok)
         vpaths.append(str(variant_dirs[t] / f'bimcv_{pid}.png') if ok else '')
     dfs = df[keep].copy().reset_index(drop=True)
