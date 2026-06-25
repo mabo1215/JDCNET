@@ -1,5 +1,27 @@
 # 进度
 
+## 510 cohort F3 重跑准备（无卡模式，自动执行，2026-06-26 凌晨）
+
+**目标**：在 510 headline cohort（不是 paired-216）上重跑 calibrated_gate，使 F3 温度消融可与正文 headline 直接可比。
+
+**关键发现（为什么之前只有 216/228）**：
+- 不是数据不够。H800 已有完整原始数据：`data/bimcv_paired`(17G,阳性 CT.nii+X光)+`data/bimcv_neg_paired`(49G,阴性),`bimcv_paired`/`bimcv_neg_paired` 是软链。**455 个病人有原始 `.nii`**(阳 101 + 阴 354);源 manifest `data/bimcv/bimcv_merged_paired_manifest.csv` 含 512 病人(398−/114+ = 510 cohort)。
+- **228 的真因**：`prepare_bimcv_only_cv.py --mode balanced`(默认)会把阴性下采样到 `negatives[:len(positives)]` = 114+/114− = 228。510 headline 是 **imbalanced**(113+/397−)。→ 重建时要用 **`--mode full`**。
+- **216 的真因**：calibrated_gate 的 `student_manifest` 要求 CT 教师**变体**图 `data/bimcv_ct_variants/bimcv_ct_{mid,3slice}/bimcv_S*.png` 存在,而变体只渲染了 216/217。
+
+**本夜已做（无卡 CPU）**：
+- 把 CT 教师变体从 216 渲染到全部 455（用 `.nii` 已在 H800）。原 `extract_ct_teacher_variants.py` 用 `get_fdata()` 整卷载入,在某个大卷上被 OOM kill(rc=137);改用**省内存渲染器** `src/ops/render_bimcv_variants_frugal.py`(`nib...dataobj[:,:,idx]` 惰性取片,RSS~64MB,只渲 mid+3slice,跳过 calibrated_gate 不用的 proj),参数与原脚本一致(HU[-1000,400], size 224, 3slice gap=round(5mm/z_spacing))。H800 上脚本 `/root/autodl-tmp/render_frugal.py`,日志 `render_frugal.log`,汇总 `logs/render_frugal_summary.json`。
+- 注意:无卡模式 RAM 其实有 1007G(867 空闲),OOM 是单个病态大卷的 `get_fdata` 所致,非总内存不足。
+
+**恢复任务（需有卡 GPU 模式，按序）**：
+1. 确认变体齐:`ls data/bimcv_ct_variants/bimcv_ct_3slice/|grep -c bimcv_S` 应 ≈455。若 render 未跑完,先 `nohup python render_frugal.py`(幂等,跳已存在)。
+2. **重建 510 CV manifest（imbalanced）**:`CV_MODE=full TAG=bimcv_full510 bash src/ops/h800_bimcv_5fold_cv.sh --phase prep`（或直接 `python -m jdcnet_exp.prepare_bimcv_only_cv --bimcv-manifest data/bimcv/bimcv_merged_paired_manifest.csv --output-dir bimcv_cv/bimcv_full510 --prefix bimcv_full510 --folds 5 --seed <same as orig> --mode full`）。CV_MODE/TAG 见脚本变量。
+3. GPU 训练:`bash src/ops/h800_bimcv_5fold_cv.sh`（teacher+supervised+KD,新 cohort）→ 再 `bash src/ops/h800_calibrated_gate.sh`（指向新 CV_DIR + 新 SUP_RUN_ROOT），20-way+MPS 加速见 [[feedback-h800-ops-gotchas]]。
+4. 用 `src/results/.../analyze_calib.py`（scratchpad 有副本）重算 within-cell ΔBA,与 paired-216 对比;若 510 上温度敏感性结论变化,更新 paper F3 段（当前写的是 within-cell ≤0.013 不敏感）。
+5. 预期:510 上各 cell 绝对 ΔBA 可能恢复到 +0.03 附近（headline），温度不敏感性大概率保持。
+
+**待用户**：H800 重开有卡模式后执行上述；F3 paper 措辞是否因 510 结果调整。
+
 ## H800 全数据重跑：A2/A3 完成、A4 待修、F3 实证为 null（2026-06-25）
 
 **计算环境**：H800 重新可达（`ssh -p 12437 root@connect.westc.seetacloud.com`），单 GPU 0。本轮把 8-way 加速到 **20-way + CUDA MPS**（显存 28→71.5GB/80GB，吞吐 ~2.5×）。代码同步方式：本地改 → git push → H800 git pull。
