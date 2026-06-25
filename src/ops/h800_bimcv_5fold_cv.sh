@@ -235,7 +235,7 @@ def student_manifest(t, fold):
     keep, vpaths = [], []
     for _, row in df.iterrows():
         pid = str(row['patient_id']).replace('bimcv_', '')
-        ok = pid in common
+        ok = pid in common and Path(str(row['image_path'])).exists()
         keep.append(ok)
         vpaths.append(str(variant_dirs[t] / f'bimcv_{pid}.png') if ok else '')
     dfs = df[keep].copy().reset_index(drop=True)
