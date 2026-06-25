@@ -1,5 +1,40 @@
 # 进度
 
+## H800 全数据重跑：A2/A3 完成、A4 待修、F3 实证为 null（2026-06-25）
+
+**计算环境**：H800 重新可达（`ssh -p 12437 root@connect.westc.seetacloud.com`），单 GPU 0。本轮把 8-way 加速到 **20-way + CUDA MPS**（显存 28→71.5GB/80GB，吞吐 ~2.5×）。代码同步方式：本地改 → git push → H800 git pull。
+
+### A2/A3 calibrated gate（关 F3）= 已完成，结果为 null / robustness（非"校准提升"）
+- Run tag `bimcv_h800_calibrated_gate`，**90/90 完成，0 真实 FAIL**。两 pass cell（`3slice_soft` τ0.70 λ1.0 soft-KL、`mid_hard` τ0.80 λ1.5 hard）× teacher 门控温度 **T∈{0.5,1.0,2.0}**（0.5=过自信、1.0=未校准原版、2.0=软化/趋校准）× 5 折 × 3 seed。
+- 指标用 **val（`best_metrics.json`）**，与 5fold/正文方法一致（5fold 各 run 无 test_eval）。supervised 同 cohort/折 val BA=0.6976、AUC=0.7104；teacher BA=0.7105。
+- **核心发现（不修饰）**：
+  1. **F3 校准敏感性 = null/稳健**：每个 cell 内三档温度统计上无法区分（cell 内 |ΔBA|≤0.013，全在噪声内；SD 0.04–0.10）。过自信(T=0.5)不损害、软化(T=2.0)不提升 → **门控对 teacher (mis)calibration 稳健**。正实证了正文 Limitations 现有预测（main.tex L555：校准"expected to stabilize, rather than overturn, the gate decision"）。
+  2. **cohort 注意**：本轮在 paired-216 子集（CT+X光都在的病人），**非 510 headline cohort**。该子集上两 cell 都没复现 +0.0345/+0.0329：`3slice_soft` 显著为负（≈−0.09，CI 不含 0）、`mid_hard` 为 null（≈−0.018，CI 含 0）。这是 cohort 变小所致，非校准问题，**不推翻 510 headline**（不同 cohort），但温度消融须以 robustness check 报告并明示 cohort 差异，不能当作 headline ΔBA 的重算。
+- 结果落盘：`src/results/bimcv_h800_calibrated_gate_20260625/`（`summary.csv` + `decision_report.md` + `aggregate_{val,test}.txt`）。分析脚本 `analyze_calib.py`（H800 `/root/autodl-tmp/`，本地副本在 scratchpad）。
+
+### A4 external X-ray 推理（关 F1，最大风险）= 已修复并完成
+- orchestrator 首跑 60 job 全 FAIL，根因：`h800_external_eval.sh` 生成 config 用 `train_split='train'`，但外部 manifest 只有 `split=test` 行 → `evaluate.py` 构建（随后丢弃）的 train loader 为空 → `ValueError: Training manifest is empty`。
+- **已修**：`src/ops/h800_external_eval.sh` line 90 `train_split` 改为 `os.environ['EXT_SPLIT']`（本地已改；H800 用 sed 直接 patch 后重跑，因 H800 working copy 落后且有本地编辑，未走 git pull 以免冲突——本地需 commit 入库）。重跑 **60/60 完成**。
+- **F1 结果（外部 MIDRC X 光，不修饰）**：所有模型**全部塌到随机**——supervised BA 0.492/AUC 0.486、jdcnet_3slice_softkl BA 0.498/AUC 0.509、jdcnet_mid_hard BA 0.494/AUC 0.477，三者互相无法区分。BIMCV 训练的 X 光分类器对外部域**零迁移**。这是对 F1 最直接的回答：跨域泛化对**所有模型**失败（任务/cohort 属性，非 JDCNet 特有），正面坐实审稿人 dataset-specific-bias 担忧，且契合论文 evidence-bounded-negative 基调。
+- **注意（headline 前须核）**：supervised 也完全塌到随机，既可能是真实 domain shift（BIMCV 西班牙 vs MIDRC 美国），也可能外部 manifest 的 label 映射/预处理不一致——数值入正文前先 sanity check 外部 manifest 标签；定性结论（无跨域迁移）稳健。summary 里 sensitivity 列空 = 聚合 key 与 per-run `recall` 不符，需要时从 raw 重算。
+- 结果落盘：`src/results/h800_external_eval_20260625/`（`external_summary.csv` + `decision_report.md`）。全部 raw metric json 备份在 `src/results/metrics_backup_20260625.tgz`（273 文件，checkpoint 释放后仍可复算）。
+
+### H800 释放
+- 用户示意"运行完暂不使用"。A2/A3 + A4 全部完成，所有指标/汇总/raw json 已拉回本地（含备份 tgz），**H800 上不再有未取数据，可安全释放/停机**。checkpoint 释放后丢失，但实验已完成、无需复算。
+
+### 拒稿三点最新解决状态（2026-06-25）
+- **F2（缺绝对指标）= 已解决**：正文 `tab:app_absolute_metrics` + 摘要绝对 BA/AUC（前轮）。
+- **F3（teacher gate 未校准）= 实证完成，结论为 null/稳健**：A2/A3 已跑，证明门控对温度不敏感、过自信不破坏 student。可把正文/Limitations 的"proposed safeguard / expected to stabilize" 升级为"已做消融，gate 对 teacher 温度统计不敏感"。**待用户确认**：cohort 定位（paired-216 robustness check + 注脚 vs 在 510 cohort 重跑，后者需 510 数据在可达 GPU）。
+- **F1（单 cohort、无 cross-domain）= 已有实证（负向）**：A4 完成，外部 MIDRC X 光上 supervised 与 JDCNet 全部 ≈ 随机（BA≈0.49，AUC≈0.49）。直接证明无跨域泛化（所有模型皆然），可把 Limitations 从"仅承认"升级为"已做外部验证并报告负向结果"，强化 evidence-bounded 框架。须先 sanity check 外部 manifest 标签后再把数值写正文。
+
+### 待办
+- [x] 修 `src/ops/h800_external_eval.sh`（train_split=test）→ 重跑 A4（F1）= 完成（本地已改，需 git commit 入库）。
+- [ ] **git commit** 本地改动：`src/ops/h800_external_eval.sh`（A4 fix）、`src/results/`（A2/A3 + A4 结果与备份）、`docs/progress.md`。
+- [ ] 用户决定 F3 在论文中的 cohort 定位（paired-216 robustness check + 注脚 vs 510 重跑）。
+- [ ] sanity check A4 外部 manifest 标签/预处理（确认 supervised 塌到随机是真实 domain shift 而非 label bug）。
+- [ ] 按两份 decision_report 把 F3（calibration ablation）+ F1（external validation）写入 paper（Methods/Experiments/Limitations），Windows `paper/build.bat` 重编。
+- [x] H800：A2/A3 + A4 完成，指标全部拉回本地（含 `metrics_backup_20260625.tgz`），**可安全释放**。
+
 ## 拒稿点复核 + venue 定为 TOMM + 下一步计划（2026-06-23）
 
 - **目标 venue 确认为 ACM TOMM**（用户本轮再次确认）。`USAGE.md` 第 33 行已从

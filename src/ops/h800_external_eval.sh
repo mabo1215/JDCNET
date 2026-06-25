@@ -87,7 +87,7 @@ cfg = {
               'input_size': int(os.environ['INPUT_SIZE']),
               'use_dpe': False, 'use_mhra': False, 'use_dfpn': False,
               'paired_input': False, 'backbone': os.environ['MODEL_BACKBONE']},
-    'data': {'train_split': 'train', 'val_split': os.environ['EXT_SPLIT'],
+    'data': {'train_split': os.environ['EXT_SPLIT'], 'val_split': os.environ['EXT_SPLIT'],
              'train_modalities': ['xray'], 'val_modalities': ['xray'],
              'batch_size': int(os.environ['BATCH_SIZE']),
              'num_workers': int(os.environ['NUM_WORKERS']),
