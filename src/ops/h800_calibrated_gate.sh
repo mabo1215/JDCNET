@@ -203,7 +203,10 @@ def student_manifest(t, fold):
     keep, vpaths = [], []
     for _, row in df.iterrows():
         pid = str(row['patient_id']).replace('bimcv_', '')
-        ok = pid in common
+        # Require both the CT teacher variant AND the student X-ray file to exist on disk.
+        # 12 source patients have CT but a missing X-ray dir; without this check they leak
+        # into the manifest and crash the dataloader with FileNotFoundError.
+        ok = pid in common and os.path.exists(str(row['image_path']))
         keep.append(ok)
         vpaths.append(str(variant_dirs[t] / f'bimcv_{pid}.png') if ok else '')
     dfs = df[keep].copy().reset_index(drop=True)
