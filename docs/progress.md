@@ -22,6 +22,46 @@
 
 **待用户**：H800 重开有卡模式后执行上述；F3 paper 措辞是否因 510 结果调整。
 
+### 续：CPU prep 已全部完成（2026-06-26，无卡模式核对）
+- **数据无需下载**：原始 `.nii` 全在 H800（阳 113 + 阴 354 = 467 个 paired 目录）。CT 教师变体渲染**已完成**：`bimcv_ct_mid`=467、`bimcv_ct_3slice`=467 PNG（`render_frugal.log` 末尾 `RENDER_FRUGAL_DONE`，仅 1 个病态卷 sub-S05726 因 "Too many dimensions" 跳过）；`proj` 仍 216，但 calibrated_gate 用不到。
+- **510 full CV manifest 已生成**：直接跑 `prepare_bimcv_only_cv --mode full --seed 99 --prefix bimcv_full510 -o bimcv_cv/bimcv_full510`，输出 512 病人 398−/114+、0 dropped；5 折 `paired_manifest.csv` + `ct_manifest.csv` 齐。
+- **有效 cohort = 466（113+/353−）**＝ 变体∩X光∩510（旧版仅 216）。距 512 差 46 个为无可渲染 CT 卷的病人——这正是 teacher-gated 消融能用的最大子集。
+- **GPU 启动须知（避坑）**：用 `bash ops/h800_bimcv_5fold_cv.sh train`（**位置参数 `train`，不是 `--phase train`**）跳过 prep 段——其 Step 1b 会重跑易 OOM 的 `extract_ct_teacher_variants.py`（跳过条件要求 mid+3slice+**proj** 三者齐，251 个无 proj 病人会再 `get_fdata()`）。覆盖 `TAG=PREFIX=bimcv_full510 CV_DIR=bimcv_cv/bimcv_full510 CV_MODE=full`，先 `export PATH=/root/miniconda3/bin:$PATH`。
+- **当前唯一卡点 = GPU**：训练（5fold teacher+supervised+KD，再 calibrated_gate）须有卡模式；无卡模式下 prep 已 100% 就绪，切到有卡后一条命令即发射。
+
+### 有卡模式发射 full510 F3 重跑（2026-06-26 08:52，运行中）
+- **编排脚本** `/root/autodl-tmp/orchestrate_full510.sh`（detached, setsid），日志 `/root/autodl-tmp/nohup_full510_orchestrate.log`。两段串行：
+  1. **Phase1**：`h800_bimcv_5fold_cv.sh train`，`TAG=PREFIX=bimcv_full510`、`CV_DIR=bimcv_cv/bimcv_full510`、`CV_MODE=full`、**`PHASES="teacher supervised"`**（只跑 calibrated_gate 必需的前置；跳过 plain_kd/gated_kd 以最快出 F3）。把 5fold 第 314 行 phase 循环改成 `${PHASES:-...}` env 驱动（可逆，默认不变）。teacher 30 + supervised 30 = 60 runs。
+  2. **Phase2**：`h800_calibrated_gate.sh`，`TAG=bimcv_full510_calibrated_gate SOURCE_TAG=bimcv_full510 CV_DIR=bimcv_cv/bimcv_full510 PREFIX=bimcv_full510 SUP_RUN_ROOT=runs/bimcv_full510`。2 cell × T{0.5,1.0,2.0} × 5 折 × 3 seed = 90 runs。
+- **性能压榨**：`MAX_PARALLEL=20 NUM_WORKERS=6 GPU_ID=0` + **CUDA MPS**（server pid 在 nvidia-smi 可见，contexts 走 MPS 并发 kernel）。启动即 GPU **70.6GB/80GB**、282 procs。
+- **教师图就绪**：ct_manifest 512 teacher 图 0 missing（阳 `data/bimcv/bimcv_ct_slices`、阴 `data/bimcv/neg_ct_slices`）。学生用 467 变体（`data/bimcv_ct_variants`）。
+- **避坑已用**：positional `train`（非 `--phase train`）跳过 prep Step1b OOM 提取器；`PATH=/root/miniconda3/bin`。
+- **下一步**：跑完后把 metrics 拉到 `src/results/bimcv_full510_calibrated_gate_*/` + supervised baseline，用 analyze_calib 重算 within-cell ΔBA（510 cohort），决定 F3 paper 措辞（预期温度不敏感保持、绝对 ΔBA 或回到 +0.03 附近）。
+
+### 成本裁剪：3-seed → 1-seed（2026-06-26 09:29，用户决策）
+- **诊断**：full510 跑起来 H800 **~80% 空闲**（CPU load 33/176≈19%，GPU util ~0%）——瓶颈是 tiny workload 的协调/overhead（50ep × 每 epoch 验证 × 20 进程 MPS 时分），**不是算力**。full 3-seed 估 ~8h 几乎全是空转计费。
+- **用户选「减种子」**：calibrated_gate 3 seed→1 seed（42），90→**30 runs**；作为 510 cohort 上温度不敏感性 robustness check 足够（CI 稍宽）。
+- **执行**：killed 3-seed run（注意 gotcha：kill 必须用脚本文件、且 pkill 模式不能出现在 ssh 命令行里，否则自杀 shell）；**wipe 旧 configs**（gotcha #6：phase loop globs 所有 config，改 SEEDS 不够，必须 `rm configs/bimcv_full510/*.json`）；relaunch `orchestrate_full510_1seed.sh`（SEEDS=42）。
+- **Phase1 零开销**：seed-42 teacher+supervised 在首轮已训完，全部 SKIP_DONE，`H800_5FOLD_CV_COMPLETE` 秒过。只剩 Phase2 calibrated_gate 30 runs（20-way+MPS，GPU 71.5GB）。tag=`bimcv_full510_calibrated_gate`，SEEDS=[42]。
+- **ETA**：calib 30 runs ≈ 2–2.5h → 约 11:45–12:00 CST 完成。后台 monitor（calibdone≥8 / ORCH DONE / stall）会叫醒我执行 拉结果→分析→写 F3→关机。
+
+### 完成 + 结果 + 关机（2026-06-26 11:23 CST 跑完）
+- **30/30 DONE + DONE_TEST，rc=0**。结果拉回 `src/results/bimcv_full510_calibrated_gate_20260626/`（30 calib + 10 supervised best_metrics、summary.csv、decision_report.md、analyze_full510_calib.py、raw backup full510_calib_pull.tgz）。**H800 已 `shutdown -h now` 关机，GPU 计费停止**（数据保留，可重开）。
+- **F3 结果（val 主指标，466 effective cohort，seed 42，n=5）**：supervised baseline 3slice BA=0.664/mid BA=0.604。
+  - **mid_hard T=1.0：ΔBA=+0.069 [+0.034,+0.106]（CI 排除 0，超过 headline +0.033）**
+  - **3slice_soft T=1.0：ΔBA=+0.022 [−0.011,+0.068]（正向但 n=5 偏噪，CI 含 0）**
+  - **温度不敏感保持**：within-cell |ΔBA vs T=1.0| ≤ 0.025，三温度下两 cell 均保持正；T=0.5 过自信不降反略升（噪声内），T=2.0 软化不提升。
+- **关键意义**：510 cohort **复现正 ΔBA**，与 paired-216 子集（−0.09/−0.018）相反 → 证明 216 的负值是小 cohort 假象，**消除论文里「passing cell 在子集上不复现」的尴尬 caveat**。F3 温度消融现在落在 headline cohort 上。
+- **诚实局限**：单 seed（n=5 vs 原 n=15），CI 偏宽，3slice_soft T=1.0 含 0；within-cell spread（≤0.025）略大于 216 的 ≤0.013（n=5 噪声）。定性结论稳健。
+- **待做**：step 4 把上述写进 paper（摘要 F3 句、Limitations/Discussion F3 段：从 216-robustness-caveat 升级为 headline-cohort 消融 + 保留 single-seed caveat），Windows `build.bat` 重编译核对。
+
+### Step 4 完成：F3 写入 paper + 重编译（2026-06-26）
+- **2 处编辑 `paper/main.tex`**：①摘要 F3 句 `within-cell ΔBA≤0.013`→`≤0.025`，加「on the headline cohort」+「both passing cells remaining positive at every temperature」；②Limitations 校准段：改成「在 headline 510 cohort 上重跑」、`at most 0.025`、两 cell 各温度均保持正；诚实写 within-cell CI（T=0.5 过自信不破坏：+0.025/+0.007 CI 含 0；T=2.0 软化不提升：3slice within-noise、mid 边际 −0.014）——**没有 overclaim「all CIs include zero」**（mid_hard T=2.0 CI 排除 0）。Discussion L560 定性引用无需改。
+- **F1/F2 已在文中**（external_stress 段 / absolute metrics 表），本轮只动 F3。
+- **重编译**：Windows MiKTeX `build.bat` 通过，main.pdf **23 页，0 undefined ref/citation**。
+- **未提交**（用户未明确要求 commit/push）；paper/ 是独立 repo，主 repo 用 gitlink 跟踪。within-cell 差异 CI 由 `analyze_full510_calib.py` 同目录单独算（见 decision_report）。
+- **F3 任务全链路完成**：prep→训练(1-seed 30 run)→拉结果→分析→写 paper→重编译→关机 H800。
+
 ## H800 全数据重跑：A2/A3 完成、A4 待修、F3 实证为 null（2026-06-25）
 
 **计算环境**：H800 重新可达（`ssh -p 12437 root@connect.westc.seetacloud.com`），单 GPU 0。本轮把 8-way 加速到 **20-way + CUDA MPS**（显存 28→71.5GB/80GB，吞吐 ~2.5×）。代码同步方式：本地改 → git push → H800 git pull。
