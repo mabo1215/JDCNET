@@ -1,74 +1,84 @@
-﻿Cover Letter
-Submission to ACM Transactions on Multimedia Computing, Communications, and
-Applications (ACM TOMM)
+Cover Letter
+Submission to Artificial Intelligence in Medicine (Elsevier)
 
 Title: JDCNet: Confidence-Gated Privileged-Modality Distillation for
        Cost-Preserving X-ray Inference
 
-Submission category: Regular Paper (regular submission, no special issue)
+Submission category: Original Research Article
 
 Dear Editor-in-Chief,
 
-We are pleased to submit our manuscript, "JDCNet: Confidence-Gated
-Privileged-Modality Distillation for Cost-Preserving X-ray Inference," for
-consideration as a Regular Paper in ACM Transactions on Multimedia Computing,
-Communications, and Applications.
+We submit for your consideration the manuscript entitled "JDCNet:
+Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray
+Inference" as an Original Research Article for Artificial Intelligence in
+Medicine.
 
-This paper studies a practical multimedia-systems setting in which a richer
-imaging modality (CT) is available during training but the deployed model must
-use X-ray alone. We propose JDCNet, a confidence-gated CT-to-X-ray distillation
-method. The CT teacher provides an auxiliary hard or lightly softened target
-only when its confidence exceeds a fixed threshold; at test time, the CT branch
-and the auxiliary loss are removed. The deployed student is therefore the same
-single-modality ResNet-18 X-ray classifier as the supervised baseline.
+WHAT THE PAPER STUDIES
 
-On a 510-patient same-patient paired BIMCV cohort, using patient-level 5-fold
-cross-validation and seeds 42--44, two JDCNet settings pass the fixed transfer
-gate against the matched supervised X-ray baseline:
+We investigate whether computed tomography (CT), available during model
+development, can improve an X-ray-only classifier at deployment without
+inflating its inference cost. We propose JDCNet, a confidence-gated
+distillation framework in which a frozen CT teacher supplies an auxiliary
+training target only on samples it classifies confidently; at test time the
+deployed model is a standard single-modality X-ray classifier identical in
+parameters, MACs, and latency to the supervised baseline.
 
-- 3-slice CT teacher with soft-KL target: Delta BA = +0.0345,
-  95% CI [+0.0112, +0.0571].
-- Mid-slice CT teacher with hard target: Delta BA = +0.0329,
-  95% CI [+0.0074, +0.0584].
+MAIN FINDINGS
 
-The CT teacher upper-bound rows also show positive head-room on the same
-patients. In contrast, plain and gated logit distillation, DRR-guided logit
-transfer, contrastive alignment, attention transfer, feature hints, BiomedCLIP
-fine-tuning, and a module-augmented pilot do not pass the same gate. We
-therefore present a bounded claim: confidence-gated auxiliary targets are the
-supported transfer channel in this cohort, while external paired-cohort
-replication is still required before any deployment claim.
+On a 510-patient same-patient paired BIMCV cohort evaluated under patient-level
+5-fold cross-validation, two JDCNet configurations pass a pre-specified transfer
+gate against the matched supervised ResNet-18 baseline:
 
-The relevance to ACM TOMM is that JDCNet treats cross-modal supervision as a
-training-time signal-routing problem under a fixed deployment budget: the richer
-CT modality shapes only the training objective, while the deployed graph remains
-a standard single-modality classifier. The manuscript reports parameters, MACs,
-memory, and CPU/GPU/edge latency to verify that the selected JDCNet student adds
-no inference-time cost relative to the supervised X-ray baseline, which we
-believe is of interest to the multimedia computing and communications community
-concerned with efficient, deployment-realistic multimodal systems.
+  - 3-slice CT teacher with soft-KL target:   Delta BA = +0.035,
+                                               95% CI [+0.011, +0.057]
+  - Mid-slice CT teacher with hard target:     Delta BA = +0.033,
+                                               95% CI [+0.007, +0.058]
 
-In accordance with the ACM TOMM double-blind review policy, the submitted
-manuscript is fully anonymized (author names, affiliations, and acknowledgments
-are removed, and code/repository identifiers are withheld and provided to
-reviewers only as anonymized supplementary material). Author-identifying
-information is supplied separately on the title page for editorial use only.
+Under the same protocol and gate, seven alternative transfer mechanisms --
+including gated logit distillation, contrastive alignment, attention transfer,
+feature hints, and BiomedCLIP fine-tuning -- do not pass. The gate decision is
+statistically insensitive to teacher confidence calibration, and on an
+independent external cohort both the supervised and JDCNet students fall to
+chance (BA ~0.49), bounding the validated claim to the BIMCV cohort and
+motivating external paired-cohort replication.
 
-The study is a secondary analysis of publicly released, de-identified human
-imaging data. The original BIMCV release reports institutional
-research-committee approval and anonymization/de-identification by the data
-custodians; we did not collect new patient data, obtain new consent, attempt
-re-identification, or redistribute patient pixels.
+RELEVANCE TO ARTIFICIAL INTELLIGENCE IN MEDICINE
 
-The work has not been published previously and is not under consideration
-elsewhere. Source code, split definitions, training configurations, and analysis
-utilities will be released under an open-source licence upon acceptance.
+The paper addresses a problem of direct relevance to AI-assisted clinical
+imaging: many hospitals acquire CT and X-ray for the same patient during
+diagnosis but face practical constraints that favour X-ray-only automated
+screening at deployment. The same training-only privileged-modality pattern
+recurs across radiology (CT to X-ray), pathology (whole-slide imaging to
+cytology), and ophthalmology (OCT to fundus photography). Beyond the specific
+method, the paper contributes a rigorous evidence-bounded evaluation protocol
+-- pre-specified gate criterion, patient-level evaluation unit, and explicit
+reporting of failed comparator channels -- that we believe sets a useful
+standard for small paired-cohort medical AI studies.
 
-Thank you for your time and consideration.
+REPRODUCIBILITY
+
+Source code, per-fold patient-level split definitions, training configurations,
+and analysis utilities are publicly available at:
+https://codeocean.com/capsule/4742424/tree/v1
+
+ORIGINALITY AND SUBMISSION STATUS
+
+This manuscript has not been published previously and is not under consideration
+elsewhere. All authors have approved the manuscript. The 510-patient BIMCV data
+used are publicly released and de-identified; no new patient data were
+collected and no ethics approval beyond the original custodian release was
+required.
+
+In accordance with the double-blind review policy, the submitted manuscript is
+anonymised (author names, affiliations, and acknowledgements are suppressed).
+Author-identifying information is supplied separately on the title page for
+editorial use only.
+
+We thank you for your time and consideration.
 
 Sincerely,
 
 Bo Ma (corresponding author)
 Auckland University of Technology
-Auckland, New Zealand
+Auckland 1024, New Zealand
 amabo1215@gmail.com
