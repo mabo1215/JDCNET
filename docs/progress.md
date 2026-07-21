@@ -1,5 +1,24 @@
 # 进度
 
+## submit/revised 打包 + cover_letter.txt 同步更新（2026-07-21 下午）
+
+**已全部修改**：
+1. `submit/revised/`——新建目录，放入当前最终版投稿包：编译产物
+   `main.pdf`/`appendix.pdf`/`combine.pdf`（基于合并 Table 2/3、修正 Fig. 2
+   caption 之后的最新 `paper/main.tex` 编译），以及 LaTeX 源文件
+   （`main.tex`/`appendix.tex`/`ref.bib`/`sn-jnl.cls`/`sn-vancouver.bst`/
+   `tables_standalone.tex`）和正文引用的 13 张图（`figs/`，不含作者照片，与
+   既有 `submit/paper/` 打包惯例一致）。
+2. `docs/cover_letter.txt`——发现仍是投给 Elsevier *Computerized Medical
+   Imaging and Graphics* 的旧版（双盲语气、旧冒号标题、旧 CodeOcean 链接），
+   与当前 Discover Artificial Intelligence 大修轮次完全不符。已整体重写：
+   期刊改为 Discover Artificial Intelligence（单盲）、Submission ID
+   bf05c1ad-f7f2-44f8-a235-de9eeb659798、标题改为去标点新标题、新增
+   "本轮修改摘要"段（标题/Declarations/理论论证/超参数敏感性/显著性检验合并/
+   SOTA 对比表/复杂度分析/临床动机与合规讨论/两张新示意图/GitHub 开源/引言
+   与讨论精简）、复现性链接改为 GitHub（`mabo1215/JDCNET.git`）、移除双盲/
+   title page 相关表述。
+
 ## 回应信引用清理 + Table 2/3 合并去重 + Fig. 2 caption 措辞修正（2026-07-21 下午）
 
 **触发**：用户指出 (1) `docs/response_to_reviewers.tex` 中大量使用 `fig:jdcnet_train_infer_graph`

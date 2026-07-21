@@ -1,17 +1,20 @@
 ﻿Cover Letter
-Submission to Computerized Medical Imaging and Graphics (Elsevier)
+Resubmission to Discover Artificial Intelligence (Springer Nature)
+Submission ID: bf05c1ad-f7f2-44f8-a235-de9eeb659798
 
-Title: JDCNet: Confidence-Gated Privileged-Modality Distillation for
+Title: JDCNet Applies Confidence-Gated Privileged-Modality Distillation for
        Cost-Preserving X-ray Inference
 
-Submission category: Original Research Article
+Submission category: Original Research Article (revised manuscript following
+Major Revision)
 
-Dear Editor-in-Chief,
+Dear Editor,
 
-We submit for your consideration the manuscript entitled "JDCNet:
-Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray
-Inference" as an Original Research Article for Computerized Medical Imaging
-and Graphics.
+Please find enclosed our revised manuscript, "JDCNet Applies Confidence-Gated
+Privileged-Modality Distillation for Cost-Preserving X-ray Inference"
+(Submission ID bf05c1ad-f7f2-44f8-a235-de9eeb659798), together with a
+point-by-point response to the Editor's and all four Reviewers' comments and a
+marked-up copy showing the changes.
 
 WHAT THE PAPER STUDIES
 
@@ -42,9 +45,45 @@ independent external cohort both the supervised and JDCNet students fall to
 chance (BA ~0.49), bounding the validated claim to the BIMCV cohort and
 motivating external paired-cohort replication.
 
-RELEVANCE TO COMPUTERIZED MEDICAL IMAGING AND GRAPHICS
+SUMMARY OF CHANGES IN THIS REVISION
 
-The paper addresses a problem of direct relevance to computational medical
+In response to the Editor's requirements and the four Reviewers' comments, we:
+
+  - Revised the title to a single punctuation-free sentence, as requested.
+  - Added a "Declarations" section with separate "Ethical approval",
+    "Consent to participate", and "Consent to publish" subheadings.
+  - Added a new Methodology subsection giving a theoretical rationale for
+    why JDCNet's hard-masked, discrete/lightly-softened auxiliary target
+    differs from generic confidence-aware/confidence-based distillation,
+    and justified the fixed confidence-gate thresholds.
+  - Added a hyperparameter sensitivity analysis for the gate threshold and
+    the auxiliary-loss weight across the full 16-configuration sweep.
+  - Added derived significance tests (z, two-sided p) and paired Cohen's d
+    effect sizes for all headline and comparator rows, folded into the
+    existing decision-summary table.
+  - Added a table summarizing JDCNet's methodological differences from
+    recent state-of-the-art cross-modal and confidence-aware distillation
+    methods.
+  - Added a computational-complexity analysis and expanded implementation
+    detail (training environment, preprocessing, hyperparameter rationale).
+  - Added a clinical-motivation paragraph, a clinical-workflow/regulatory
+    discussion, and an expanded discussion of the causes of, and candidate
+    mitigations for, the observed external-cohort domain shift.
+  - Added two clearer schematic figures: a training-time-versus-inference-time
+    computational graph making the removed CT pathway explicit, and a
+    cohort inclusion/exclusion flow diagram for the BIMCV cohort.
+  - Made the source code, training configurations, and split definitions
+    publicly available on GitHub (see below), and added a full citation for
+    the BIMCV dataset with its official access portal.
+  - Trimmed repetitive passages in the Introduction and Discussion.
+
+A full, itemized point-by-point response to every comment -- including the
+few suggested references and revisions we respectfully did not adopt, with
+our reasoning -- is provided in the accompanying response-to-reviewers file.
+
+RELEVANCE TO DISCOVER ARTIFICIAL INTELLIGENCE
+
+The paper addresses a problem of direct relevance to AI-assisted medical
 imaging: many hospitals acquire CT and X-ray for the same patient during
 diagnosis but face practical constraints that favour X-ray-only automated
 screening at deployment. The same training-only privileged-modality pattern
@@ -59,22 +98,22 @@ REPRODUCIBILITY
 
 Source code, per-fold patient-level split definitions, training configurations,
 and analysis utilities are publicly available at:
-https://codeocean.com/capsule/4742424/tree/v1
+https://github.com/mabo1215/JDCNET.git
 
 ORIGINALITY AND SUBMISSION STATUS
 
 This manuscript has not been published previously and is not under consideration
-elsewhere. All authors have approved the manuscript. The 510-patient BIMCV data
-used are publicly released and de-identified; no new patient data were
-collected and no ethics approval beyond the original custodian release was
-required.
+elsewhere. All authors have approved the revised manuscript. The 510-patient
+BIMCV data used are publicly released and de-identified; no new patient data
+were collected and no ethics approval beyond the original custodian release
+was required.
 
-In accordance with the double-blind review policy, the submitted manuscript is
-anonymised (author names, affiliations, and acknowledgements are suppressed).
-Author-identifying information is supplied separately on the title page for
-editorial use only.
+This journal uses single-anonymous review, so author names and affiliations
+are included directly in the manuscript.
 
-We thank you for your time and consideration.
+We thank the Editor and the four Reviewers for their constructive comments,
+which we believe have substantially strengthened the manuscript, and we thank
+you for your time and consideration.
 
 Sincerely,
 
@@ -82,3 +121,4 @@ Bo Ma (corresponding author)
 Auckland University of Technology
 Auckland 1024, New Zealand
 amabo1215@gmail.com
+
