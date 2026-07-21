@@ -1,1 +1,127 @@
-The most critical flaw is the explicit admission that the evaluation is entirely restricted to a single 510-patient cohort, which fundamentally fails to demonstrate the cross-domain generalization required for a systems-level framework and makes the findings highly susceptible to dataset-specific biases. Furthermore, reporting only relative performance gains, such as a marginal 0.035 increase in balanced accuracy, while completely omitting absolute baseline metrics, makes it impossible to assess the true clinical viability or baseline standing of the model. Additionally, the core methodology of relying on a confidence-gated threshold from the teacher model is highly vulnerable to overconfidence bias; an uncalibrated teacher could easily force the student network to confidently learn incorrect target distributions without the abstract addressing any calibration safeguards.
+Read editor’s comments:
+
+Dear Dr Ma,
+
+Your manuscript, "JDCNet : Confidence-Gated Privileged-Modality Distillation]{J DCNet : Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray Inference", has now been assessed. You will see that, while the reviewers find your work of interest, they have raised points that need to be addressed by a Major revision.
+
+We invite you to revise your paper, taking into account the points raised and the general guidelines below. To ensure the Editor and Reviewers will be able to recommend that your revised manuscript is accepted, please pay careful attention to each of the comments that have been pasted underneath this email.
+
+
+To support the continuity of the peer review process, we recommend returning your manuscript to us within 10 days. If you think you will need additional time, feel free to reach out to us with the MSID details.
+
+Internal Feedback:
+
+NOTE : In reading through the referee reports, we've noted that a number of additional specific references have been suggested. We would like to emphasize that we do not expect a research article to be comprehensive in its referencing of the background literature and that these additions would be at your discretion. Not including references which are not directly relevant to your work would not affect the final decision. However, please do ensure that directly-relevant previous work is adequately acknowledged in your paper and that the original contribution of your study to furthering the current understanding in the field is sufficiently emphasized.
+
+1. Revise title
+
+To aid our readers, and to maximize the accessibility of your manuscript, the title should have a clear, precise scientific meaning. Where possible, the title should be read as one concise sentence, without the use of punctuation (full stops, colons, hyphens, question marks etc.). Please could you re-write the title ensuring that it is informative and appropriate?
+
+2. Declaration Section : Authors are requested to include a separate section in the manuscript titled “Declarations.” In this section, please clearly state the following items as individual subheadings:
+Ethical approval
+Consent to participate
+Consent to publish
+Each item should be addressed separately and appropriately under this section
+
+Consent to publish: For manuscripts that include information or images that could lead to the identification of a study participant, ‘informed consent to publish’ must have been obtained to publish the information/image(s) in an online open-access publication. If this is not relevant to your manuscript, please state 'Not applicable'.
+
+3. Response to reviewer's file : A point-by-point response to the comments, including a description of any additional experiments that were carried out and a detailed rebuttal of any criticisms or requested revisions that you disagreed with. This file should be uploaded under the 'response to reviewers' section on the editorial system.
+
+We recommend submitting all revisions within the mentioned deadline.
+
+If you need more time, please contact us and include your submission ID.
+
+Kind regards,
+
+Alfeya Baig
+Assistant Editor
+Discover Artificial Intelligence
+
+Support contact: discoverai@springernature.com
+
+Submission ID: bf05c1ad-f7f2-44f8-a235-de9eeb659798
+
+Feedback from the Reviewer:
+
+
+Reviewer 1
+
+The manuscript titled “JDCNet: Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray Inference” requires substantial improvement in terms of methodological clarity, comparative depth, and language precision. The following comments aim to guide the authors toward significant enhancement:
+1. Although the authors have introduced JDCNet as a new mechanism for knowledge transfer, the innovation of the method has not yet been sufficiently proven. The main innovation of the paper is based on changing the loss function of Knowledge Distillation and applying a confidence gate. The authors should show more precisely what fundamental difference and theoretical advantage this method has over other Confidence-aware or Confidence-based Knowledge Distillation methods, rather than just an empirical change in the loss function.
+2. Only two settings out of 16 tested combinations managed to pass the predetermined criterion, while the other 14 settings failed. This shows that the performance of the method is sensitive to the choice of hyperparameters. The paper lacks sufficient analysis of the reason for this sensitivity and the extent to which the method is robust to changes in the parameters λ and τ.
+3. The paper is mainly evaluated on a binary task (COVID-19 vs. non-COVID). It is not clear whether the proposed mechanism will perform similarly on multiclass problems or other chest diseases. Therefore, the claim of generality of the method is not yet fully proven.
+4. The reason for choosing a fixed threshold for the Confidence Gate is not sufficiently justified.
+5. The JDCNet flowchart is appropriate, but it would be better to make it more clear in the figure that in the inference phase, the CT branch is completely removed so that the reader can more quickly understand the difference between the training and inference phases.
+6. The manuscript relies heavily on sources before 2021. Consider this works:
+https://doi.org/10.1007/s11227-026-08615-1 , https://doi.org/10.1038/s41598-026-48234-7 , https://doi.org/10.1038/s41598-026-56549-8 , https://doi.org/10.1007/s11227-025-07983-4 , https://doi.org/10.1038/s41598-025-28737-5
+7. The introduction section is quite long and some of the material on Knowledge Distillation seems repetitive. It is suggested that this section be made more concise.
+8. In the Discussion section, the main focus is on reporting numerical results, and technical analysis on why JDCNet is superior to other methods is limited.
+
+Reviewer 2
+
+The paper is good overall, but it needs further improvements.
+Please describe all hyperparameters clearly and explain why specific choices were made.
+Add more details about the experimental setup, including data preprocessing, training environment, and evaluation methods.
+Add an analysis of the computational complexity and running time of the proposed algorithms to evaluate efficiency.
+Make the implementation code publicly available on GitHub for transparency and reproducibility.
+Also, upload the dataset or provide clear access details so others can replicate the experiments.
+Update the literature review to include recent relevant studies:
+- "IGNITE-NET: fire risk prediction using dynamic receptive fields and dynamic channel fusion attention"
+-"Investigating the performance vs. computational complexity tradeoff in cross-domain fire risk detection"
+Please upload the dataset to a public platform to allow access for replication and further research.
+Make the diagrams more dynamic and visually appealing; they currently look very low-quality
+Include a suitable statistical test to validate your results.
+
+Reviewer 3
+
+Thank you for the opportunity to review this content. This work presents JDCNet, a confidence-gated privileged-modality distillation approach using CT images during training, with an inference path that operates on X-ray images alone. This work addresses a key problem in medical AI, i.e., to improve the deployment efficiency while keeping the computing expenses at inference time to a minimum. The work shows a lot of technical depth, the evaluation procedure is mainly rigorous and the authors appropriately note various limitations, notably with external validation.
+
+minimal adjustments are needed to make it suitable for publication The following suggestions will improve the project further:
+
+1. Press the clinical drive. The systems perspective is adequately expressed, but the Introduction could more clearly identify the clinical settings in which increased CT supervision would significantly improve routine chest X-ray interpretation and how this may be deployed into clinical practice.
+2. Define the criteria for selecting the dataset. The paper describes the BIMCV matched cohort and the patient level split, however the inclusion/exclusion criteria for patients and how the final cohort was assembled might benefit from a more detailed flowchart for clarity and reproducibility.
+3. Please provide details on the implementation. To facilitate independent replication of the findings, please offer additional information on pre-processing, how CT slices were selected, the computational resources employed along with the rationale for tuning hyperparameters.
+4. Improved statistical documentation. Improvements in balance accuracy are shown with confidence intervals, but the findings would be more convincing if their statistical significance testing or measures of impact size were used for the main comparisons.
+5. Sharpen the juxtaposition with modern scholarship. The related study is exhaustive. However, a table that summarizes the differences in methodology between JDCNet and state-of-the-art cross-modal distillation methods would help the readers to better comprehend the novelty of the proposed framework.
+6. Expand on the idea of generalizability. The paper correctly finds poor performance in the external cohort. Could you please explain on probable roots of domain shift and techniques to improve external resilience such as domain adaptation, multi-center training, or calibration methods?
+7. Make the figure clearer. Some process diagrams are text-dense and contain little labels. Increasing text sizes and improved accuracy in the annotation will provide more light on the process.
+8. Inspect the computing costs done throughout the training procedure. The inference cost remains the same, but a brief overview of the additional compute requirements as well as training time for privileged-modality learning will enable readers to evaluate the actual trade-offs.
+9. Minor editing improvements. Careful reading would remove a few repetitive words, improve the sentence structure and provide clarity, keeping the technical essence.
+
+In this research, we propose a well designed and well-evaluated approach for privileged-modality knowledge distillation. The proposed confidence gated technique is technically persuasive, the experimental methodology is straightforward and the results are properly restricted by the evidence supplied. Response to the above comments will improve the clarity, reproducibility and practical significance of the research.
+
+Reviewer 4
+
+We propose the latest confidence-gated privileged-modality distillation framework (JDCNet) to transfer knowledge from CT to X-ray, while keeping a deployment pathway that only uses X-ray. The topic is quite relevant and timely considering the context of AI-enhanced medical imaging. The paper is largely well written and many other experiments are conducted with a clear emphasis on inference efficiency. The inclusion of comparator mechanisms, consideration of implementation cost, and external validation show a careful experimental design. However, there are a number of parts that need be improved before the text is ready to be published.
+
+The following changes are recommended:
+
+1. Explain what’s new. The paper compares JDCNet with numerous existing distillation baselines, however the unique methodological contribution needs to be described more explicitly in both the Introduction and Related Work sections. A short comparison to state-of-the-art privileged-information along with cross-modal distillation methods would strengthen the stance of the proposed approach.
+2. Improve reproducibility of methods. The training process is described but repeatability might be improved by providing more implementation details, e.g. the initial approach, the technique for selecting hyperparameters, the reason for adjusting the confidence threshold, how random seeds are handled and the computing resource requirements.
+3. Strengthen statistical verification. The bootstrap confidence intervals and paired analyses are appropriate, but the experimental results might be strengthened by adding further statistical significance tests, effect-size reporting, and exploring practical significance.
+4. Elaborate on external generalization in further detail. The external validation shows performance is dropping to near random chance. This limitation motivates a further analysis covering potential variables such dataset shift, differences in acquisition and changes in label distribution, and possible ways of improving cross-domain robustness.
+5. Increase the clinical relevance. The report does not overstate clinical applicability, which is wise, but further details on how the proposed framework would be integrated into real radiology workflows and the outstanding regulatory or validation requirements would increase the practical relevance of the study.
+6. Improve clarity of figures and tables. Some figures and tables include complex information. Fonts will be larger to improve readability . Visual layouts will be simpler . All figures and tables will use the same notation .
+7. Discuss limitations and possible future work. While restrictions are pointed out, the future perspective for additional research might be improved by greater discussion about scalability to multi-class disease classification, large multi-center datasets, and any other imaging modalities.
+8. Display and linguistics. The work is mostly well written, however certain sections are needlessly lengthy and repetitive, particularly in the Discussion. The clarity would be improved by removing superfluous explanations without losing the technical content.
+
+This is a fundamentally strong and well-done work with important insights on privileged-modality learning and cross-modal knowledge distillation. Addressing the difficulties raised above will increase the clarity, reproducibility and practical relevance of the study and make the work suitable for publishing following minimal amendment.
+
+
+How to submit your revision
+The original submitting author must upload a point-by-point response to the comments as a PDF file. This must include a description of any additional experiments that were carried out and a detailed rebuttal of any criticisms or requested revisions that you disagreed with.
+
+Any files (including the manuscript) that have changed based on the comments will also need to be uploaded again. Do not include tracked changes in your manuscript file. If you need to upload a marked-up version of the revised manuscript with the changes highlighted you can upload it on the related file section.
+
+Please note the original submitting author may be different from the corresponding author.
+
+Do you need more time to submit your revision?
+
+If you need an extension, please contact us and include your submission ID. You can find this ID in the revision request email or on the right-hand side of this page.
+
+Point-by-point response
+Please note that your response will not be published but may be shown to reviewers as part of our assessment.
+Only pdf files are accepted.
+
+Upload response
+

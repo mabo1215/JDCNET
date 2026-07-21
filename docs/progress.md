@@ -1,5 +1,174 @@
 # 进度
 
+## 回应信引用清理 + Table 2/3 合并去重 + Fig. 2 caption 措辞修正（2026-07-21 下午）
+
+**触发**：用户指出 (1) `docs/response_to_reviewers.tex` 中大量使用 `fig:jdcnet_train_infer_graph`
+等 LaTeX 内部 label，审稿人看不懂，应换成实际的 Fig./Table/Section 编号和标题；
+(2) 论文正文中新增的显著性检验表（原 Table 2）与既有的 "Main 510-patient decision
+summary" 表（原 Table 3）所列的 8 行方法几乎完全重复；(3) 新增 Fig. 2 caption 里
+"redrawn from Fig. 1 to make the removed CT pathway explicit" 这句话不正式/没有实际
+意义，要求检查是否需要保留原图并据此决定要不要留这句。
+
+### 已全部修改
+
+1. **Table 2/3 去重合并**——确认二者确实重复（同样的 CT teacher mid/3-slice、
+   JDCNet 3-slice soft-KL/mid hard、Gated logit KD mid/DRR、Contrastive alignment、
+   BiomedCLIP fine-tune 共 8 行）。做法：删除独立的显著性检验表
+   （`tab:app_significance_effect_size`），把 z / p / Cohen's d 三列直接并入
+   "Main 510-patient decision summary" 表（现为 **Table 2**，因为前面新增了
+   Related-Work 的 SOTA 对比表占了 **Table 1**），caption 与过渡句同步更新说明
+   合并原因。`paper/main_highlighted.tex` 同步更新：移除已并入的独立表格，改为在
+   合并表新增的 z/p/d 列上做局部蓝色高亮，而不是整表标"新增"。
+2. **Fig. 2 caption 措辞修正**——去掉"redrawn from Fig.~\ref{fig:jdcnet_mechanism}
+   to make the removed CT pathway explicit"这句不正式的表述，改为直接、正式地
+   说明该图的作用（"isolating exactly which computational blocks exist only
+   during training"）。**保留 Fig. 1**（`jdcnet_mechanism.png`，机制细节图：
+   teacher/student/loss/gradient）与 **Fig. 2**（新增的训练态/推理态计算图对比，
+   聚焦 CT 分支被完全移除）——两图用途不同（机制细节 vs. 训练/推理结构对比），
+   非冗余，故不删除 Fig. 1，只是精简了 Fig. 2 caption 中对 Fig. 1 的引用方式。
+3. **`docs/response_to_reviewers.tex` 引用去 LaTeX 化**——把文中所有
+   `\code{sec:xxx}`/`\code{tab:xxx}`/`\code{fig:xxx}`/`\code{main.tex}` 等审稿人
+   看不懂的内部 label，替换为实际编译出的编号和标题，例如：
+   - `sec:theoretical_rationale` → "Section 3.4"
+   - `tab:main_decision_summary` → "Table 2"（并更新为"合并显著性检验列"的描述）
+   - `tab:sota_comparison` → "Table 1"
+   - `tab:jdcnet_510` → "Table 4"；`tab:app_absolute_metrics` → "Table 5"；
+     `tab:app_gate_coverage` → "Table 6"；`tab:efficiency` → "Table 8"
+   - `fig:jdcnet_train_infer_graph` → "Figure 2"；`fig:jdcnet_mechanism` → "Figure 1"
+   - `fig:app_cohort_flow` → "Appendix Figure A1"；`tab:app_ct_variants` →
+     "Appendix Table A5"
+   - `sec:jdcnet` → "Section 3.3"；`sec:jdcnet_headline` → "Section 4.5 (Tier 1)"
+   同时把 R2/R3.4/R4.3 中"新增一张显著性检验表"的措辞改为"把显著性检验/效应量
+   并入既有的 Table 2，而非另建一张重复表"，如实反映本轮修改。
+4. **重新编译**——`paper/build.bat` 通过（main-only 36 页 + appendix，无 undefined
+   引用）；`docs/response_to_reviewers.tex` 重新编译为 `docs/response_to_reviewers.pdf`
+   （8 页）；`paper/main_highlighted.tex`/`appendix_highlighted.tex` 同步更新并
+   重新编译，`submit/JDCNet_marked_up_manuscript.pdf` 已刷新（43 页），用截图
+   核对过 Table 2 合并列高亮、Fig. 2 caption 新措辞均正确渲染。
+
+### 遗留问题
+
+- 发现 `paper/figs/HongjiangWei.jpg`（作者照片资产）在磁盘上缺失，`git status`
+  显示为 deleted，但该文件与当前 4 位作者列表（Ma/Yan/Wu/Liu，无 Hongjiang Wei）
+  无关，也未在任何当前 `.tex` 文件中被引用，编译无报错——判断是历史遗留、与本轮
+  修改无关的孤立资产，本轮未处理。
+  - 需要你确认：是否需要恢复/清理这个孤立文件？如与当前作者阵容无关可忽略。
+
+## Discover Artificial Intelligence 大修：审稿人意见逐条回应 + 论文修订（2026-07-21）
+
+**背景**：`docs/revision_suggestions.tex` 是 Springer Nature *Discover Artificial
+Intelligence* 期刊的编辑决定信 + 4 位审稿人意见（Major revision）。这与此前
+`docs/revision_roadmap.md`/历史进度记录中的 TOMM/F1-F2-F3 拒稿点是**不同的投稿
+轮次**——论文已切换为 `sn-jnl` 格式、单盲评审（作者信息在正文中可见）。`USAGE.md`
+的"目标会议或期刊"一行仍写 ACM TOMM，属于过期未同步，实际当前投稿目标应为
+Discover Artificial Intelligence（详见 `docs/competing_interests_statement_discoverai.txt`
+等文件）；已在仓库记忆中记录，建议后续手动同步 `USAGE.md`。
+
+### 已全部修改
+
+1. **编辑要求 1：标题去标点**——`paper/main.tex`/`title_page.tex`/`tables_standalone.tex`
+   标题统一改为单句 "JDCNet Applies Confidence-Gated Privileged-Modality
+   Distillation for Cost-Preserving X-ray Inference"（去掉冒号分隔的副标题结构，
+   保留学术复合词连字符）。
+2. **编辑要求 2：Declarations 拆分**——`Ethics approval and consent to
+   participate` 拆成独立的 `Ethical approval` / `Consent to participate` /
+   `Consent to publish` 三个 `\bmhead`，逐条陈述。
+3. **编辑要求 3：Point-by-point response**——新建
+   `docs/response_to_reviewers.md`，逐条回应编辑 3 项要求 + Reviewer 1-4
+   全部意见（需在正式提交前导出为 PDF）。
+4. **代码/数据可得性改为 GitHub**——按用户指示，`main.tex` 的 Code
+   availability / Data availability 及 `docs/data_availability_statement_discoverai.txt`
+   改为指向 `https://github.com/mabo1215/JDCNET.git`（原 CodeOcean capsule 链接
+   替换）；新增 BIMCV 数据集正式引用（de la Iglesia Vayá et al. 2020,
+   arXiv:2006.01174）及官方获取门户链接。
+5. **R1.1/R4.1 理论论证**——新增 Methodology 小节 `sec:theoretical_rationale`
+   ("Design Rationale versus Confidence-Aware and Confidence-Based
+   Distillation")，从 information-channel 与 bias-variance 两个假说论证
+   JDCNet（硬掩码+离散/轻度软化目标）与通用 confidence-aware/based KD
+   （连续置信度加权+全软化分布）的本质区别，并用已有的 gated logit KD 失败结果
+   和 gate-coverage 诊断作为实证支持。
+6. **R1.2 超参数敏感性分析**——在 Tier 1 结果段新增 "Hyperparameter
+   sensitivity (τ_gate and λ)" 段落，基于已有 16-cell 网格和 4 点 τ 扫描数据
+   分析 τ/λ 敏感性，诚实说明 soft-KL 变体仅在 λ=1.0 处扫描的局限。
+7. **R1.4 固定阈值理由**——并入 `sec:theoretical_rationale` 的 "Threshold
+   choice" 段落。
+8. **R1.3 二分类/单 cohort 范围限定强化**——摘要新增明确限定句
+   （"bounded to ... binary COVID-19 versus non-COVID classification"）。
+9. **R1.5/R3.7/R4.6 图表清晰度**——新增 TikZ 矢量图
+   `fig:jdcnet_train_infer_graph`（训练期 vs 推理期计算图并排对比，推理侧
+   CT 分支显式灰化/虚线标注"removed"），插入 `sec:jdcnet` 现有机制图之后。
+10. **R3.2 数据集筛选流程图**——附录 "Cohort Construction and Leakage Audit"
+    新增 TikZ CONSORT 风格流程图 `fig:app_cohort_flow`，正文 Datasets and
+    Cohort Construction 段落交叉引用。
+11. **R3.5 SOTA 方法对比表**——Related Work "Relation to Recent Cross-Modal
+    Privileged-Transfer Work" 新增 `tab:sota_comparison`，六维度对比 JDCNet
+    与 Cahan et al. 2025 / DANTE / K-MaT / KRD / MST-Distill / BDKD。
+12. **R2/R3.4/R4.3 统计显著性检验 + 效应量**——Statistical Protocol 新增
+    "Significance tests and effect sizes" 段落 + `tab:app_significance_effect_size`
+    （由已发表的 bootstrap 均值/CI 反推 SE，计算 Wald z 检验、双侧 p 值、配对
+    Cohen's d；两个通过 gate 的配置均显著 p=0.003/0.011，d=0.76/0.65）。
+13. **R2/R3.8 计算复杂度分析**——Implementation Details 新增
+    "Computational complexity" 段落（训练/推理渐进复杂度、与 module-augmented
+    对比方法的开销来源对比）。
+14. **R3.1 临床场景动机**——Introduction Motivation 小节开头新增临床部署场景
+    段落（急诊分诊、资源有限诊所、高通量筛查项目）。
+15. **R4.5 临床工作流/监管相关性**——Discussion 末尾新增 "Clinical workflow
+    and regulatory relevance" 段落。
+16. **R3.6/R4.4 跨域泛化原因与缓解策略扩写**——Limitations "Data and
+    generalization" 段落新增三类跨源崩溃原因（采集协议漂移、标签定义/患病率
+    漂移、人群/设备漂移）及三类候选缓解措施（多中心训练、域适应、站点级阈值
+    重校准），明确声明均未在本文中验证。
+17. **R1.7/R4.8 精简重复表述**——Introduction Motivation 段落与 Discussion
+    "Implications for AI-assisted clinical imaging" 段落各删去一处与其他章节
+    重复的表述。
+18. **R1.6/R2 审稿人建议引用的取舍**——查证审稿人建议的 5 篇引用（游戏强化
+    学习/程序化内容生成、面部情绪识别、恶劣天气目标检测）及 2 篇野火风险预测
+    引用，确认均与跨模态医学影像蒸馏主题无直接相关性；按编辑信中"引用增补属
+    作者自行裁量、不影响录用决定"的说明，未采纳，已在回应信中说明理由（并向
+    用户口头提示：4 篇可查证引用共享同一高度重叠的作者群体，属事实性观察）。
+19. **编译复核**——`paper/build.bat` 重新编译通过，`build/main.log` 无
+    undefined citation/reference、无 float-too-large 警告；main-only 36 页、
+    appendix 6 页、combine 42 页（较修订前 23+4=27 页显著增加，因新增大量
+    段落/图/表）。
+
+### 未修改或部分修改
+
+- **R1.3/R4.7 多分类/其他疾病泛化** — 仅在摘要与 Limitations 中明确声明为
+  未验证范围，未新增多分类实验。
+  - 是否需要：无需用户当前决策；这是本轮修订刻意保留的诚实边界（缺 GPU 资源
+    与新数据集，超出本轮修订周期范围）。
+- **R2/R3.7/R4.6 现有栅格图（mechanism diagram、结果图）重绘美化** — 仅新增
+  的两张 TikZ 图做到矢量清晰化，原有 PNG 栅格图（`jdcnet_mechanism.png` 等）
+  未重绘。
+  - 需要你决策：是否要用 fal.ai Nano Banana（按 `.claude/rules/main.md` 的
+    fal.ai 重绘规则）重绘现有栅格图？需要 `C:\source\phdthesis\.env` 中的
+    fal.ai 凭据可用。
+- **R1.1 理论论证的形式化证明** — 仅给出机制性假说 + 实证支持，未给出信息论
+  形式化证明（论文中已明确声明这是留待未来工作）。
+  - 无需用户当前决策，属故意保留的诚实范围声明。
+- **审稿人要求的新实验**（R1.3 多分类、R3.6/R4.4 域适应/多中心训练/重校准
+  实验）— 均未执行，仅在文中作为"未来工作"明确列出。
+  - 无需用户当前决策；如需在本轮周期内补做，需要 GPU 资源与新数据/新标签
+    体系，请告知是否安排。
+
+### 遗留问题
+
+需要你提供/决策：
+1. `USAGE.md` 的"目标会议或期刊"仍写 ACM TOMM，与当前 `paper/main.tex`
+   （`sn-jnl` 格式、单盲、Discover AI 专属声明文件）不一致 — 是否同步更新
+   `USAGE.md` 为 Discover Artificial Intelligence？
+   A:
+2. `docs/response_to_reviewers.md` 需要在正式提交前导出为 PDF（编辑信要求
+   仅接受 PDF）— 是否需要协助生成 PDF（例如通过现有 LaTeX 工具链）？
+   A:
+3. 是否需要用 fal.ai 重绘现有栅格图（`jdcnet_mechanism.png` 等）以进一步回应
+   R2/R3.7/R4.6 的"图表质量偏低"意见？需要 fal.ai 凭据。
+   A:
+4. `docs/cover_letter.txt` 当前仍是投给 Elsevier CMIG、双盲语气的旧版本，与
+   当前 Discover AI 单盲大修轮次不符 — 是否需要一并重写为本轮 Discover AI
+   resubmission cover letter？
+   A:
+
 ## 510 cohort F3 重跑准备（无卡模式，自动执行，2026-06-26 凌晨）
 
 **目标**：在 510 headline cohort（不是 paired-216）上重跑 calibrated_gate，使 F3 温度消融可与正文 headline 直接可比。
