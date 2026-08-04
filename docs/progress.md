@@ -436,7 +436,7 @@ Discover Artificial Intelligence（详见 `docs/competing_interests_statement_di
   邮箱改为 amabo1215@gmail.com。
 - **匿名代码提交包（2026-06-16）**：把 `src/` 下可复现方法代码拷贝到
   `submit/code/`（`jdcnet_exp/`、`configs/`、`requirements.txt`、`README.md`），
-  排除 `tmp_sync/`（789MB、含 sshpass 凭据）、`ops/`（远端集群脚本、含主机 IP
+  排除 `tmp_sync/`（789MB、含历史明文凭据）、`ops/`（远端集群脚本、含主机 IP
   10.147.20.176）、`results/`、`figures/`、checkpoints、原始数据与 `__pycache__`。
   核心代码本身无作者/单位/GitHub/邮箱/主机 IP 等可识别信息；README 顶部加双盲
   匿名说明。打包为 `submit/JDCNet_code_anonymous.zip`（48 文件、~139KB，使用

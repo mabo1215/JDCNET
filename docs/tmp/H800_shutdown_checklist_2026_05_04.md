@@ -123,7 +123,7 @@ main/appendix PDF 重编译
 
 ## 下一次 GPU 启动检查清单
 
-- [ ] SSH 连接正常：`sshpass -p 'k5qShTLQWF5a' ssh -p 39830 root@connect.westb.seetacloud.com`
+- [ ] SSH 连接正常：`ssh -i ~/.ssh/id_ed25519 -p ${H800_PORT} ${H800_USER}@${H800_HOST}`
 - [ ] nvidia-smi 显示 H100 可用
 - [ ] /root/.cache/huggingface/ 保留了 BiomedCLIP (748 MB)
 - [ ] Kaggle API 密钥已配置：`~/.kaggle/kaggle.json`

@@ -129,7 +129,7 @@ BIMCV-only 5-fold 完成了 teacher_drr / xray_supervised / plain_kd / gated_kd 
 
 ```bash
 # 1. 杀掉卡死的 screen 和进程
-sshpass -p mabo1215 ssh mabo1215@10.147.20.176 "
+ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} "
   screen -S bimcv_calib_g2 -X quit 2>/dev/null || true
   screen -S bimcv_calib_g3 -X quit 2>/dev/null || true
   pkill -f 'bimcv_only_calibration_scan' 2>/dev/null || true
@@ -138,7 +138,7 @@ sshpass -p mabo1215 ssh mabo1215@10.147.20.176 "
 "
 
 # 2. 用 num_workers=0 重启（done_run() 检查会自动跳过已完成的 2 runs）
-sshpass -p mabo1215 ssh mabo1215@10.147.20.176 "
+ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} "
   cd /data/JDCNET_git && git fetch origin && git reset --hard origin/main
   export NUM_WORKERS=0
   bash /data/JDCNET_git/src/ops/remote_3090_bimcv_calibration_scan.sh
@@ -320,7 +320,7 @@ specificity 不崩
 
 | 资源 | 路径/地址 |
 |---|---|
-| 3090 SSH | `sshpass -p mabo1215 ssh mabo1215@10.147.20.176` |
+| 3090 SSH | `ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST}` |
 | 扫描 status.tsv | `/data1/logs/bimcv_only_calibration_scan_20260514/status.tsv` |
 | 扫描 run root | `/data1/midrc/runs/bimcv_only_calibration_scan_20260514/` |
 | BIMCV-only CV results | `src/results/bimcv_only_5fold_cv_3090_20260514/` |

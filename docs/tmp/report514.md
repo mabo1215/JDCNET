@@ -17,11 +17,11 @@
 ### 0.1 计算资源
 
 ```
-3090 服务器: mabo1215@10.147.20.176, 密码 mabo1215
+3090 服务器: <REDACTED_USER>@10.147.20.176, 密码 <REDACTED>
 工作目录:    /data/JDCNET_git
 数据目录:    /data1/midrc/
 GPU:         4× RTX 3090 (24 GB each)
-登录命令:    sshpass -p mabo1215 ssh mabo1215@10.147.20.176
+登录命令:    ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST}
 ```
 
 ### 0.2 已有数据资产（不要重复下载）
@@ -175,8 +175,8 @@ cd /data/JDCNET_git && python3 -m jdcnet_exp.evaluate \
 
 **Step 1**: 检查 3090 是否能访问 HuggingFace：
 ```bash
-sshpass -p mabo1215 ssh mabo1215@10.147.20.176 'pip show open_clip_torch 2>/dev/null || pip install open_clip_torch'
-sshpass -p mabo1215 ssh mabo1215@10.147.20.176 \
+ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} 'pip show open_clip_torch 2>/dev/null || pip install open_clip_torch'
+ssh -i ~/.ssh/id_ed25519 ${SSH_USER}@${SSH_HOST} \
   'python3 -c "import open_clip; m, p, _ = open_clip.create_model_and_transforms(\"hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224\"); print(m.visual)"'
 ```
 失败 → 先在本机下载 cache，再 scp 到 3090 `~/.cache/huggingface/`
