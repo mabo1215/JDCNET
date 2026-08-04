@@ -1,7 +1,24 @@
-# Continuous monitoring script - Check every minute until first of 7 configs creates run directory
+# Continuous monitoring script - Check every minute until first of 7 configs creates run directory.
+# Authentication is SSH public-key based through the WSL ssh-agent or ~/.ssh/config.
 
-$ssh_pass = 'mabo1215'
-$ssh_host = 'mabo1215@10.147.20.176'
+param(
+    [string]$SshTarget = $env:JDCNET_R3090_SSH_TARGET,
+    [int]$SshPort = 0
+)
+
+if ([string]::IsNullOrWhiteSpace($SshTarget)) {
+    throw 'Set JDCNET_R3090_SSH_TARGET or pass -SshTarget with an SSH host or ~/.ssh/config alias.'
+}
+
+$ssh_options = @(
+    '-o', 'BatchMode=yes',
+    '-o', 'ConnectTimeout=5',
+    '-o', 'StrictHostKeyChecking=accept-new',
+    '-o', 'LogLevel=ERROR'
+)
+if ($SshPort -gt 0) {
+    $ssh_options += @('-p', [string]$SshPort)
+}
 $checkCount = 0
 
 Write-Host "$(Get-Date -Format 'HH:mm:ss') [MONITOR] Start monitoring 7 configs...`n" -ForegroundColor Cyan
@@ -15,7 +32,9 @@ while ($true) {
     
     # Encode and execute
     $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($bash_cmd))
-    $result = wsl sshpass -p $ssh_pass ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR $ssh_host "printf '%s' '$b64' | base64 -d | bash" 2>&1
+    $remote_command = "printf '%s' '$b64' | base64 -d | bash"
+    $wsl_args = @('ssh') + $ssh_options + @($SshTarget, $remote_command)
+    $result = & wsl.exe @wsl_args 2>&1
     
     # Check for FOUND
     if ($result -match 'FOUND') {

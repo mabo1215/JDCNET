@@ -25,30 +25,33 @@ mkdir -p "$out"
 
 log() { echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] $*" >> "$LOG"; }
 
-# Read R3090 credentials from /mnt/c/source/.env (lines:
-#   mabo1215@10.147.20.176
-#   mabo1215
-# )
-ENV_FILE=/mnt/c/source/.env
-if [ ! -f "$ENV_FILE" ]; then
-    log "ENV_FILE_MISSING: $ENV_FILE"; exit 2
-fi
-HOST=$(grep -oE 'mabo1215@10\.147\.20\.176' "$ENV_FILE" | head -1)
-PWD_LINE=$(awk '/mabo1215@10\.147\.20\.176/{getline; print; exit}' "$ENV_FILE")
-if [ -z "$HOST" ] || [ -z "$PWD_LINE" ]; then
-    log "ENV_PARSE_FAILED host=[$HOST] pwd_len=${#PWD_LINE}"; exit 2
+# Use SSH public-key authentication via ssh-agent or ~/.ssh/config.
+HOST="${JDCNET_R3090_SSH_TARGET:-${SSH_TARGET:-}}"
+if [ -z "$HOST" ]; then
+    log "SSH_TARGET_MISSING: set JDCNET_R3090_SSH_TARGET or SSH_TARGET"; exit 2
 fi
 
+SSH_OPTIONS=(
+    -o ConnectTimeout=20
+    -o BatchMode=yes
+    -o StrictHostKeyChecking=accept-new
+    -o LogLevel=ERROR
+)
+SCP_OPTIONS=(
+    -q
+    -o ConnectTimeout=20
+    -o BatchMode=yes
+    -o StrictHostKeyChecking=accept-new
+    -o LogLevel=ERROR
+)
+
 ssh_run() {
-    sshpass -p "$PWD_LINE" ssh -o ConnectTimeout=20 -o BatchMode=no \
-        -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR \
-        "$HOST" "$@"
+    ssh "${SSH_OPTIONS[@]}" "$HOST" "$@"
 }
 ssh_pull() {
     # ssh_pull <remote_glob> <local_dest_dir>
     local remote=$1 dest=$2
-    sshpass -p "$PWD_LINE" scp -q -o ConnectTimeout=20 \
-        -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR \
+    scp "${SCP_OPTIONS[@]}" \
         -r "$HOST:$remote" "$dest" 2>>"$LOG" || true
 }
 
@@ -90,7 +93,7 @@ ln -snf "$out" "$SNAP_DIR/latest" 2>>"$LOG" || cp -r "$out" "$SNAP_DIR/latest"
 
 # 5) AUTOPILOT_DONE detection — query the remote marker file directly so we
 #    don't false-positive on the header line "===DONE_MARKER===" itself.
-done_marker_remote_present=$(ssh_run 'cat /data/logs/phase1_autopilot/AUTOPILOT_DONE 2>/dev/null' 2>/dev/null | tr -d '[:space:]')
+done_marker_remote_present=$(ssh_run "cat /data/logs/phase1_autopilot/AUTOPILOT_DONE 2>/dev/null" 2>/dev/null | tr -d '[:space:]')
 final_summary=$SNAP_DIR/FINAL_SUMMARY.md
 if [ -n "$done_marker_remote_present" ] && [ ! -f "$final_summary.locked" ]; then
     log "AUTOPILOT_DONE detected (remote_ts=$done_marker_remote_present); writing FINAL_SUMMARY.md"

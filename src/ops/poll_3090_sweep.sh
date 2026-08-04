@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
-# Poll sweep status from Windows-side WSL call
-# Usage: wsl bash /mnt/c/source/JDCNET/src/ops/poll_3090_sweep.sh
-set -e
-ENV=/mnt/c/source/.env
-HOST=mabo1215@10.147.20.176
+# Poll sweep status from a WSL shell using an SSH key or agent.
+# Usage: JDCNET_R3090_SSH_TARGET=<user>@<host> \
+#   wsl bash /mnt/c/source/JDCNET/src/ops/poll_3090_sweep.sh
+set -euo pipefail
+
+HOST="${JDCNET_R3090_SSH_TARGET:-${SSH_TARGET:-}}"
+if [[ -z "${HOST}" ]]; then
+  echo "Set JDCNET_R3090_SSH_TARGET to an SSH host or ~/.ssh/config alias." >&2
+  exit 2
+fi
+
+SSH_OPTIONS=(
+  -o BatchMode=yes
+  -o ConnectTimeout=10
+  -o StrictHostKeyChecking=accept-new
+  -o LogLevel=ERROR
+)
 
 ssh_run() {
-  SSHPASS=mabo1215 sshpass -e ssh \
-    -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR \
-    "$HOST" "$@"
+  ssh "${SSH_OPTIONS[@]}" "$HOST" "$@"
 }
 
 ssh_run bash <<'REMOTE'
