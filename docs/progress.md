@@ -160,8 +160,7 @@ Discover Artificial Intelligence（详见 `docs/competing_interests_statement_di
   的两张 TikZ 图做到矢量清晰化，原有 PNG 栅格图（`jdcnet_mechanism.png` 等）
   未重绘。
   - 需要你决策：是否要用 fal.ai Nano Banana（按 `.claude/rules/main.md` 的
-    fal.ai 重绘规则）重绘现有栅格图？需要 `C:\source\phdthesis\.env` 中的
-    fal.ai 凭据可用。
+    fal.ai 重绘规则）重绘现有栅格图？需要 fal.ai 凭据可用。
 - **R1.1 理论论证的形式化证明** — 仅给出机制性假说 + 实证支持，未给出信息论
   形式化证明（论文中已明确声明这是留待未来工作）。
   - 无需用户当前决策，属故意保留的诚实范围声明。
