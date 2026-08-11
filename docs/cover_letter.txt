@@ -2,16 +2,16 @@
 Resubmission to Discover Artificial Intelligence (Springer Nature)
 Submission ID: bf05c1ad-f7f2-44f8-a235-de9eeb659798
 
-Title: JDCNet Applies Confidence-Gated Privileged-Modality Distillation for
-       Cost-Preserving X-ray Inference
+Title: JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost
+       Preserving X Ray Inference
 
 Submission category: Original Research Article (revised manuscript following
 Major Revision)
 
 Dear Editor,
 
-Please find enclosed our revised manuscript, "JDCNet Applies Confidence-Gated
-Privileged-Modality Distillation for Cost-Preserving X-ray Inference"
+Please find enclosed our revised manuscript, "JDCNet Uses Confidence Gated
+Privileged Modality Distillation for Cost Preserving X Ray Inference"
 (Submission ID bf05c1ad-f7f2-44f8-a235-de9eeb659798), together with a
 point-by-point response to the Editor's and all four Reviewers' comments and a
 marked-up copy showing the changes.
@@ -66,12 +66,15 @@ In response to the Editor's requirements and the four Reviewers' comments, we:
     methods.
   - Added a computational-complexity analysis and expanded implementation
     detail (training environment, preprocessing, hyperparameter rationale).
-  - Added a clinical-motivation paragraph, a clinical-workflow/regulatory
+  - Added a clinical-motivation paragraph, a practical balanced-accuracy
+    interpretation, a benefits-and-limitations table, a clinical-workflow/regulatory
     discussion, and an expanded discussion of the causes of, and candidate
     mitigations for, the observed external-cohort domain shift.
-  - Added two clearer schematic figures: a training-time-versus-inference-time
-    computational graph making the removed CT pathway explicit, and a
-    cohort inclusion/exclusion flow diagram for the BIMCV cohort.
+  - Added three clearer schematic figures: a training-time-versus-inference-time
+    computational graph making the removed CT pathway explicit, a cohort
+    inclusion/exclusion flow diagram for the BIMCV cohort, and an aggregate
+    qualitative gate-behaviour diagram contrasting retained and rejected
+    teacher subsets.
   - Made the source code, training configurations, and split definitions
     publicly available on GitHub (see below), and added a full citation for
     the BIMCV dataset with its official access portal.

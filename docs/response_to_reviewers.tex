@@ -11,193 +11,231 @@
 \usepackage[hidelinks,colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black]{hyperref}
 
 \titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{0.5em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{0.5em}{}
 \titlespacing*{\section}{0pt}{1.6em}{0.8em}
-\titlespacing*{\subsection}{0pt}{1.3em}{0.6em}
 \setlength{\parskip}{0.55em}
 
-\newcommand{\code}[1]{\texttt{#1}}
-
 \hypersetup{
-  pdftitle={Response to Editor and Reviewers - JDCNet},
+  pdftitle={Response to Editor and Reviewers JDCNet},
   pdfauthor={Bo Ma, Wei Qi Yan, Jinsong Wu, Kun Liu},
   pdfsubject={Response to Reviewers, Discover Artificial Intelligence}
 }
 
 \begin{document}
+\sloppy
 
 \begin{center}
 {\LARGE\bfseries Response to Editor and Reviewers}
 \end{center}
 
-\vspace{0.6em}
-\noindent\textbf{Manuscript:} ``JDCNet Applies Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray Inference'' (previously ``JDCNet: Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray Inference'')\\
+\noindent\textbf{Manuscript:} ``JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost Preserving X Ray Inference''\\
 \textbf{Journal:} Discover Artificial Intelligence\\
 \textbf{Submission ID:} bf05c1ad-f7f2-44f8-a235-de9eeb659798
 
-\bigskip
-
-We thank the Editor and the four reviewers for a constructive and detailed review. We revised the manuscript throughout and address every point below. Manuscript section, table, and figure numbers refer to the revised manuscript. This document is intended to be exported to PDF and uploaded under ``Response to Reviewers''; a marked-up manuscript is not provided per the editor's instructions against tracked changes.
-
-\begin{quote}
-\itshape Note on this note: this response was prepared as a plain-text/Markdown source and converted to PDF for upload to the editorial system, per the stated submission requirement.
-\end{quote}
+We thank the Editor and Reviewers for their careful second-round assessment. We
+have revised the manuscript and address every point below. Section, table, and
+figure references refer to the revised clean manuscript. No tracked changes are
+included in the manuscript upload.
 
 \hrulefill
 
-\section*{Editorial Requirements}
+\section*{Editorial requirements}
 
-\paragraph{1. Revise the title so it reads as one concise sentence without punctuation (full stops, colons, hyphens, question marks, etc.).}
-We removed the colon-based two-part title. The new title is:
+\paragraph{1. Revise the title so that it has a clear scientific meaning and no punctuation.}
+The title is now ``JDCNet Uses Confidence Gated Privileged Modality Distillation
+for Cost Preserving X Ray Inference''. It is used identically in the manuscript,
+the separate title-page source, and the cover letter; punctuation and the former
+hyphenated subtitle structure have been removed.
 
-\begin{quote}
-\textbf{JDCNet Applies Confidence-Gated Privileged-Modality Distillation for Cost-Preserving X-ray Inference}
-\end{quote}
+\paragraph{2. Select Yes for data availability and make the statement match the manuscript.}
+The submission statement is now set to ``Yes. I used or generated research data
+in this study.'' The manuscript and the editorial-system statement now point to
+the BIMCV-COVID19+ portal at
+\url{https://bimcv.cipf.es/bimcv-projects/bimcv-covid19} and explicitly identify
+the BIMCV-COVID19 Research Use Agreement at
+\url{https://bimcv.cipf.es/bimcv-projects/bimcv-covid19/bimcv-covid19-dataset-research-use-agreement-2/}.
+The statement records that the data are de-identified, that re-identification
+and data sharing are prohibited, and that no image pixels or individual image
+files are redistributed. Only derived aggregate results and anonymized
+case-level gate summaries are reported; split definitions, aggregate results,
+and analysis manifests are available at
+\url{https://github.com/mabo1215/JDCNET.git}.
 
-This is a single declarative sentence with no colon, full stop, or question mark. We retained the standard scientific compound-word hyphens (``confidence-gated,'' ``privileged-modality,'' ``cost-preserving,'' ``X-ray'') because these are established terminology (e.g., ``X-ray'' is not conventionally written ``Xray'') rather than clause-separating punctuation; we interpreted the instruction's mention of hyphens as targeting a dash-appended subtitle structure, which we removed. We are happy to further adjust if the Editor prefers the hyphens removed as well.
-
-\paragraph{2. Add a ``Declarations'' section with separate ``Ethical approval,'' ``Consent to participate,'' and ``Consent to publish'' subheadings.}
-Done. The manuscript's ``Declarations'' section (end of main text, before the bibliography) now has three separate subheadings --- ``Ethical approval'', ``Consent to participate'', and ``Consent to publish'' --- each addressed individually, in addition to the previously present Funding, Competing interests, Data availability, Materials availability, Code availability, and Author contribution subheadings.
-
-\paragraph{3. Point-by-point response file.}
-This document.
+\paragraph{3. Add a Declarations section with separate ethical approval, consent to participate, and consent to publish headings.}
+Done. The manuscript now contains a separate \textit{Declarations} section with
+individual \textit{Ethical approval}, \textit{Consent to participate}, and
+\textit{Consent to publish} subheadings, in addition to funding, competing
+interests, data availability, materials availability, code availability, and
+author contribution statements. The study is a secondary analysis of publicly
+released de-identified data under the BIMCV Research Use Agreement, with no new
+recruitment or data collection. That agreement permits research use but
+prohibits sharing, re-identification, and publication or reproduction of any
+dataset portion without specific prior written permission. We therefore provide
+the official BIMCV data-portal URL, not patient image files or pixels.
 
 \hrulefill
 
 \section*{Reviewer 1}
 
-\paragraph{1.1 --- The core innovation is a loss-function/confidence-gate change; show a theoretical, not just empirical, advantage over other confidence-aware or confidence-based knowledge distillation methods.}
-We agree the original manuscript under-argued this and have added a new subsection, \textit{``Design Rationale versus Confidence-Aware and Confidence-Based Distillation''} (Section 3.4, Methodology). It makes explicit that JDCNet differs from generic confidence-aware/confidence-based KD (e.g., reliability-aware distillation, mixture-of-teacher routing, calibration-balanced divergence weighting) along two independent design axes --- mask hardness (binary vs.\ continuous confidence weighting) and target granularity (discrete/lightly-softened vs.\ fully-softened distribution) --- rather than only in whether a gate is present. We give two explicit, falsifiable mechanistic hypotheses (an information-channel argument and a bias-vs-variance argument for why a hard mask on a discrete/lightly-softened target should transfer better under a cross-modal gap than continuous weighting of a fully-softened target) and tie each to existing evidence already in the paper: the gated logit-KD comparator is the closest published instantiation of continuous confidence-aware weighting on a fully-softened cross-modal target, and it fails the fixed gate under identical splits, backbone, and protocol (Table 2, the main decision summary), while the gate-coverage diagnostics (Table 6) show the hard mask is filtering a genuinely lower-quality/higher-ECE teacher tail rather than an arbitrary subset. We explicitly label this as a mechanistic hypothesis with empirical support, not a formal theorem, and note that a formal information-theoretic treatment is left as future work --- we did not want to overclaim a proof we have not derived.
-
-\paragraph{1.2 --- Only 2/16 settings pass; the paper lacks analysis of why, and of robustness to $\lambda$ and $\tau$.}
-We added a dedicated \textit{``Hyperparameter sensitivity ($\tau_{\mathrm{gate}}$ and $\lambda$)''} paragraph in the Tier 1 results (Section 4.5) that reads the full 16-cell grid (Table 4) and the finer 4-point $\tau$ sweep (Table 6) as a sensitivity analysis rather than only a search for a maximum. We show: (a) moving $\tau_{\mathrm{gate}}$ between 0.70/0.80 changes $\Delta\mathrm{BA}$ by at most $\sim$0.01--0.015 for most matched cells, and the finer sweep shows a bias-coverage trade-off ($\Delta\mathrm{BA}$ peaks near $\tau=0.70$--$0.80$ and falls by $\tau=0.85$ as coverage drops to 0.55--0.56); (b) $\lambda$ sensitivity is teacher-view-dependent and non-monotonic rather than following one universal trend (we report the exact per-cell numbers); (c) 14/16 configurations are directionally positive but fall short of the pre-specified mean $\Delta\mathrm{BA} \geq +0.03$ and CI-excludes-zero bar, so the two passing cells are best read as validated operating points under a conservative pre-specified bar, not as the unique optimum of a smooth surface. We explicitly note the soft-KL variant was only swept at $\lambda=1.0$ in the primary grid, so its $\lambda$-sensitivity is not separately characterized --- an honest scope limitation we did not paper over.
-
-\paragraph{1.3 --- Binary-task evaluation only; generality to multiclass/other diseases not proven.}
-We agree and have tightened the scope language in three places: the Abstract now explicitly states the evidence ``is bounded to the BIMCV same-patient cohort and to binary COVID-19 versus non-COVID classification,'' requiring ``external paired-cohort and multi-class replication ... before any deployment claim''; the Limitations' \textit{``Method scope''} paragraph already stated this and is unchanged in substance; and Section 3.4/Discussion do not extrapolate beyond the binary task. We did not add a new multiclass experiment in this revision (no GPU resource was available in this cycle, and a new multiclass cohort/label set is outside the scope of a scoped major-revision timeline); we present this as an explicit, clearly bounded limitation rather than an implicit gap.
-
-\paragraph{1.4 --- Justify the fixed confidence-gate threshold.}
-Added to the new Section 3.4 (``Threshold choice'' paragraph): $\tau_{\mathrm{gate}} \in \{0.70, 0.80\}$ was chosen to bracket the plausible high-confidence operating region of a two-class softmax (above the near-chance region, below the regime where coverage collapses), and --- as already stated in the Statistical Protocol --- both values were pre-specified on the 226-patient pilot before the 510-patient cohort was unblinded, so $\tau$ was not tuned post hoc on the headline cohort. The finer 4-point sweep (Table 6) is now explicitly cited as evidence that this was a reasonable bracket (coverage 0.82--0.84 at $\tau=0.60$ down to 0.55--0.56 at $\tau=0.85$, with $\Delta\mathrm{BA}$ peaking in between).
-
-\paragraph{1.5 --- Make the flowchart clearer about the CT branch being fully removed at inference.}
-We added a new figure, Figure 2 (\textit{``Training-time versus inference-time computational graph for JDCNet''}), placed immediately after the existing mechanism diagram (Figure 1) in Section 3.3. It is a side-by-side computational-graph diagram: the left panel shows the training-time graph (CT teacher, confidence gate, and auxiliary loss actively shaping the student's gradient), and the right panel shows the inference-time graph with the CT input, CT teacher, and confidence gate explicitly rendered as grayed-out, dashed, ``removed'' boxes with no connecting arrows, so only the X-ray student with unchanged weights remains. This is a native vector (TikZ) diagram, so it is crisp at any zoom level and directly visualizes the train/inference distinction the reviewer requested, complementing rather than replacing the existing mechanism figure.
-
-\paragraph{1.6 --- Cite five specific recent works (two Springer/Nature Sci Rep, two J.\ Supercomput., one more Sci Rep, on reinforcement learning for games/procedural content generation, facial emotion recognition, and adverse-weather object detection).}
-We looked up all five DOIs. Four resolved to: ``Multi-task procedural content generation with reinforcement learning'' (Sci.\ Rep.), ``FER-HA: a hybrid attention model for facial emotion recognition'' (J.\ Supercomput.), ``A hybrid approach to reinforcement learning ... Flappy Bird and CartPole'' (J.\ Supercomput.), and ``Robustness analysis of YOLO and Faster R-CNN for object detection in realistic weather scenarios'' (Sci.\ Rep.); the fifth did not resolve via automated bibliographic lookup. None of the four confirmed references concerns cross-modal medical image distillation, privileged-information learning, confidence-gated supervision, or chest radiograph/CT classification --- the subject of this paper. We also note, only as a factual observation for the Editor's awareness rather than as part of the scientific rebuttal, that all four resolved references share a recurring, tightly overlapping author cluster unconnected to our field. Per the Editor's own guidance in the decision letter --- that reference additions are ``at your discretion'' and that omitting references ``not directly relevant ... would not affect the final decision'' --- we have not added these five citations. We remain glad to add any specific reference the reviewer can identify that is directly relevant to CT-to-X-ray privileged-modality distillation, confidence-gated knowledge distillation, or chest-radiograph classification.
-
-\paragraph{1.7 --- Introduction is long and some Knowledge Distillation material is repetitive.}
-We trimmed the most redundant passage: the Introduction's Motivation subsection previously re-stated, almost verbatim, material that Related Work already covers (``same-modality distillation focuses on within-modality compression, multi-modal medical systems usually keep every modality at inference...''); we removed that redundant clause while preserving the paragraph's unique content (the medical-imaging sensitivity-to-shortcut citations and the ``negative result is scientifically useful'' framing). We did not do a wholesale restructuring of Introduction/Related Work in this cycle to avoid destabilizing citation flow and cross-references under a tight major-revision timeline, but the specific repeated clause the reviewer is most likely to notice is now removed.
-
-\paragraph{1.8 --- Discussion should give more technical analysis of why JDCNet is superior, not just numbers.}
-The new Section 3.4 (see 1.1) is the primary response --- it is placed in Methodology rather than Discussion because it concerns design rationale, but Discussion's \textit{``Why confidence-gated targets work here while uniformly softened logits do not''} and \textit{``Backbone capacity versus supervisory quality''} paragraphs already carried mechanistic analysis and now cross-reference the new rationale subsection instead of repeating it (see also 4.8/R4 point 8 below on trimming Discussion repetition).
-
-\hrulefill
-
-\section*{Reviewer 2}
-
-\paragraph{Describe all hyperparameters clearly and explain specific choices.}
-We added an explicit statement of the JDCNet soft-KL variant's distillation temperature ($T=1.0$ by default, materially different from the gated logit-KD comparator's $T\in\{2,3,4,5\}$ sweep) directly after the soft-KL loss equation in Section 3.3, so the hard-vs-soft-KL comparison in Table 4 is not confounded by an undisclosed temperature difference. Threshold and $\lambda$ choices are now justified in Section 3.4 (see R1.2/R1.4 above).
-
-\paragraph{More experimental-setup detail (preprocessing, training environment, evaluation methods).}
-The existing \textit{Implementation Details} subsection already specifies the optimizer/schedule, batch construction and class-weighted sampling, input preprocessing/augmentation, and the software/hardware stack (PyTorch 2.1.0 + CUDA 12.1 for server-side training/evaluation; Table 8 additionally documents the edge stack). We have not found additional setup detail that reviewers specifically flagged as missing beyond what is now covered by the complexity/runtime addition below.
-
-\paragraph{Computational complexity and running time analysis.}
-Added a new \textit{``Computational complexity''} paragraph in \textit{Implementation Details}, giving the asymptotic training cost ($O(N \cdot C_{\mathrm{backbone}})$ per epoch, identical order to the supervised baseline, with the confidence gate and auxiliary loss adding only $O(N)$ elementwise cost), explaining why the measured training overhead is a small constant factor ($\sim$1.18$\times$) rather than an order-of-complexity increase, and contrasting this with the module-augmented comparator's larger measured overhead (2.1$\times$ CPU latency), which comes from added convolutional/attention operators rather than a masking/loss term. Inference-time complexity is explicitly stated as identical in order and in measurement to the supervised baseline (Table 8), consistent with the new train/inference graph figure (R1.5).
-
-\paragraph{Make code publicly available on GitHub.}
-Done --- the manuscript's Code availability and Data availability sections (and the corresponding editorial-system Data Availability Statement) now point to \url{https://github.com/mabo1215/JDCNET.git}, which hosts the source code, training configurations, patient-level split definitions, and analysis utilities, replacing the previous Code Ocean capsule reference.
-
-\paragraph{Upload the dataset or provide clear access details.}
-The BIMCV-COVID19+ imaging data used in this study are a public, de-identified third-party release; we are not the data custodians and license terms do not permit us to redistribute the pixel data ourselves. We have instead added a full bibliographic citation for the dataset paper (de la Iglesia Vay\'{a} et al., 2020) and its official custodian access portal (\url{http://bimcv.cipf.es/bimcv-projects/bimcv-covid19}) to both the Data Availability statement and the Cohort Construction text, so readers can obtain the original data directly from its source under its own terms; our GitHub repository provides the split manifests needed to reconstruct our exact cohort from that source.
-
-\paragraph{Two specific literature suggestions (``IGNITE-NET: fire risk prediction ...'', ``cross-domain fire risk detection ...'').}
-These concern wildfire-risk prediction with dynamic receptive fields/channel-fusion attention and cross-domain fire-risk detection computational-complexity trade-offs --- a different application domain (environmental/hazard risk prediction) with no direct methodological or empirical connection to cross-modal medical-image distillation. Consistent with the Editor's guidance that reference additions are discretionary and that omitting non-directly-relevant references does not affect the decision, we have not added these two references to a manuscript about CT-to-X-ray privileged-modality transfer.
-
-\paragraph{Make the diagrams more dynamic/visually appealing; they look low quality.}
-We replaced the concern at its root rather than only retouching existing raster figures: the two new figures introduced in this revision (the train/inference computational graph, R1.5, and the cohort-assembly flow diagram, R3.2 below) are native vector TikZ diagrams, which render crisply at any zoom/print resolution rather than as fixed-resolution raster images. We did not have access to an image-regeneration service in this revision cycle to redraw the existing raster mechanism/results figures, so those remain as previously submitted; the two new vector diagrams directly target the layout/legibility concerns raised for the process figures specifically.
-
-\paragraph{Include a suitable statistical test to validate results.}
-Added a new \textit{``Significance tests and effect sizes''} paragraph in the Statistical Protocol section, and folded the derived statistics directly into the existing main decision-summary table (Table 2) as three additional columns ($z$, two-sided $p$, Cohen's $d$) rather than introducing a separate table that would have duplicated the same rows --- we specifically avoided a second table here because an earlier draft's standalone significance table repeated the same method rows already listed in Table 2, which was itself confusing on review. For each headline and comparator row we derive a bootstrap standard error from the already-reported 95\% CI, compute a Wald-type $z$-test and two-sided $p$-value, and report paired Cohen's $d$ ($n=15$ fold/seed cells). Both passing JDCNet configurations are significant ($p=0.003$ and $p=0.011$) with medium-to-large effect sizes ($d=0.76$ and $d=0.65$); the strongest failed comparator is not significant ($p=0.19$); this corroborates, and does not change, the pre-registered CI/Benjamini--Hochberg gate decision.
+We thank the Reviewer for confirming that the requested corrections were
+addressed.
 
 \hrulefill
 
 \section*{Reviewer 3}
 
-\paragraph{3.1 --- Press the clinical drive; identify concrete clinical settings and deployment pathways.}
-Added a new opening paragraph to the Introduction's Motivation subsection identifying concrete settings where this pattern matters most: emergency-department triage, resource-limited/rural clinics with portable X-ray but no on-site CT, and high-throughput screening programs that reserve CT for equivocal/high-risk cases --- and stating explicitly that the deployment pathway is ``model improvement folded into training, with zero change to the X-ray-only clinical workflow at inference time.''
+\paragraph{1. Clarify how the framework will be validated on larger multi-institutional and multi-disease datasets.}
+We agree. The Limitations and Future Work section now specifies a validation
+programme rather than only a general aspiration. The next study will assemble
+same-patient CT--X-ray cohorts from multiple hospitals, use site-held-out
+evaluation, and harmonize label definitions before extending the task from
+COVID-19 versus non-COVID to multi-disease classification (for example,
+pneumonia, tuberculosis, edema, and no-finding categories). The transfer gate,
+paired bootstrap, and per-fold win-count reporting will be fixed before those
+data are evaluated. These are explicitly described as planned validation steps,
+not as results established by the present single-cohort study.
 
-\paragraph{3.2 --- Define dataset selection criteria; a flowchart would help reproducibility.}
-The inclusion/exclusion rules were already specified as an itemized list in Appendix Section \textit{``Cohort Construction and Leakage Audit.''} We have now also added a visual CONSORT-style flow diagram (Appendix Figure A1, new TikZ figure) showing the same-window CT--X-ray pairing requirement, the one-paired-example-per-patient rule, and the label/hash/fold-stratification steps that produce the final 510-patient cohort, and we cross-reference this figure from the main-text Datasets and Cohort Construction subsection.
+\paragraph{2. Add qualitative visualizations of accepted and rejected teacher predictions or attention maps.}
+We added a new qualitative gate-behaviour figure, an aggregate qualitative
+visualization of the gate behavior. It contrasts the retained subset
+($\mathrm{ECE}=0.07$--$0.08$ and retained-minus-rejected teacher accuracy of
+$+0.11$--$+0.14$) with the rejected subset ($\mathrm{ECE}=0.14$--$0.16$), and
+shows the DRR failure mode in which confidence does not identify a reliable
+subset. The underlying per-teacher coverage and reliability values remain in
+the gate-coverage table. JDCNet uses a ResNet-18 backbone and contains
+no attention module; attention maps would therefore add an unvalidated
+interpretation rather than visualize a mechanism used by the method. We label
+the new panel as an aggregate diagnostic, not as an individual-patient
+explanation.
+To answer the request for real-sample context while respecting
+the BIMCV Research Use Agreement, we added a four-row case-level numerical
+table to the revised manuscript, generated from the retained mid-slice
+teacher checkpoint, the fold-0/seed-42 manifest, and the available de-identified
+CT cache. It reports teacher confidence, teacher prediction, ground truth, and
+gate outcome at $\tau_{\mathrm{gate}}=0.80$. The examples include accepted and
+rejected predictions, including an accepted incorrect prediction and a rejected
+incorrect prediction, so that acceptance is visibly distinct from correctness.
+The table uses newly assigned case labels, cites the official BIMCV data portal
+as the source collection, and does not reproduce pixels, individual image URLs,
+filenames, or patient identifiers. It is explicitly labelled as illustrative
+context rather than a new performance estimate.
 
-\paragraph{3.3 --- More implementation detail (preprocessing, CT slice selection, compute resources, hyperparameter-tuning rationale).}
-CT slice selection (mid-slice vs.\ 3-slice stack vs.\ projection vs.\ DRR) is already compared in Appendix Table A5; hyperparameter rationale is now covered by the new Section 3.4 (R1.2/R1.4); compute resources are covered by the (also new) Computational complexity paragraph and the existing Hardware/wall-time paragraph.
+\paragraph{3. Explain the practical or therapeutic implications of the balanced-accuracy gains.}
+We added a practical interpretation immediately after the absolute-performance
+table. For the strongest 3-slice soft-KL cell, balanced accuracy increases from
+$0.604$ to $0.639$, sensitivity from $0.547$ to $0.598$, and specificity from
+$0.661$ to $0.679$. This indicates why the result could matter for X-ray triage
+or prioritisation: more positive cases are detected at the reported balanced
+operating point without a specificity decrease in this cohort. We also state
+explicitly that these are retrospective model metrics, not evidence of improved
+treatment decisions, patient outcomes, or therapeutic benefit; those claims
+require prospective workflow and outcome studies.
 
-\paragraph{3.4 --- Statistical significance testing or effect sizes for main comparisons.}
-Addressed by folding $z$-test, two-sided $p$-value, and Cohen's $d$ columns directly into the existing main decision-summary table (Table 2, see R2 above) rather than adding a separate table.
+\paragraph{4. Discuss recently published lightweight medical-imaging models.}
+The Related Work section now positions MobileNetV2 and EfficientNet as relevant
+lightweight deployment backbones. The Deployment-Time Efficiency section also
+reports a portability check using MobileNetV2 and EfficientNet-B0 students with
+the same gated supervision: the observed gains are positive but slightly below
+the pre-specified gate ($+0.026$ and $+0.029$, respectively). This strengthens
+the practical discussion while keeping the claim bounded: the validated
+headline deployment path remains the ResNet-18 student, and the lightweight
+results are portability evidence rather than independent clinical validation.
 
-\paragraph{3.5 --- A table summarizing methodological differences vs.\ state-of-the-art cross-modal distillation methods.}
-Added Table 1 in Related Work's \textit{``Relation to Recent Cross-Modal Privileged-Transfer Work''} subsection, comparing JDCNet against Cahan et al.\ (2025, CXR--CT-pulmonary-angiography), DANTE (2026), K-MaT (2026), and three generic confidence-aware/mixture distillation methods (KRD, MST-Distill, BDKD) along six dimensions: modality pairing, same-patient pairing, fixed-cost deployment auditing, gating/selection mechanism, target granularity, and failed-comparator reporting.
-
-\paragraph{3.6 --- Expand on generalizability: likely causes of domain shift and mitigation strategies (domain adaptation, multi-center training, calibration).}
-Expanded the Limitations' \textit{``Data and generalization''} paragraph with an explicit breakdown of three overlapping candidate causes of the observed external-cohort collapse (acquisition-protocol shift, label-definition/prevalence shift, population/scanner shift) and three concrete, not-yet-implemented mitigations that follow from this diagnosis (multi-center training across paired cohorts, domain adaptation between BIMCV and the deployment site, and post-hoc threshold/operating-point recalibration on a small site-specific validation set). We are explicit that none of these has been evaluated in this paper.
-
-\paragraph{3.7 --- Make figures clearer; larger text, better annotation.}
-The new train/inference computational-graph figure (R1.5) and cohort-flow diagram (R3.2) use vector TikZ text at document font size (crisp at any zoom) with explicit, non-abbreviated node labels for exactly this reason. We did not have image-regeneration tooling available in this cycle to redraw the pre-existing raster figures (mechanism diagram, results plots); see R2's diagram response above.
-
-\paragraph{3.8 --- Report training-time computational overhead, not only inference cost.}
-The existing \textit{Hardware and wall time} paragraph already reports the full JDCNet sweep wall time ($\sim$6 hours on two GPUs) and per-epoch training overhead ($\sim$1.18$\times$ the supervised baseline); the new \textit{Computational complexity} paragraph now explains this overhead in asymptotic terms (one extra frozen-teacher forward pass per view, amortized across all sharing student runs, plus $O(N)$ gate/loss overhead) rather than reporting only the inference-time numbers in Table 8.
-
-\paragraph{3.9 --- Minor editing/proofreading.}
-We proofread the sections we touched in this revision, trimmed one identified repetitive passage in the Introduction (R1.7) and one in the Discussion (R4.8), and did not identify additional passages requiring correction beyond those changes.
+\paragraph{5. Expand the external-validation discussion with domain adaptation and calibration options.}
+The Limitations section now separates acquisition-protocol shift,
+label-definition/prevalence shift, and population/scanner shift as plausible
+causes of the external collapse. It discusses multi-center training,
+unsupervised or lightly supervised feature/input domain adaptation, and
+post-hoc site-specific threshold recalibration as concrete next experiments.
+The manuscript also reports the teacher-temperature ablation in the Appendix.
+We make clear that none of the proposed
+mitigations has been validated in this paper and that the external X-ray stress
+test does not replace independent same-patient paired replication.
 
 \hrulefill
 
 \section*{Reviewer 4}
 
-\paragraph{4.1 --- Describe the unique methodological contribution more explicitly, including a comparison to SOTA privileged-information/cross-modal distillation methods.}
-Addressed jointly by the new Section 3.4 (R1.1) and the new SOTA comparison table, Table 1 (R3.5).
+\paragraph{1. Make the novelty relative to confidence-aware KD and privileged-information methods explicit.}
+We added the Methodology subsection ``Design Rationale versus Confidence-Aware
+and Confidence-Based Distillation'' and the Related Work comparison in
+the SOTA comparison table. The revised text distinguishes JDCNet along two
+axes: a hard per-sample confidence mask rather than continuous reliability
+weighting, and a discrete or lightly softened auxiliary target rather than a
+fully softened cross-modal logit distribution. It also compares modality
+pairing, same-patient evaluation, fixed-cost deployment auditing, target
+granularity, and failed-channel reporting against recent privileged-transfer
+and confidence-aware approaches. The claim is stated as a joint methodological
+and evaluation contribution, not as a claim that confidence gating itself is
+new in every domain.
 
-\paragraph{4.2 --- Improve reproducibility (initialization, hyperparameter selection, confidence-threshold rationale, seed handling, compute requirements).}
-Threshold/$\lambda$ rationale: R1.2/R1.4. Compute requirements: R2/R3.8. Seed handling and initialization were already documented (seeds 42--44, ImageNet-pretrained ResNet-18 initialization for student and teacher, AdamW schedule) in the existing Implementation Details subsection; we did not identify a gap here beyond the additions above.
+\paragraph{2. Compress repetitive material in the Introduction, Related Work, and Discussion.}
+We shortened the repeated positioning paragraph in the Introduction and
+condensed the Discussion's broad clinical-imaging implications so that they
+refer back to the design-rationale subsection rather than restating the full
+mechanistic argument. Related Work now uses the comparison table to carry the
+repeated method-by-method distinctions, while retaining only the differences
+needed to establish the scope and novelty of JDCNet. The revision preserves
+the evidence limitations and citations while removing duplicated cost and
+cross-modal-transfer explanations.
 
-\paragraph{4.3 --- Strengthen statistical verification (further significance tests, effect sizes, practical significance).}
-Addressed by the $z$/$p$/Cohen's-$d$ columns now folded into Table 2 (R2/R3.4). We consider ``practical significance'' to already be addressed by reporting absolute operating points (Table 5) alongside the relative $\Delta\mathrm{BA}$, so that a reader can judge whether the improvement (e.g., balanced accuracy $0.604 \rightarrow 0.639$) is practically meaningful, not only statistically detectable.
+\paragraph{3. Add implementation details for seeds, preprocessing, hyperparameter selection, and computer resources.}
+The Implementation Details section specifies ImageNet-pretrained ResNet-18
+initialization, seeds 42--44, patient-level five-fold cross-validation, the
+$224\times224$ resize, augmentation, channel replication for CT slices,
+weighted sampling, weighted cross-entropy, AdamW settings, 50 epochs, the
+pre-specified $\tau$ and $\lambda$ grid, and the RTX 3090 environment. It also
+reports the approximately six-hour two-GPU sweep, the approximately $1.18\times$
+training-time overhead, and the measured deployment cost on CPU, GPU, and edge
+hardware. The Appendix gives the cohort construction and leakage audit.
 
-\paragraph{4.4 --- Elaborate on external generalization: dataset shift, acquisition differences, label-distribution changes, and paths to cross-domain robustness.}
-Addressed by the same expanded Limitations paragraph as R3.6.
+\paragraph{4. Investigate the performance drop on the independent dataset.}
+We expanded the External-Cohort Stress Test and Limitations sections. The
+frozen supervised and JDCNet students all fall to chance on the external
+X-ray-only cohort, so the result is reported as a source-to-target
+generalization warning rather than a JDCNet-specific failure. We now discuss
+acquisition, population, scanner, label, and prevalence shift and identify
+multi-center training, domain adaptation, and site-specific calibration as
+follow-up approaches. The manuscript does not present any of these approaches
+as already validated.
 
-\paragraph{4.5 --- Increase clinical relevance: workflow integration and outstanding regulatory/validation requirements.}
-Added a new \textit{``Clinical workflow and regulatory relevance''} paragraph at the end of the Discussion, explaining that because JDCNet changes only the training objective, the deployed software's regulatory posture is that of any single-modality X-ray decision-support tool (rather than requiring the additional multi-modality data-governance/interoperability requirements CT-at-inference would imply), and explicitly listing the outstanding validation requirements before any clinical deployment (external multi-site validation, prospective outcome-based evaluation, site-specific threshold calibration) as unmet future work rather than claiming they are satisfied.
+\paragraph{5. Add stronger statistical comparisons.}
+The main decision-summary table now reports the paired $\Delta\mathrm{BA}$,
+bootstrap confidence interval, Wald-type $z$, two-sided $p$, and paired Cohen's
+$d$ for the headline rows and strongest competing baselines. The primary
+decision remains the pre-specified CI-based transfer gate with
+Benjamini--Hochberg correction; the named tests and effect sizes are reported
+as complementary diagnostics. Both passing JDCNet settings remain significant
+($p=0.003$ and $p=0.011$), while the strongest failed gated-logit comparator is
+not significant ($p=0.19$).
 
-\paragraph{4.6 --- Improve clarity of figures/tables; larger fonts, simpler layouts, consistent notation.}
-Addressed for the two new figures by construction (vector TikZ, R1.5/R3.2); we did not have tooling in this cycle to regenerate the pre-existing raster figures (see R2/R3.7).
+\paragraph{6. Expand clinical significance, workflow integration, regulatory issues, and real-world limitations.}
+The revised manuscript interprets the absolute sensitivity and specificity
+changes, explains that CT is removed before deployment, and discusses how an
+X-ray-only input path could fit a radiology workflow without requiring CT at
+inference. It also lists the unmet requirements before clinical use:
+multi-site external validation, prospective outcome-based evaluation,
+site-specific threshold calibration, and regulatory assessment of the deployed
+X-ray decision-support software. The benefits-and-limitations table summarizes
+these benefits, limitations, and implementation risks in one place.
 
-\paragraph{4.7 --- Discuss limitations and future work: multi-class classification, larger multi-center datasets, other imaging modalities.}
-The existing \textit{``Method scope''} Limitations paragraph already flags multi-class extension as untested (reinforced in the Abstract per R1.3); the expanded \textit{``Data and generalization''} paragraph (R3.6/R4.4) explicitly names multi-center training as a concrete mitigation/future-work direction. We did not add a new modality-pair discussion beyond the existing ``Implications for AI-assisted clinical imaging'' paragraph, which already generalizes the training-only privileged-modality pattern to CT/MRI, PET/ultrasound, whole-slide imaging/cytology, and OCT/fundus photography.
-
-\paragraph{4.8 --- Trim needlessly lengthy/repetitive sections, particularly in the Discussion.}
-Trimmed the most clearly duplicated passage: the Discussion's \textit{``Implications for AI-assisted clinical imaging''} paragraph previously re-explained, in full, the ``form of the signal, not the gate'' argument already made earlier in the Discussion; it now cross-references the earlier paragraph and the new rationale subsection instead of repeating the explanation.
+\paragraph{7. Polish the language and summarize the main advantages and disadvantages.}
+We performed a language pass over the Introduction, Methods, Results, and
+Discussion, removing repeated claims and replacing broad deployment language
+with evidence-bounded wording. The benefits-and-limitations table now provides
+the requested compact summary: zero inference-time CT cost and the observed
+balanced-accuracy gain are listed alongside training overhead, dependence on a
+paired single-cohort dataset, lack of prospective clinical evidence, and
+outstanding regulatory and calibration requirements.
 
 \hrulefill
 
-\section*{Summary of Manuscript Changes}
+\section*{Summary of files changed}
 
-\begin{itemize}[leftmargin=1.4em]
-\item Title changed to remove the colon-based subtitle structure.
-\item Declarations section split into separate Ethical approval / Consent to participate / Consent to publish subheadings.
-\item Code and Data availability now point to \url{https://github.com/mabo1215/JDCNET.git}; BIMCV dataset formally cited (de la Iglesia Vay\'{a} et al., 2020) with its official access portal.
-\item New Methodology subsection: Design Rationale versus Confidence-Aware and Confidence-Based Distillation (theory, threshold justification).
-\item New Hyperparameter sensitivity analysis paragraph ($\tau$, $\lambda$) in the Tier 1 results.
-\item New train-vs-inference computational-graph figure.
-\item New cohort-assembly flow diagram in the Appendix.
-\item New SOTA methodological comparison table in Related Work.
-\item New computational-complexity paragraph in Implementation Details.
-\item Merged the derived significance tests and effect sizes ($z$, two-sided $p$, Cohen's $d$) directly into the existing main decision-summary table (Table 2) rather than adding a separate table, to avoid duplicating the same method rows.
-\item New clinical-motivation paragraph in the Introduction.
-\item New clinical-workflow/regulatory paragraph in the Discussion.
-\item Expanded domain-shift causes/mitigations in the Limitations.
-\item Reinforced binary-task/single-cohort scope language in the Abstract.
-\item Minor trims of two identified repetitive passages (Introduction, Discussion).
-\item Five reviewer-suggested references (RL/procedural-content-generation, facial-emotion-recognition, adverse-weather object detection, wildfire-risk prediction) were reviewed and, per the Editor's own discretionary guidance, not added, as none is directly relevant to this paper's subject.
-\end{itemize}
+The clean manuscript source, appendix source, bibliography, figures, title-page
+source, data-availability statement, cover letter, and this point-by-point
+response have been updated. The revised clean manuscript and response have been
+compiled and are supplied as PDF files for upload. A marked-up manuscript is
+optional under the Editor's instructions and is not included in the clean
+manuscript upload.
 
 \end{document}
