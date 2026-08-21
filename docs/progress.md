@@ -10,6 +10,8 @@
 4. 声明该图不是诊断图、性能估计或发布数据集，并保留 BIMCV Research Use Agreement 对图像发表许可的限制。
 5. 运行 paper/build.bat 重新编译，并检查图版排布。
 
+6. 根据用户要求，将 paper/main.tex 的第 3 作者单位改为 Ningxia Medical University（Yinchuan, China）。
+
 ### 待处理事项
 
 - 图片包含脱敏像素，投稿前仍需依 BIMCV 协议取得数据部门对于图像发表的特定书面许可；未获许可前应将该图标记为作者审阅版。
