@@ -1,0 +1,158 @@
+Dear Dr Ma,
+
+Your manuscript, "JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost Preserving X Ray Inference", has now been assessed.You will see that, while the reviewers find your work of interest, they have raised points that need to be addressed by a Major revision.
+
+We invite you to revise your paper, carefully addressing the comments from the reviewers and the editor. Please ensure the results are accurately reported, any overstated conclusions are rewritten and the limitations of the work fully explained. When your revision is ready, please submit the updated manuscript and a point-by-point response. This will help us move to a swift decision. When your revision is ready, please submit it via: https://submission.springernature.com/submission-details/bf05c1ad-f7f2-44f8-a235-de9eeb659798.
+
+To support the continuity of the peer review process, we recommend returning your manuscript to us within 10 days. If you think you will need additional time, feel free to reach out to us with the MSID details.
+
+Declaration Section : Authors are requested to include a separate section in the manuscript titled “Declarations.” In this section, please clearly state the following items as individual subheadings:
+· Ethical approval
+· Consent to participate
+· Consent to publish
+Each item should be addressed separately and appropriately under this section.
+
+We recommend submitting all revisions within the mentioned deadline.
+
+If you need more time, please contact us and include your submission ID.
+
+Kind regards,
+On behalf of Dr. Man-Fai Leung
+
+Alfeya Baig
+Assistant Editor
+Discover Artificial Intelligence
+
+Support contact: discoverai@springernature.com
+
+Submission ID: bf05c1ad-f7f2-44f8-a235-de9eeb659798
+
+
+Reviewer 1
+
+The manuscript titled “JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost Preserving X Ray Inference” requires substantial improvement in terms of methodological clarity, comparative depth, and language precision. The following comments aim to guide the authors toward significant enhancement:
+Why is the evaluation only done on COVID-19 diagnosis and can this approach be extended to multi-class (multi-disease) problems?
+How do you justify the performance drop of the model (BA approx 0.49) on the external data (MIDRC) and what is your solution to deal with domain changes?
+Given the drastic changes in performance by moving the ζgate and λ parameters, how likely is overfitting on this dataset?
+The manuscript relies heavily on sources before 2021. Consider this works:
+https://doi.org/10.1007/s11227-024-06385-2, https://doi.org/10.1038/s41598-025-28737-5 , https://doi.org/10.1007/s11227-025-07983-4 , https://doi.org/10.1007/s11227-024-06806-2 , 10.22067/jam.2023.81735.1157 , https://doi.org/10.1007/978-3-032-27314-7_22
+How much valuable uncertainty information is lost by replacing the teacher's soft distribution with hard argmax values?
+Why weren't corrective techniques such as Temperature Scaling used to address possible overconfidence in the teacher model before applying the confidence gate?
+
+Reviewer 5
+
+Revision assessment — JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost Preserving X Ray Inference
+
+Point-by-point check of the rebuttal.
+
+Summary
+The authors have responded comprehensively to the editorial and reviewer feedback. All major concerns—including title formatting, data‑availability statements, ethical declarations, methodological clarifications, quantitative and qualitative results, and discussions of limitations and clinical relevance—have been addressed. Only minor wording redundancies and a few lingering language inconsistencies remain. The manuscript is therefore ready for a Minor Revision before final acceptance.
+
+Point‑by‑point
+
+Editorial, Comment 1 (title)
+Verdict: addressed – The title has been rewritten without punctuation or a hyphenated subtitle.
+What was done: The new title “JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost Preserving X Ray Inference” appears on the manuscript title page (see JDCNet_revised_source.pdf, Title, p.1) and the removal of punctuation is noted in the rebuttal (see JDCNet_response_to_reviewers.pdf, Rebuttal p.1, Editorial 1).
+
+Editorial, Comment 2 (data availability)
+Verdict: addressed – Data‑availability information now points to the BIMCV‑COVID19+ portal and the GitHub repository.
+What was done: The manuscript’s Declarations section includes the URL https://github.com/mabo1215/JDCNET (see JDCNet_revised_source.pdf, Declarations) and the rebuttal confirms the portal reference (see JDCNet_response_to_reviewers.pdf, Rebuttal p.1, Editorial 2).
+
+Editorial, Comment 3 (Declarations)
+Verdict: addressed – Separate headings for Ethical approval, Consent to participate, and Consent to publish have been added.
+What was done: The revised manuscript lists the IRB identifier “CElm/12/2020” and clarifies consent status (see JDCNet_revised_source.pdf, §4.1 / Declarations). The rebuttal notes the new sub‑section structure (see JDCNet_response_to_reviewers.pdf, Rebuttal p.1, Editorial 3).
+
+Reviewer 1
+Verdict: addressed – The reviewer reported no remaining issues.
+What was done: The authors thank the reviewer for confirming that all requested corrections were made (see JDCNet_response_to_reviewers.pdf, Rebuttal p.1, Reviewer 1).
+
+Reviewer 3, Comment 1 (larger multi‑institutional validation)
+Verdict: addressed – The Limitations/Future Work section now outlines a concrete validation programme.
+What was done: The manuscript specifies planned multi‑institutional, multi‑disease, prospective validation (see JDCNet_revised_source.pdf, §4.11; Table 10, p.32) and the rebuttal highlights the added wording (see JDCNet_response_to_reviewers.pdf, Rebuttal p.2, Reviewer 3 Comment 1).
+
+Reviewer 3, Comment 2 (qualitative visualisations)
+Verdict: addressed – New visual material illustrating gate behaviour has been added.
+What was done: Fig. 4 (gate interpretation) and Table 7 (four anonymised case‑level gate outcomes) appear in the revised manuscript (see JDCNet_revised_source.pdf); the rebuttal describes these additions (see JDCNet_response_to_reviewers.pdf, Rebuttal p.2, Reviewer 3 Comment 2).
+
+Reviewer 3, Comment 3 (practical implications of balanced‑accuracy gains)
+Verdict: addressed – The manuscript now explicitly limits claims to retrospective metrics.
+What was done: The text reports the balanced‑accuracy increase and adds a disclaimer that no therapeutic benefit is demonstrated (see JDCNet_revised_source.pdf, §4.5) and the rebuttal cites the same (see JDCNet_response_to_reviewers.pdf, Rebuttal p.2, Reviewer 3 Comment 3).
+
+Reviewer 3, Comment 4 (lightweight model comparison)
+Verdict: addressed – Results for MobileNetV2 and EfficientNet‑B0 are presented and compared to the pre‑registered gate.
+What was done: Section 4.7 reports gains of +0.026 and +0.029, respectively, noting they fall just below the +0.03 gate (see JDCNet_revised_source.pdf, §4.7) and the rebuttal confirms the discussion (see JDCNet_response_to_reviewers.pdf, Rebuttal p.2, Reviewer 3 Comment 4).
+
+Reviewer 3, Comment 5 (external‑validation discussion)
+Verdict: addressed – The manuscript separates three shift factors and adds a temperature‑ablation table.
+What was done: Sections 4.9/4.11 enumerate acquisition‑protocol, label‑prevalence, and population/scanner shifts, and Table A6 provides the gate‑temperature ablation (see JDCNet_revised_source.pdf, §4.9 / §4.11; Table A6, p.43). The rebuttal references these changes (see JDCNet_response_to_reviewers.pdf, Rebuttal p.3, Reviewer 3 Comment 5).
+
+Reviewer 4, Comment 1 (novelty vs. confidence‑aware KD)
+Verdict: addressed – The design‑rationale subsection and Table 1 now clearly contrast JDCNet with prior confidence‑aware KD and privileged‑information methods.
+What was done: §3.4 and Table 1 list six dimensions of comparison (see JDCNet_revised_source.pdf, §2.7 / Table 1, p.8); the rebuttal highlights the added wording (see JDCNet_response_to_reviewers.pdf, Rebuttal p.3, Reviewer 4 Comment 1).
+
+Reviewer 4, Comment 2 (compress repetitive material)
+Verdict: partially_addressed – Redundant paragraphs have been shortened, but a near‑verbatim duplication remains between §§2.2 and 2.3.
+What was done: The introduction and discussion were trimmed (see JDCNet_response_to_reviewers.pdf, Rebuttal p.3, Reviewer 4 Comment 2). However, the scaffold description appears in both §2.2 and §2.3 (see JDCNet_revised_source.pdf, §§2.2 & 2.3).
+
+Reviewer 4, Comment 3 (implementation details)
+Verdict: addressed – Seeds, preprocessing size, optimizer settings, hyper‑parameter grid, compute resources, and training overhead are now fully reported.
+What was done: §§4.2–4.3, Table 9, and Appendix A.3 list seeds 42‑44, 224×224 input, AdamW, 50‑epoch schedule, τ/λ grid, RTX 3090 GPUs, ~6 h sweep, and 1.18× overhead (see JDCNet_revised_source.pdf, §4.3; Table 9, p.25). The rebuttal confirms these additions (see JDCNet_response_to_reviewers.pdf, Rebuttal p.3, Reviewer 4 Comment 3).
+
+Reviewer 4, Comment 4 (performance drop on independent dataset)
+Verdict: addressed – The manuscript now discusses the collapse of frozen‑student models on the MIDRC dataset and frames it as a generalisation warning.
+What was done: §4.9 reports balanced‑accuracy around 0.49 for the external set and expands the shift‑factor discussion (see JDCNet_revised_source.pdf, §4.9). The rebuttal notes the revised interpretation (see JDCNet_response_to_reviewers.pdf, Rebuttal p.3, Reviewer 4 Comment 4).
+
+Reviewer 4, Comment 5 (stronger statistical comparisons)
+Verdict: addressed – Table 2 now includes effect sizes (z, p, Cohen’s d) and confidence intervals for all headline and comparator rows.
+What was done: The statistical methodology (10 000‑resample bootstrap) and results are presented in Table 2 (see JDCNet_revised_source.pdf, §3.8; Table 2, p.16). The rebuttal cites the updated significance values (see JDCNet_response_to_reviewers.pdf, Rebuttal p.4, Reviewer 4 Comment 5).
+
+Reviewer 4, Comment 6 (clinical significance, workflow, regulatory issues)
+Verdict: addressed – A dedicated discussion of X‑ray‑only workflow, regulatory clearance, site‑specific calibration, and prospective evaluation is now included, summarised in Table 10.
+What was done: The manuscript lists outstanding steps such as multi‑site validation and regulatory assessment (see JDCNet_revised_source.pdf, Table 10, p.32). The rebuttal confirms the expanded discussion (see JDCNet_response_to_reviewers.pdf, Rebuttal p.4, Reviewer 4 Comment 6).
+
+Reviewer 4, Comment 7 (polish language, summarise advantages/disadvantages)
+Verdict: partially_addressed – A language pass was performed and a summary table added, but some US/UK spelling inconsistencies and unexplained acronyms persist.
+What was done: The authors report a language pass over major sections (see JDCNet_response_to_reviewers.pdf, Rebuttal p.4, Reviewer 4 Comment 7) and Table 10 summarises pros/cons. Nonetheless, instances such as “organise” vs. “organized” and “artefacts” vs. “artifacts”, plus undefined acronyms (DRR, ECE, MAC, BIMCV), remain (see JDCNet_revised_source.pdf, §4.2 and elsewhere).
+
+Still to address
+- Reviewer 4, Comment 2: Remove the near‑verbatim duplication of the scaffold description between §§2.2 and 2.3.
+- Reviewer 4, Comment 7: Resolve remaining spelling inconsistencies (US/UK) and ensure all acronyms are defined on first use.
+
+Recommendation
+Minor Revision – The manuscript meets the journal’s standards after the above minor edits are completed.
+
+This Review was supported by a local LLM. Confidentiality was preserved. No data was disclosed to third parties. The decision has not been influenced by the AI and the author takes full responsibility for the correctness of the review.
+
+During the preparation of this report, I used a Kimi K3 large language model running on a GDPR-compliant, on-premise gateway at my institution in order to structure the analysis and to support the background literature search. After using this tool/service, I reviewed each single point and edited the content as needed and I take full responsibility for my critical assessment and feedback on this manuscript.
+
+Reviewer 6
+
+This manuscript evaluates JDCNet, a confidence-gated CT-to-X-ray distillation framework in which CT is used only during training and the deployed model receives chest X-rays alone. The revised manuscript makes a commendable effort to report negative comparator results, external-cohort failure, deployment cost, and limitations rather than presenting only favorable experiments.
+
+Comments:
+
+(1) Clarify whether CT teachers were trained separately within each cross-validation fold
+The manuscript states that each CT teacher view was “pre-trained once” and that the frozen checkpoint was reused across student runs. It is unclear whether this means one teacher was trained within each training fold and reused only across seeds and student configurations belonging to that fold, or one teacher was trained on the complete 510-patient cohort and then used in all five cross-validation folds. The second procedure would expose the teacher to labels or images from patients later used as held-out test cases.
+
+(2) The manuscript evaluates 16 JDCNet configurations on the same 510-patient cohort and designates the two configurations that satisfy the decision gate as validated operating points. The same cross-validation predictions are therefore used both to select the configurations and to estimate their performance. The Benjamini-Hochberg procedure may address one aspect of multiple hypothesis testing, but it does not remove the optimism introduced by selecting configurations and reporting their cross-validated performance on the same patients. Moreover, the manuscript does not provide the directly calculated \(p\)-values used for the correction.
+
+(3) The external stress test is valuable and should remain prominent. However, the manuscript states that the three methods are “statistically indistinguishable” without reporting confidence intervals or a statistical comparison. Please report patient-level confidence intervals for BA and AUC and paired differences between each JDCNet model and the supervised baseline. This can be calculated from the existing predictions.
+
+The assertion that the failure reflects source shift “rather than a JDCNet-specific weakness” is plausible but not demonstrated. The data show that all tested models fail; they do not identify the cause of failure. Acquisition protocol, label definition, prevalence, scanner, population, and preprocessing differences should be presented as possible explanations.
+A directly relevant reference the authors may consider in this discussion is
+[1] Zhang J, Chao H, Dhurandhar A, Chen P-Y, Tajer A, Xu Y, Yan P. When Neural Networks Fail to Generalize? A Model Sensitivity Perspective. Proceedings of the AAAI Conference on Artificial Intelligence. 2023;37(9):11219–11227.
+This work is relevant to the manuscript’s single-source generalization failure and the need to distinguish internal cross-validation from robustness to unseen distributions.
+
+(4) The manuscript is generally cautious, but the following statements should be further moderated.
+- “X-ray triage or prioritisation” is not evaluated as a clinical workflow.
+- Matching parameter count, MACs, and single-image latency does not establish equal end-to-end deployment cost, calibration, safety, or clinical utility.
+- A higher retrospective sensitivity does not by itself demonstrate better triage.
+- Describing the software as following the “same premarket evaluation pathway” involves regulatory assumptions outside the presented experiment.
+Please restrict the conclusion to the demonstrated result: the deployed computation graph is identical to the supervised ResNet-18 baseline and therefore has no incremental model-inference cost under the reported benchmark.
+
+(5) Others:
+- The “CT teacher upper bound” is not a mathematical upper bound on student performance. “Privileged-modality reference” or “CT-only reference” would be more accurate.
+
+- The statement that the two passing configurations recover “roughly two-thirds of the available gap” is a ratio of uncertain and selected estimates. Either provide uncertainty for this ratio or describe it explicitly as a descriptive calculation.
+
+- Clarify whether the reported F1 is binary F1 or macro-F1. Table 5 labels it only as “F1.”

@@ -8,11 +8,16 @@
 \usepackage{enumitem}
 \usepackage{parskip}
 \usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{tabularx}
 \usepackage[hidelinks,colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black]{hyperref}
 
 \titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{0.5em}{}
 \titlespacing*{\section}{0pt}{1.6em}{0.8em}
 \setlength{\parskip}{0.55em}
+
+\newenvironment{rcomment}{\par\noindent\begin{minipage}{\linewidth}\itshape\color{black!75}}{\end{minipage}\par}
+\newcommand{\where}[1]{\par\noindent\textbf{Where in the manuscript:} #1\par}
 
 \hypersetup{
   pdftitle={Response to Editor and Reviewers JDCNet},
@@ -31,211 +36,368 @@
 \textbf{Journal:} Discover Artificial Intelligence\\
 \textbf{Submission ID:} bf05c1ad-f7f2-44f8-a235-de9eeb659798
 
-We thank the Editor and Reviewers for their careful second-round assessment. We
-have revised the manuscript and address every point below. Section, table, and
-figure references refer to the revised clean manuscript. No tracked changes are
-included in the manuscript upload.
+We thank the Editor and the Reviewers for their careful assessment. We have
+revised the manuscript and respond below to every comment, point by point.
+Reviewer comments are reproduced in italics. Section, table, figure, and
+equation numbers refer to the revised manuscript (main text and Appendix~A).
+
+The Editor asked us to ensure that results are accurately reported, that
+overstated conclusions are rewritten, and that limitations are fully
+explained. Reviewer~6 raised closely related points about cross-validation,
+configuration selection, and statistical reporting. In response we re-audited
+every number in the manuscript against the archived experiment records and the
+analysis scripts. This audit led to substantive corrections, which we list
+openly in Section~\ref{sec:corrections} before the point-by-point responses.
+The central consequence is that the main JDCNet result is now presented as
+exploratory, selection-adjusted evidence of a small effect rather than as a
+validated gain. We believe this is the accurate reading of our data, and it
+directly addresses the concerns of Reviewer~6 and the Editor.
 
 \hrulefill
 
-\section*{Editorial requirements}
+\section*{Summary of principal changes}
 
-\paragraph{1. Revise the title so that it has a clear scientific meaning and no punctuation.}
-The title is now ``JDCNet Uses Confidence Gated Privileged Modality Distillation
-for Cost Preserving X Ray Inference''. It is used identically in the manuscript,
-the separate title-page source, and the cover letter; punctuation and the former
-hyphenated subtitle structure have been removed.
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Selection history and selection-adjusted inference (Sections~3.7 and~4.4; Tables~2, 4, A1).} The manuscript now states exactly how the 16 JDCNet configurations were explored, in three stages on the same 510-patient cohort. It reports directly computed per-configuration $p$-values, Holm and Benjamini--Hochberg adjustment, unselected averages, and a simulation of selection inflation. The abstract, contributions, discussion, and conclusion are rewritten accordingly.
+  \item \textbf{Training-budget confound disclosed (Sections~3.7, 4.7, 4.12).} The supervised baseline was trained with batch size 512 and JDCNet with batch size 128. Batch-matched reruns are reported, and their mixed results are stated.
+  \item \textbf{Corrected absolute metrics, comparator scope, cohort description, and implementation details} (Table~5, Sections~3.5, 4.1, 4.2, 4.5, Appendix~A.3).
+  \item \textbf{External stress test with patient-level confidence intervals and corrected provenance} (Section~4.10, Table~9).
+  \item \textbf{New analysis of temperature scaling and hard targets} (Section~3.4, Eq.~(4)): for a two-class teacher, temperature scaling of the gate is equivalent to a change of threshold. We also bound the information that the argmax target discards.
+  \item \textbf{Moderated clinical and cost statements} (Sections~4.9 and~5, Table~10). Terminology is updated: ``CT-only reference'' replaces ``teacher upper bound'', and Macro-F1 is defined.
+  \item \textbf{Literature updated} with 19 references from 2022--2026, including the work suggested by Reviewer~6 and all six works suggested by Reviewer~1.
+  \item \textbf{Language and presentation.} Duplicated text is removed, spelling is unified to US English, acronyms are defined on first use, and the mechanism figure is redrawn (Fig.~1).
+\end{itemize}
 
-\paragraph{2. Select Yes for data availability and make the statement match the manuscript.}
-The submission statement is now set to ``Yes. I used or generated research data
-in this study.'' The manuscript and the editorial-system statement now point to
-the BIMCV-COVID19+ portal at
-\url{https://bimcv.cipf.es/bimcv-projects/bimcv-covid19} and explicitly identify
-the BIMCV-COVID19 Research Use Agreement at
-\url{https://bimcv.cipf.es/bimcv-projects/bimcv-covid19/bimcv-covid19-dataset-research-use-agreement-2/}.
-The statement records that the data are de-identified, that re-identification
-and data sharing are prohibited, and that no image pixels or individual image
-files are redistributed. Only derived aggregate results and anonymized
-case-level gate summaries are reported; split definitions, aggregate results,
-and analysis manifests are available at
-\url{https://github.com/mabo1215/JDCNET.git}.
+\hrulefill
 
-\paragraph{3. Add a Declarations section with separate ethical approval, consent to participate, and consent to publish headings.}
-Done. The manuscript now contains a separate \textit{Declarations} section with
-individual \textit{Ethical approval}, \textit{Consent to participate}, and
-\textit{Consent to publish} subheadings, in addition to funding, competing
-interests, data availability, materials availability, code availability, and
-author contribution statements. The study is a secondary analysis of publicly
-released de-identified data under the BIMCV Research Use Agreement, with no new
-recruitment or data collection. That agreement permits research use but
-prohibits sharing, re-identification, and publication or reproduction of any
-dataset portion without specific prior written permission. We therefore provide
-the official BIMCV data-portal URL, not patient image files or pixels.
+\section{Corrections to previously reported results}
+\label{sec:corrections}
+
+We regret that the previous version contained statements and numbers that are
+not supported by our archived records. We have corrected or removed each of
+them, as follows.
+
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Pre-registration claim.} The previous version stated that the full JDCNet grid had been registered on a 226-patient pilot before the 510-patient cohort was unblinded. This was incorrect. The decision rule (mean $\Delta\mathrm{BA}\geq+0.03$ and lower CI bound $>0$) was written in the analysis plan before any JDCNet run. The configurations themselves, however, were explored in three stages on the 510-patient cohort, and that cohort had already been used for other comparisons. The two configurations that met the rule came from extension stages added after an initial eight-configuration grid met it in none of its configurations. Section~3.7 now describes this chronology, and the results are re-interpreted with selection-adjusted inference (Section~4.4).
+  \item \textbf{Absolute performance table (now Table~5).} The previous absolute values were inconsistent with the recorded test-fold results. Every balanced accuracy (BA) was about $0.021$ too low; for example, the supervised baseline BA is $0.625$, not $0.604$. The supervised baseline's sensitivity and specificity were also inconsistent with the records. Table~5 now reports only values that can be recomputed from the records. Where only paired summaries were retained, this is marked.
+  \item \textbf{``Sensitivity gain'' interpretation.} In the eight configurations whose per-fold records are archived, the JDCNet difference came mainly through specificity, not sensitivity (Section~4.4; Table~A1). The statement that the gain reflected higher sensitivity has been withdrawn.
+  \item \textbf{Fold/seed win counts.} Eight of the 16 ``Pos./15'' entries in the sweep table were wrong. They are corrected from the recorded counts (Table~4, now reported as positive/tied/negative).
+  \item \textbf{BiomedCLIP control.} This control was evaluated on a 226-patient balanced subset, not on the 510-patient cohort as previously implied. It is now reported with its correct cohort (Section~4.5).
+  \item \textbf{Comparators described as run ``under the same splits''.} Attention transfer, feature hints, and the module-augmented pilot were run only in an early small-cohort stage. Section~3.5 now states the cohort for every comparator.
+  \item \textbf{Comparator tuning budget.} On the 510-patient cohort, each logit-KD comparator was run with a single setting per teacher view, not the $4\times4$ grid previously stated. A same-modality distillation ``sanity check'' reported previously has no record and has been removed.
+  \item \textbf{Gate-coverage and teacher-calibration table, and the aggregate gate-behavior figure.} These included thresholds ($\tau=0.60$, $0.85$) and teacher views (mean projection, DRR) for which no JDCNet runs exist. The coverage and calibration statistics could not be traced to any analysis record. We removed the table, the figure, and the text that relied on them. The four case-level gate examples (Table~6) are retained because they are reproducible from the archived output.
+  \item \textbf{Lightweight-backbone results (MobileNetV2, EfficientNet-B0).} No runs or code for these results exist in our records. They have been removed, and lightweight students are now listed as future work. We apologize to Reviewer~3 of the previous round, to whom these results were presented as a response.
+  \item \textbf{Patient-level bootstrap table.} The evaluation pipeline did not store per-patient predictions, so the previously reported patient-level bootstrap intervals could not have been computed as described. The table has been removed. Section~3.7 now states that fold/seed-level intervals understate patient-level uncertainty.
+  \item \textbf{Cross-source non-COVID control table.} This control used checkpoints from the early 19-patient study, not models trained ``as in the main BIMCV protocol'', and its values have no retained record. It has been removed.
+  \item \textbf{Deployment latency table.} The previous CPU, GPU, and edge (Jetson) timings and the $1.18\times$ training overhead could not be traced to a measurement record. We re-measured inference latency and memory with a released script on the hardware available to us, and report those values as illustrative (Table~8). The robust conclusion is structural: JDCNet and the supervised baseline share one deployed computation graph. The training overhead is now stated analytically, as one extra frozen-teacher forward pass per sample. The previous figure caption that quoted $0.094$\,M parameters for the ResNet-18 deployment path was wrong, and the figure has been redrawn.
+  \item \textbf{Cohort construction rules.} The previous appendix described a $\pm14$-day pairing window, an earliest-pair rule, hashed patient-identifier splitting, and per-fold normalization statistics. None of these is implemented in the cohort-construction code. Appendix~A.3 and Section~4.1 now describe the rules actually used. Every patient with a retrievable CT volume and chest radiograph is included, without a date window; one radiograph and one CT volume are used per patient; folds are assigned by seeded random permutation within class; and no dataset-level normalization is applied. Two consequences are stated as limitations: pairs are same-patient but not necessarily same-visit, and the two classes come from two BIMCV releases.
+  \item \textbf{Implementation details.} The CT teachers were trained within every fold and seed, not ``pre-trained once''. Checkpoints were selected on a validation fold. Batch sizes differed between arms. The initial 120-run JDCNet stage took about 32 minutes on two GPUs, not ``6 hours''. The 3-slice view stacks three different slices rather than replicating one slice. All of these are corrected in Section~4.2.
+  \item \textbf{External stress test.} The external evaluation used students from batch-matched cross-validation runs on a class-balanced 216--228-patient BIMCV subset, not the 510-patient models as previously stated. Section~4.10 now says so and adds confidence intervals.
+  \item \textbf{Gate-temperature rerun (now Appendix~A.8).} This rerun reports validation-partition BA, on a separate 466-patient split, with one seed. We now state this, report the earlier non-reproducing rerun on the 216-patient subset, and remove the earlier claim that the subset result was ``a small-cohort artefact''.
+\end{enumerate}
+
+The statistics in the revised manuscript are regenerated from the archived
+records by scripts released with the code. Quantities whose per-run records
+were not retained are reported only at the level of the retained summaries,
+and the corresponding table cells are marked.
+
+\hrulefill
+
+\section*{Editor}
+
+\begin{rcomment}
+Please ensure the results are accurately reported, any overstated conclusions are rewritten and the limitations of the work fully explained.
+\end{rcomment}
+
+\textbf{Response.} We agree, and this comment shaped the revision.
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{Accurate reporting.} We audited every number against the archived records. The corrections are listed in Section~\ref{sec:corrections} above. All statistics are now regenerated by released scripts from released aggregate records, and table cells that cannot be recomputed are marked.
+  \item \emph{Overstated conclusions.} The abstract, contributions, results, discussion, and conclusion have been rewritten. The paper no longer describes JDCNet as ``validated'' or as passing a ``pre-specified gate'' in a confirmatory sense. Instead it reports that 15 of 16 configurations had positive mean differences (average $+0.020$ BA). The two best configurations ($+0.035$, $+0.033$) were selected on the same data; after Holm adjustment over 16 configurations their $p$-values are $0.051$ and $0.17$. The pre-planned initial grid averages $+0.016$ (95\% CI $[-0.000,+0.035]$). We also removed statements about triage, regulatory pathways, equal deployment cost beyond the computation graph, and the ``two-thirds of the head-room'' interpretation (see Reviewer~6, Comments~4--5).
+  \item \emph{Limitations.} Section~4.12 now covers the following: selection and confirmatory status; the training-budget (batch-size) confound; single-source data with classes from two releases; same-patient but not same-visit pairing; external failure; binary task scope; non-independence of fold/seed cells and missing per-run records; and calibration and gate design. Table~10 summarizes benefits and limitations.
+\end{itemize}
+\where{Abstract; Section~1.2; Sections~3.7, 4.4--4.12; Sections~5--6; Tables~2, 4, 5, 9, 10.}
+
+\begin{rcomment}
+Declaration Section: Authors are requested to include a separate section in the manuscript titled ``Declarations''. In this section, please clearly state the following items as individual subheadings: Ethical approval; Consent to participate; Consent to publish.
+\end{rcomment}
+
+\textbf{Response.} The manuscript contains a section titled
+\emph{Declarations} with the individual subheadings \emph{Ethical approval},
+\emph{Consent to participate}, and \emph{Consent to publish}. These are
+followed by Funding, Competing interests, Data availability, Materials
+availability, Code availability, and Author contribution. The ethical-approval
+statement identifies the approving committees of the original BIMCV data
+collection (CElm/CEIm: 12/2020) and explains why no further approval was needed
+for this secondary analysis of de-identified public data. The consent
+statements explain that no patients were recruited or contacted and that the
+manuscript contains no identifiable personal data.
+\where{Declarations (end of the main text).}
 
 \hrulefill
 
 \section*{Reviewer 1}
 
-We thank the Reviewer for confirming that the requested corrections were
-addressed.
+\begin{rcomment}
+1. Why is the evaluation only done on COVID-19 diagnosis and can this approach be extended to multi-class (multi-disease) problems?
+\end{rcomment}
+
+\textbf{Response.} The study requires CT and chest radiographs of the
+\emph{same} patients with labels. The only public cohort of this kind that was
+available to us is the BIMCV-COVID19 collection, which defines a binary
+COVID-19 versus non-COVID task. We now state this reason explicitly and treat
+the binary task as a limitation (Section~4.12, ``Task scope'').
+
+Methodologically, the JDCNet objective extends directly to $K$ mutually
+exclusive classes. The gate uses $c_i=\max_k p^{ct}_{i,k}$, and the hard or
+soft-KL auxiliary target is defined over all $K$ classes. A new paragraph
+(Section~3.4, ``Extension beyond two classes'') explains two points. First,
+class-conditional thresholds may be needed for imbalanced label spaces, because
+the temperature--threshold equivalence of Eq.~(4) no longer holds exactly for
+$K>2$. Second, for multi-label chest radiograph findings the natural analogue
+is a per-finding sigmoid teacher with a per-finding mask. We cite recent
+multi-label chest-radiograph work (CXR-LT, CheXzero) as the relevant setting.
+We do not report multi-class experiments, because no multi-disease
+same-patient CT--X-ray cohort was available. The paper states that such an
+extension is untested.
+\where{Section~3.4 (``Extension beyond two classes''); Section~4.12 (``Task scope''); Section~2.2.}
+
+\begin{rcomment}
+2. How do you justify the performance drop of the model (BA approx 0.49) on the external data (MIDRC) and what is your solution to deal with domain changes?
+\end{rcomment}
+
+\textbf{Response.} We do not treat the external result as something to
+justify away. Every student performs at chance on the external set, the
+supervised students as well as the JDCNet students, and AUC is also at chance.
+The failure is therefore an absence of transferable ranking signal, not a
+threshold offset. In the revision we:
+\begin{itemize}[leftmargin=1.4em]
+  \item report image-level 95\% CIs for BA and AUC (Table~9). Every interval includes $0.5$, and the BA differences between JDCNet and the supervised students amount to fewer than one radiograph out of 126;
+  \item correct the provenance. The evaluated students came from the batch-matched cross-validation runs on a balanced BIMCV subset, not from the 510-patient models;
+  \item list possible causes without claiming to have identified one: acquisition and scanner differences; label-definition differences; a source confound in training, because BIMCV positives and negatives come from two releases; prevalence and population differences; and preprocessing differences (Section~4.10);
+  \item describe remedies, none of which is evaluated here (Section~4.12). These are multi-center training on paired cohorts with site-held-out evaluation, single-domain generalization methods such as spectral adversarial augmentation (Zhang et al., AAAI 2023), acquisition-noise augmentation, unsupervised domain adaptation, and site-specific threshold recalibration.
+\end{itemize}
+We also state the implication directly. The CT supervision did not confer
+external robustness to these students, and robustness must be established on
+independent data.
+\where{Section~4.10 and Table~9; Section~4.12 (``Data and generalization'').}
+
+\begin{rcomment}
+3. Given the drastic changes in performance by moving the $\zeta_{\mathrm{gate}}$ and $\lambda$ parameters, how likely is overfitting on this dataset?
+\end{rcomment}
+
+\textbf{Response.} This question goes to the heart of the revision, and we
+now answer it quantitatively (Section~4.4, ``Sensitivity to $\tau_{\mathrm{gate}}$
+and $\lambda$, and risk of overfitting'').
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{The changes are within sampling noise.} Holding the other choices fixed, moving $\tau_{\mathrm{gate}}$ from 0.70 to 0.80 changes $\Delta\mathrm{BA}$ by at most $0.021$. The standard deviation of the 16 configuration means ($0.011$) is smaller than their typical standard error ($0.014$). It is also smaller than the approximate standard error of a difference between two configurations ($0.016$). The apparent sensitivity is therefore compatible with a single common effect.
+  \item \emph{Model-level overfitting to the test folds is limited.} Checkpoints were selected on a separate validation fold, and CT teachers were trained within each fold.
+  \item \emph{Selection overfitting is real, and we now quantify it.} $\tau_{\mathrm{gate}}$, $\lambda$, and the target type were chosen after inspecting test-fold results on the same 510 patients. After Holm adjustment over 16 configurations, the two best configurations have $p=0.051$ and $p=0.17$. In a simulation where all configurations share the grid-average effect ($+0.020$), the expected best estimate is $+0.040$, and at least two configurations meet the decision rule in 66\% of sweeps. The two best configurations are therefore not distinguishable from the rest, and their estimates are likely optimistic.
+\end{itemize}
+We conclude that the selected configurations are hypotheses for a nested or
+independent-cohort confirmation, and the paper now says so.
+\where{Section~4.4; Section~3.7 (``Analysis chronology and selection'', ``Selection simulation''); Table~4; Section~4.12.}
+
+\begin{rcomment}
+4. The manuscript relies heavily on sources before 2021. Consider this works: [six DOIs].
+\end{rcomment}
+
+\textbf{Response.} Thank you for this suggestion. We updated the literature
+with 13 verified references from 2022--2026 that bear directly on the study:
+\begin{itemize}[leftmargin=1.4em]
+  \item privileged-modality and missing-modality distillation in medical imaging (Chen et al., IEEE TMI 2022; Wang et al., MICCAI 2023);
+  \item on-device chest-radiograph distillation (Termritthikun et al., IEEE/ACM TCBB 2024);
+  \item confidence-aware and decoupled distillation (Zhang et al., ICASSP 2022; Zhao et al., CVPR 2022);
+  \item distillation temperature (Li et al., AAAI 2023) and calibration of medical classifiers (Rajaraman et al., PLOS ONE 2022);
+  \item multi-label chest-radiograph classification (Holste et al., Medical Image Analysis 2024; Tiu et al., Nature Biomedical Engineering 2022);
+  \item external and prospective generalization of chest-radiograph models (Sun et al., Radiology: AI 2022; Ahluwalia et al., Radiology: AI 2023; Ong Ly et al., npj Digital Medicine 2024; Zhang et al., AAAI 2023).
+\end{itemize}
+We also cite the canonical temperature-scaling reference (Guo et al., ICML
+2017) in response to Comment~6.
+
+We have also added all six works suggested by the Reviewer and cite each
+where it connects to the argument:
+\begin{itemize}[leftmargin=1.4em]
+  \item Gholinavaz et al., Scientific Reports 2025, on detector robustness under noise and weather augmentation, is cited among the candidate robustness remedies for the external shift (Section~4.12).
+  \item Saeedi et al., IWINAC 2026, an audio--visual cross-attention fusion model, is cited as an example of multimodal fusion that requires all modalities at inference, which is the setting JDCNet avoids (Section~1.1).
+  \item Nemati et al., Journal of Supercomputing 2025 (FER-HA), is cited in the discussion of attention-based models as a hybrid attention design with a moderate parameter count (Section~2.3).
+  \item Shirini et al., Journal of Supercomputing 2025, on the effect of learning rate and training epochs, is cited where we discuss the training-budget confound between the supervised baseline and JDCNet (Section~4.12).
+  \item Shirini et al., Journal of Supercomputing 2024 (multi-objective NSGA-II), and Taheri Hajivand et al., Journal of Agricultural Machinery 2024 (metaheuristic time--cost balancing), are cited as tools for the multi-objective choice among configurations that trade accuracy against cost, with the caveat that such search must run inside a nested protocol to avoid selection optimism (Section~4.12).
+\end{itemize}
+\where{Sections~1.1, 2.1--2.8, 3.4, 4.10, 4.12; reference list.}
+
+\begin{rcomment}
+5. How much valuable uncertainty information is lost by replacing the teacher's soft distribution with hard argmax values?
+\end{rcomment}
+
+\textbf{Response.} We now answer this both analytically and empirically
+(Section~3.4, ``Information discarded by the hard target''; Section~4.4,
+``Hard versus soft-KL target'').
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{Analytically.} For two classes, the teacher's distribution is fully described by its confidence $c_i$, and the non-target-class term of decoupled KD vanishes. For an admitted sample ($c_i>\tau$), replacing the distribution by its argmax label discards only the confidence magnitude above the threshold. The divergence between the one-hot target and the teacher distribution is $-\ln c_i<-\ln\tau$, which is below $0.36$ nats at $\tau=0.70$ and below $0.22$ nats at $\tau=0.80$. The discarded teacher entropy is below $0.88$ and $0.72$ bits, respectively. Uncertainty below the threshold is not passed to the student by either variant, because those samples are excluded by the gate. In this sense the gate itself is where the teacher's uncertainty is used.
+  \item \emph{Empirically.} At matched teacher view, $\tau$, and $\lambda=1.0$, the soft-KL target minus the hard target gives $+0.028$, $+0.001$, $-0.003$, and $+0.010$ BA, with an average of $+0.009$. Retaining the confidence magnitude may help slightly, but the differences lie within the sampling uncertainty. This is consistent with the small amount of information the hard target discards in the binary setting.
+\end{itemize}
+\where{Section~3.4; Section~4.4; Table~4.}
+
+\begin{rcomment}
+6. Why weren't corrective techniques such as Temperature Scaling used to address possible overconfidence in the teacher model before applying the confidence gate?
+\end{rcomment}
+
+\textbf{Response.} We added an analysis showing why, in this setting,
+temperature scaling before a hard gate is equivalent to a threshold change
+(Section~3.4, Eq.~(4)). For a two-class teacher with logit margin $z_i$,
+gating the temperature-scaled confidence $\sigma(|z_i|/T_{\mathrm{g}})$ at $\tau$ is
+identical to gating the raw confidence at
+$\tau'=\sigma(T_{\mathrm{g}}\,\mathrm{logit}(\tau))$. The argmax label is unchanged.
+Fitting a calibration temperature on validation data (Guo et al., 2017)
+would therefore re-index $\tau$ rather than add a new safeguard. The
+batch-matched rerun with gate temperatures $T_{\mathrm{g}}\in\{0.5,1.0,2.0\}$ is exactly
+such a re-indexing: it corresponds to raw thresholds $\{0.60,0.70,0.84\}$
+and $\{0.67,0.80,0.94\}$ for the two configurations. Within each
+configuration, BA changed by at most $0.025$ (Appendix~A.8, Table~A5).
+
+Temperature scaling also cannot correct the \emph{ranking} of teacher
+predictions. A confidently wrong prediction remains confidently wrong;
+Table~6, Case~B, shows such a prediction admitted by the gate. Remedies that
+would go beyond threshold re-indexing are class-conditional thresholds, vector
+scaling, and gates that use teacher--label agreement. These are listed as open
+questions (Section~4.12, ``Calibration and gate design''). We also note that
+the gate-temperature rerun uses validation-partition metrics and a single
+seed, so it is not confirmatory.
+\where{Section~3.4 (Eq.~(4)); Appendix~A.8 and Table~A5; Table~6; Section~4.12.}
 
 \hrulefill
 
-\section*{Reviewer 3}
+\section*{Reviewer 5}
 
-\paragraph{1. Clarify how the framework will be validated on larger multi-institutional and multi-disease datasets.}
-We agree. The Limitations and Future Work section now specifies a validation
-programme rather than only a general aspiration. The next study will assemble
-same-patient CT--X-ray cohorts from multiple hospitals, use site-held-out
-evaluation, and harmonize label definitions before extending the task from
-COVID-19 versus non-COVID to multi-disease classification (for example,
-pneumonia, tuberculosis, edema, and no-finding categories). The transfer gate,
-paired bootstrap, and per-fold win-count reporting will be fixed before those
-data are evaluated. These are explicitly described as planned validation steps,
-not as results established by the present single-cohort study.
+\begin{rcomment}
+The authors have responded comprehensively to the editorial and reviewer feedback\ldots\ Still to address: Reviewer~4, Comment~2: remove the near-verbatim duplication of the scaffold description between \S\S2.2 and 2.3. Reviewer~4, Comment~7: resolve remaining spelling inconsistencies (US/UK) and ensure all acronyms are defined on first use.
+\end{rcomment}
 
-\paragraph{2. Add qualitative visualizations of accepted and rejected teacher predictions or attention maps.}
-We added a new qualitative gate-behaviour figure, an aggregate qualitative
-visualization of the gate behavior. It contrasts the retained subset
-($\mathrm{ECE}=0.07$--$0.08$ and retained-minus-rejected teacher accuracy of
-$+0.11$--$+0.14$) with the rejected subset ($\mathrm{ECE}=0.14$--$0.16$), and
-shows the DRR failure mode in which confidence does not identify a reliable
-subset. The underlying per-teacher coverage and reliability values remain in
-the gate-coverage table. JDCNet uses a ResNet-18 backbone and contains
-no attention module; attention maps would therefore add an unvalidated
-interpretation rather than visualize a mechanism used by the method. We label
-the new panel as an aggregate diagnostic, not as an individual-patient
-explanation.
-To answer the request for real-sample context while respecting
-the BIMCV Research Use Agreement, we added a four-row case-level numerical
-table to the revised manuscript, generated from the retained mid-slice
-teacher checkpoint, the fold-0/seed-42 manifest, and the available de-identified
-CT cache. It reports teacher confidence, teacher prediction, ground truth, and
-gate outcome at $\tau_{\mathrm{gate}}=0.80$. The examples include accepted and
-rejected predictions, including an accepted incorrect prediction and a rejected
-incorrect prediction, so that acceptance is visibly distinct from correctness.
-The table uses newly assigned case labels, cites the official BIMCV data portal
-as the source collection, and does not reproduce pixels, individual image URLs,
-filenames, or patient identifiers. It is explicitly labelled as illustrative
-context rather than a new performance estimate.
+\textbf{Response.} We thank the Reviewer for the careful check of the
+previous rebuttal. Both outstanding items are addressed.
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{Duplication between Sections~2.2 and~2.3.} The scaffold and backbone description now appears only once, in Section~2.3. Section~2.2 was rewritten around chest-radiograph and CT classification and recent multi-label and prospective evaluations.
+  \item \emph{Spelling.} The manuscript now uses US English throughout. For example, ``organise'', ``artefact'', ``prioritisation'', ``summarise'', ``favourable'', and ``programme'' were replaced or removed; we checked the source files for remaining British forms.
+  \item \emph{Acronyms.} A new subsection (Section~3.1, ``Notation and Abbreviations'') defines every abbreviation used in the paper: AUC, BA, BIMCV, CI, CNN, CT, CXR, DRR, KD, KL, MAC, MIDRC, ViT, and wCE, together with method names. Acronyms used before Section~3.1 are expanded at first use. These include CT, BA, CI, BIMCV, and KL in the abstract; KD and MAC in Section~2.1; ViT in Section~2.3; and HU in Section~4.2. ECE no longer appears in the paper.
+\end{itemize}
 
-\paragraph{3. Explain the practical or therapeutic implications of the balanced-accuracy gains.}
-We added a practical interpretation immediately after the absolute-performance
-table. For the strongest 3-slice soft-KL cell, balanced accuracy increases from
-$0.604$ to $0.639$, sensitivity from $0.547$ to $0.598$, and specificity from
-$0.661$ to $0.679$. This indicates why the result could matter for X-ray triage
-or prioritisation: more positive cases are detected at the reported balanced
-operating point without a specificity decrease in this cohort. We also state
-explicitly that these are retrospective model metrics, not evidence of improved
-treatment decisions, patient outcomes, or therapeutic benefit; those claims
-require prospective workflow and outcome studies.
-
-\paragraph{4. Discuss recently published lightweight medical-imaging models.}
-The Related Work section now positions MobileNetV2 and EfficientNet as relevant
-lightweight deployment backbones. The Deployment-Time Efficiency section also
-reports a portability check using MobileNetV2 and EfficientNet-B0 students with
-the same gated supervision: the observed gains are positive but slightly below
-the pre-specified gate ($+0.026$ and $+0.029$, respectively). This strengthens
-the practical discussion while keeping the claim bounded: the validated
-headline deployment path remains the ResNet-18 student, and the lightweight
-results are portability evidence rather than independent clinical validation.
-
-\paragraph{5. Expand the external-validation discussion with domain adaptation and calibration options.}
-The Limitations section now separates acquisition-protocol shift,
-label-definition/prevalence shift, and population/scanner shift as plausible
-causes of the external collapse. It discusses multi-center training,
-unsupervised or lightly supervised feature/input domain adaptation, and
-post-hoc site-specific threshold recalibration as concrete next experiments.
-The manuscript also reports the teacher-temperature ablation in the Appendix.
-We make clear that none of the proposed
-mitigations has been validated in this paper and that the external X-ray stress
-test does not replace independent same-patient paired replication.
+Because the Reviewer verified several items of our previous rebuttal against
+the manuscript, we must inform the Reviewer that our re-audit changed some of
+them (details in Section~\ref{sec:corrections}):
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{Reviewer~3, Comment~2 (qualitative gate visualization).} The aggregate gate-behavior figure has been removed. Its statistics could not be traced to an analysis record. The four case-level examples are retained (Table~6).
+  \item \emph{Reviewer~3, Comment~3 (practical implications).} The interpretation is rewritten with corrected absolute values. The gain came mainly through specificity, and no triage claim is made.
+  \item \emph{Reviewer~3, Comment~4 (lightweight models).} The MobileNetV2 and EfficientNet-B0 results have been removed because no runs exist in our records. Lightweight students are now listed as untested.
+  \item \emph{Reviewer~3, Comment~5, and Reviewer~4, Comment~4 (external validation).} These are revised with confidence intervals, corrected model provenance, and possible causes stated as hypotheses (Section~4.10).
+  \item \emph{Reviewer~4, Comment~3 (implementation details).} These are corrected: teachers were trained within each fold and seed; batch sizes differed between arms; and the wall time, hardware, and training overhead are restated (Section~4.2).
+  \item \emph{Reviewer~4, Comment~5 (statistics).} The CI-derived $z$/Cohen's-$d$ columns are replaced by directly computed $p$-values with multiplicity adjustment, and the selection history is disclosed (Tables~2, 4, A1).
+  \item \emph{Reviewer~4, Comment~6 (clinical significance).} This discussion is moderated (Section~5, Table~10).
+\end{itemize}
+We apologize for these errors in the previous version.
+\where{Sections~2.2--2.3; Section~3.1; whole manuscript; Section~\ref{sec:corrections} of this letter.}
 
 \hrulefill
 
-\section*{Reviewer 4}
+\section*{Reviewer 6}
 
-\paragraph{1. Make the novelty relative to confidence-aware KD and privileged-information methods explicit.}
-We added the Methodology subsection ``Design Rationale versus Confidence-Aware
-and Confidence-Based Distillation'' and the Related Work comparison in
-the SOTA comparison table. The revised text distinguishes JDCNet along two
-axes: a hard per-sample confidence mask rather than continuous reliability
-weighting, and a discrete or lightly softened auxiliary target rather than a
-fully softened cross-modal logit distribution. It also compares modality
-pairing, same-patient evaluation, fixed-cost deployment auditing, target
-granularity, and failed-channel reporting against recent privileged-transfer
-and confidence-aware approaches. The claim is stated as a joint methodological
-and evaluation contribution, not as a claim that confidence gating itself is
-new in every domain.
+\begin{rcomment}
+(1) Clarify whether CT teachers were trained separately within each cross-validation fold. The manuscript states that each CT teacher view was ``pre-trained once'' and that the frozen checkpoint was reused across student runs. It is unclear whether this means one teacher was trained within each training fold and reused only across seeds and student configurations belonging to that fold, or one teacher was trained on the complete 510-patient cohort and then used in all five cross-validation folds.
+\end{rcomment}
 
-\paragraph{2. Compress repetitive material in the Introduction, Related Work, and Discussion.}
-We shortened the repeated positioning paragraph in the Introduction and
-condensed the Discussion's broad clinical-imaging implications so that they
-refer back to the design-rationale subsection rather than restating the full
-mechanistic argument. Related Work now uses the comparison table to carry the
-repeated method-by-method distinctions, while retaining only the differences
-needed to establish the scope and novelty of JDCNet. The revision preserves
-the evidence limitations and citations while removing duplicated cost and
-cross-modal-transfer explanations.
+\textbf{Response.} Thank you for catching this ambiguity. The teachers were
+trained \emph{within each fold}, so no held-out test patient was ever seen by
+a teacher. For every fold and seed, a separate CT teacher for each view was
+trained only on that fold's three training folds, about 306 patients. Its
+checkpoint was selected on the fold's validation partition, and it was then
+frozen and used only for the students of the same fold and seed. This gives 15
+teachers per view (five folds $\times$ three seeds). The JDCNet runs reuse
+the teachers trained for the CT-only reference rows of the same fold and seed.
+The phrase ``pre-trained once'' was inaccurate and has been removed. Section~4.2
+(``CT teachers are trained within each fold''), Algorithm~1, Fig.~1, and
+Appendix~A.3, rule~(vi), now state the procedure explicitly. In each fold,
+fold $k$ is the test partition and fold $k{+}1$ the validation partition.
+\where{Section~4.2; Algorithm~1; Fig.~1; Appendix~A.3.}
 
-\paragraph{3. Add implementation details for seeds, preprocessing, hyperparameter selection, and computer resources.}
-The Implementation Details section specifies ImageNet-pretrained ResNet-18
-initialization, seeds 42--44, patient-level five-fold cross-validation, the
-$224\times224$ resize, augmentation, channel replication for CT slices,
-weighted sampling, weighted cross-entropy, AdamW settings, 50 epochs, the
-pre-specified $\tau$ and $\lambda$ grid, and the RTX 3090 environment. It also
-reports the approximately six-hour two-GPU sweep, the approximately $1.18\times$
-training-time overhead, and the measured deployment cost on CPU, GPU, and edge
-hardware. The Appendix gives the cohort construction and leakage audit.
+\begin{rcomment}
+(2) The manuscript evaluates 16 JDCNet configurations on the same 510-patient cohort and designates the two configurations that satisfy the decision gate as validated operating points. The same cross-validation predictions are therefore used both to select the configurations and to estimate their performance. The Benjamini--Hochberg procedure may address one aspect of multiple hypothesis testing, but it does not remove the optimism introduced by selecting configurations and reporting their cross-validated performance on the same patients. Moreover, the manuscript does not provide the directly calculated $p$-values used for the correction.
+\end{rcomment}
 
-\paragraph{4. Investigate the performance drop on the independent dataset.}
-We expanded the External-Cohort Stress Test and Limitations sections. The
-frozen supervised and JDCNet students all fall to chance on the external
-X-ray-only cohort, so the result is reported as a source-to-target
-generalization warning rather than a JDCNet-specific failure. We now discuss
-acquisition, population, scanner, label, and prevalence shift and identify
-multi-center training, domain adaptation, and site-specific calibration as
-follow-up approaches. The manuscript does not present any of these approaches
-as already validated.
+\textbf{Response.} We agree with every part of this comment. Our re-audit
+also showed that the configuration search was more adaptive than the previous
+version described. The configurations were explored in three stages on the
+same cohort, and the two rule-meeting configurations came from extension
+stages added after the initial grid met the rule in none of its configurations
+(Section~\ref{sec:corrections}, item~1). We have therefore withdrawn the
+designation ``validated operating points'' and revised the analysis as
+follows.
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{Chronology disclosed (Section~3.7, ``Analysis chronology and selection'').} The decision rule preceded the JDCNet runs, but the configurations did not. Table~4 gives the stage of every configuration.
+  \item \emph{Directly calculated $p$-values (Table~4, Table~A1).} For all 16 configurations we report an exact sign test computed directly from the recorded fold/seed win counts, and a Wald-type $p$-value recovered from the recorded bootstrap interval, with its derivation stated. For the eight configurations whose per-cell records are archived, we also report paired $t$-test, Wilcoxon signed-rank, and bootstrap $p$-values computed directly from the 15 paired cells. The $t$-test values (and seven of the eight Wilcoxon values) are somewhat larger than the Wald-type values, so the latter are, if anything, optimistic.
+  \item \emph{Multiplicity adjustment.} The two selected configurations have unadjusted Wald-type $p=0.003$ and $0.011$. Holm adjustment gives $0.051$ and $0.17$, Benjamini--Hochberg adjustment gives $0.051$ and $0.092$, and sign tests give $0.30$ and $0.18$ unadjusted.
+  \item \emph{Unselected estimates.} The average over all 16 configurations is $+0.020$, with 15 of 16 positive. The per-cell average over the eight initially planned configurations involves no configuration selection; it is $+0.016$ (95\% CI $[-0.000,+0.035]$, paired $t$-test $p=0.11$).
+  \item \emph{Selection optimism quantified.} A simulation with the recorded standard errors and the observed between-configuration correlation ($0.34$) shows the following. If all configurations shared the grid-average effect, the expected best estimate would be $+0.040$, and two configurations would meet the rule in 66\% of sweeps. If all true effects were zero, two would meet it in 5.1\% of sweeps. The best two configurations are therefore not identified as better than the others, and their estimates are likely optimistic.
+  \item \emph{A further confound disclosed.} The supervised baseline was trained with batch size 512 and JDCNet with 128, so JDCNet received three times as many optimizer updates. Batch-matched reruns are mixed (Section~4.7).
+\end{itemize}
+We agree that the Benjamini--Hochberg procedure does not remove selection
+optimism. It is now presented only as one of several adjustments, and the text
+says explicitly that the selected estimates are exploratory. Nested
+cross-validation of the whole sweep was not feasible within the revision
+period. We therefore recommend, and describe, a confirmatory design (Section~4.12):
+one fixed configuration, a batch-matched baseline, and an untouched or
+independent cohort. The abstract, contributions, discussion, and conclusion
+now reflect this evidence level.
+\where{Abstract; Section~1.2; Section~3.7; Section~4.4; Tables~2, 4, A1; Sections~4.7, 4.12, 5, 6.}
 
-\paragraph{5. Add stronger statistical comparisons.}
-The main decision-summary table now reports the paired $\Delta\mathrm{BA}$,
-bootstrap confidence interval, Wald-type $z$, two-sided $p$, and paired Cohen's
-$d$ for the headline rows and strongest competing baselines. The primary
-decision remains the pre-specified CI-based transfer gate with
-Benjamini--Hochberg correction; the named tests and effect sizes are reported
-as complementary diagnostics. Both passing JDCNet settings remain significant
-($p=0.003$ and $p=0.011$), while the strongest failed gated-logit comparator is
-not significant ($p=0.19$).
+\begin{rcomment}
+(3) The external stress test is valuable and should remain prominent. However, the manuscript states that the three methods are ``statistically indistinguishable'' without reporting confidence intervals or a statistical comparison. Please report patient-level confidence intervals for BA and AUC and paired differences between each JDCNet model and the supervised baseline. This can be calculated from the existing predictions. The assertion that the failure reflects source shift ``rather than a JDCNet-specific weakness'' is plausible but not demonstrated. \ldots\ Acquisition protocol, label definition, prevalence, scanner, population, and preprocessing differences should be presented as possible explanations. A directly relevant reference \ldots\ Zhang J, Chao H, Dhurandhar A, Chen P-Y, Tajer A, Xu Y, Yan P. When Neural Networks Fail to Generalize? A Model Sensitivity Perspective. AAAI 2023.
+\end{rcomment}
 
-\paragraph{6. Expand clinical significance, workflow integration, regulatory issues, and real-world limitations.}
-The revised manuscript interprets the absolute sensitivity and specificity
-changes, explains that CT is removed before deployment, and discusses how an
-X-ray-only input path could fit a radiology workflow without requiring CT at
-inference. It also lists the unmet requirements before clinical use:
-multi-site external validation, prospective outcome-based evaluation,
-site-specific threshold calibration, and regulatory assessment of the deployed
-X-ray decision-support software. The benefits-and-limitations table summarizes
-these benefits, limitations, and implementation risks in one place.
+\textbf{Response.} We agree, and the external test remains a dedicated
+subsection (Section~4.10) with a new table (Table~9).
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{Confidence intervals.} With 63 positive and 63 negative radiographs, BA equals accuracy over 126 images, so we report Wilson intervals: supervised $0.492$ $[0.406,0.578]$, 3-slice soft-KL $0.498$ $[0.412,0.584]$, mid-slice hard $0.494$ $[0.408,0.580]$. AUC intervals use the Hanley--McNeil standard error: $0.486$ $[0.385,0.587]$, $0.509$ $[0.408,0.610]$, $0.477$ $[0.376,0.578]$. Every interval includes $0.5$.
+  \item \emph{Differences between JDCNet and supervised students.} We must report a limitation honestly here. Our evaluation pipeline stored per-checkpoint aggregate metrics but not per-image scores, so a paired test such as DeLong's could not be computed. We therefore report difference intervals that assume independence between models. These are conservative, because the models are positively correlated. The BA differences, $+0.006$ $[-0.117,+0.129]$ and $+0.002$ $[-0.121,+0.125]$, correspond to $0.8$ and $0.3$ radiographs out of 126, and the AUC differences are $+0.023$ $[-0.120,+0.166]$ and $-0.009$ $[-0.152,+0.134]$. We state that the data show no difference but cannot exclude moderate differences, and the phrase ``statistically indistinguishable'' has been removed.
+  \item \emph{Provenance corrected.} The externally evaluated students came from batch-matched runs on a balanced 216--228-patient BIMCV subset, not from the 510-patient models. The manuscript now says so.
+  \item \emph{Causes presented as possibilities.} We removed ``rather than a JDCNet-specific weakness''. The text now states that the data show that all tested students fail, not why. It then lists possible explanations: acquisition protocol and scanner differences; label-definition differences, which we could not independently verify; a training-data source confound, because BIMCV classes come from two releases; prevalence, severity, and population differences; and preprocessing differences.
+  \item \emph{Reference added.} We cite Zhang et al.\ (AAAI 2023) for the gap between internal validation and robustness to unseen distributions after single-source training, in Sections~2.8, 4.10, and 4.12. There we also mention spectral adversarial data augmentation as a candidate remedy. We further cite a prospective multi-hospital evaluation of a COVID-19 chest-radiograph model (Sun et al., 2022) and a shortcut-learning analysis (Ong Ly et al., 2024).
+\end{itemize}
+\where{Section~4.10 and Table~9; Sections~2.8 and 4.12.}
 
-\paragraph{7. Polish the language and summarize the main advantages and disadvantages.}
-We performed a language pass over the Introduction, Methods, Results, and
-Discussion, removing repeated claims and replacing broad deployment language
-with evidence-bounded wording. The benefits-and-limitations table now provides
-the requested compact summary: zero inference-time CT cost and the observed
-balanced-accuracy gain are listed alongside training overhead, dependence on a
-paired single-cohort dataset, lack of prospective clinical evidence, and
-outstanding regulatory and calibration requirements.
+\begin{rcomment}
+(4) The manuscript is generally cautious, but the following statements should be further moderated. ``X-ray triage or prioritisation'' is not evaluated as a clinical workflow. Matching parameter count, MACs, and single-image latency does not establish equal end-to-end deployment cost, calibration, safety, or clinical utility. A higher retrospective sensitivity does not by itself demonstrate better triage. Describing the software as following the ``same premarket evaluation pathway'' involves regulatory assumptions outside the presented experiment. Please restrict the conclusion to the demonstrated result: the deployed computation graph is identical to the supervised ResNet-18 baseline and therefore has no incremental model-inference cost under the reported benchmark.
+\end{rcomment}
+
+\textbf{Response.} We have made all four moderations and restricted the
+conclusion as requested.
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{Triage or prioritization.} Every mention of triage or prioritization as a benefit has been removed. Section~5 now states that no triage or prioritization workflow was evaluated.
+  \item \emph{Deployment cost.} Section~4.9 now states that, because the JDCNet and supervised students share one computation graph, they have identical parameters, MACs, and per-image latency. It adds that this ``does not establish equal end-to-end deployment cost, calibration, safety, or clinical utility''.
+  \item \emph{Sensitivity and triage.} Our re-audit showed that the archived JDCNet configurations gained mainly through specificity, while sensitivity mostly decreased (Section~4.4; Table~A1). The text now says that ``a higher BA at this retrospective operating point does not by itself indicate better clinical triage'', and Section~5 repeats that a higher retrospective BA does not demonstrate better triage.
+  \item \emph{Regulatory pathway.} The ``same premarket evaluation pathway'' statement has been removed. Section~5 now says only that clinical use would require prospective evaluation against patient outcomes and assessment under the applicable regulatory framework.
+  \item \emph{Conclusion.} The conclusion now opens with the demonstrated result: the deployed X-ray classifier has the same computation graph as the supervised baseline and therefore adds no model-inference cost.
+\end{itemize}
+\where{Sections~4.4, 4.9, 5, and 6; Table~10.}
+
+\begin{rcomment}
+(5) The ``CT teacher upper bound'' is not a mathematical upper bound on student performance. ``Privileged-modality reference'' or ``CT-only reference'' would be more accurate. The statement that the two passing configurations recover ``roughly two-thirds of the available gap'' is a ratio of uncertain and selected estimates. Either provide uncertainty for this ratio or describe it explicitly as a descriptive calculation. Clarify whether the reported F1 is binary F1 or macro-F1. Table~5 labels it only as ``F1.''
+\end{rcomment}
+
+\textbf{Response.}
+\begin{itemize}[leftmargin=1.4em]
+  \item \emph{Terminology.} ``Teacher upper bound'' is replaced by ``CT-only reference'' throughout the paper, the tables, and the appendix. Section~3.1 and Section~4.6 also state explicitly that it is not a mathematical upper bound on the student.
+  \item \emph{The ``two-thirds'' ratio.} The phrase has been removed from the abstract, contributions, and discussion. Section~4.4 now gives the ratio only as an explicitly descriptive calculation without uncertainty. The selected estimates correspond to $0.68$ and $0.73$ of the CT-only reference differences, and the 16-configuration average to $0.41$. The text adds that, because numerators and denominators are uncertain and the numerators were selected, these ratios are not estimates of the transferable fraction of CT signal.
+  \item \emph{F1.} The reported F1 is macro-F1, the unweighted mean of the per-class F1 scores. Table~5 now labels the column ``Macro-F1'', and Section~3.1 defines it.
+\end{itemize}
+\where{Sections~3.1, 4.4, and 4.6; Tables~2, 5, and A2.}
 
 \hrulefill
 
 \section*{Summary of files changed}
 
-The clean manuscript source, appendix source, bibliography, figures, title-page
-source, data-availability statement, cover letter, and this point-by-point
-response have been updated. The revised clean manuscript and response have been
-compiled and are supplied as PDF files for upload. A marked-up manuscript is
-optional under the Editor's instructions and is not included in the clean
-manuscript upload.
+The revised clean manuscript (main text and appendix), the bibliography, the
+separate title page, the standalone tables file, and this point-by-point
+response have been updated and compiled. The analysis scripts and the archived
+aggregate records used to regenerate the statistics are released with the
+code, as stated in the Data and Code availability declarations.
 
 \end{document}

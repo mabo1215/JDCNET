@@ -1,7 +1,7 @@
 Highlights
 
-- Confidence-gated CT supervision improves X-ray classification at zero inference cost
-- Two JDCNet configurations gain +3.3-3.5% balanced accuracy over supervised baseline
-- Seven alternative transfer channels fail the same pre-specified patient-level gate
-- Deployed JDCNet student is structurally identical to the supervised X-ray baseline
-- External validation shows cohort-bounded evidence; frozen students fall to chance
+- CT supervises an X-ray classifier during training only; the deployed graph is unchanged
+- 15 of 16 confidence-gated configurations improve balanced accuracy, by about 0.02 on average
+- Selection-adjusted inference shows the best configurations are exploratory, not confirmed
+- Logit distillation and contrastive alignment show no gain on the same patient-level splits
+- All students fail on an external radiograph set, bounding the single-cohort evidence
