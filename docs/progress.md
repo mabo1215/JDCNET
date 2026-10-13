@@ -16,6 +16,10 @@
    - 检查：所有 PDF 中唯一的位图是 Fig. 3 统计图，无任何病人图像；源码中无本地路径。
 2. **数据可用性声明**（`docs/data_availability_statement_discoverai.txt`）按正文更新：补充 Cohen 数据集与 MIDRC 来源、分析计划、稿件不含病人图像、逐图像预测可向通讯作者申请。
 3. **4×3090 口令**：已删除 WSL 中的 `~/.jdc_tmp/c4.pass`、`c4.sh` 及该目录；会话辅助脚本中没有写死的口令。
+4. **`submit/figs.zip` 与 `submit/table.zip` 更新**：旧版（第二轮，含已不用的 12 张图和 4 张作者照片）移到 `submit/revision_round2/figs_round2.zip`、`table_round2.zip` 保存。
+   - 新 `figs.zip`：Fig. 1、Fig. 2、Fig. A1 由 TikZ 源码导出为独立矢量 PDF 与 600 dpi PNG，Fig. 3 为原 PNG；`submit/figs/` 同步。同一套文件也放进 `revision_round3/figures/`，并在 `UPLOAD_README.txt` 中说明。
+   - 新 `table.zip`：当前的 `tables_standalone.tex/.pdf`（表 1–11、A1–A7）；`submit/table/` 同步。
+   - 附录 Fig. A1 流程图中的验证折由 "k+1" 改为 "(k+1) mod 5"，与正文和附录规则一致；论文重新编译（33 + 7 = 40 页，无错误），投稿包中的附录 PDF、合并 PDF、源码与 `JDCNet_revision_round3.zip` 已同步更新。
 
 ## 第三轮大修（续三）：按作者答复处理遗留问题（2026-10-13）
 
