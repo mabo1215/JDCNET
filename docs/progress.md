@@ -1,9 +1,20 @@
 # 进度
 
-本文件顶部三节（已全部修改 / 未修改或部分修改 / 遗留问题）反映当前状态；
-`# 历史记录` 以下保留以前各轮的过程记录。
+本文件顶部两节（已全部修改 / 未修改或部分修改）与文末的 `# 遗留问题` 反映当前状态；
+中间的 `# 历史记录` 保留以前各轮的过程记录。
 
 # 已全部修改
+
+## 按作者要求还原 Fig. 2 原始拼图（2026-10-13）
+
+作者要求把 Fig. 2 还原为原来的 8 组 CT–X 光配对拼图（撤销此前选择的方案 (b)）。
+
+1. **来源核实**（作者问"怎么证明用了 BIMCV 的图"）：原图注写明 "from the paired BIMCV data"，原 Consent to publish 写明 "montage of de-identified images from the BIMCV-COVID19 releases"；2026-08-21 的记录说明取自 PRO 6000 上配对队列的数据缓存；图像带有西班牙语烧录标注（Pair 01 "DCHA."，Pair 03 "DCH." 与 "SEDESTACIÓN"），与瓦伦西亚医院来源一致。仓库中没有生成脚本，未逐一核对病人编号。
+2. **还原内容**：paper 子仓库撤销换图提交（恢复 `figs/ct_xray_paired_examples.png`、原图注与引导句、原 Consent to publish，缩写表去掉不再使用的 AP）；回复信与 cover letter 中关于"已替换为示意图"的句子删除，回到换图前的文本；数据可用性声明改为"不再分发数据集或单个图像文件；Fig. 2 展示 8 组去标识化示例配对，仅作说明"。
+3. **重新编译**：main.pdf 34 页、combine 41 页、附录 7 页，无错误；回复信 13 页；标记版 65 页 0 错误。
+4. **投稿包同步**：`submit/revision_round3/`（源码加入拼图 PNG、各 PDF、cover letter、数据声明、`figures/Fig2.png` 改为拼图）、`submit/figs/` 与 `figs.zip`（Fig2 改为拼图 PNG）、`JDCNet_revised_source.zip`、`JDCNet_revision_round3.zip`；源码包独立编译 41 页、0 错误；`UPLOAD_README.txt` 的数据说明如实写明该图来自 BIMCV 及协议第 5 条的许可要求。
+5. **figs/ 与 tables/**：按作者要求在 `submit/revision_round3/` 中建立 `figs/`（Fig1、FigA1 的 PDF+600 dpi PNG，Fig2 拼图 PNG，Fig3 PNG）与 `tables/`（tables_standalone.tex/.pdf + sn-jnl.cls，独立编译 19 页 0 错误），并分别打包为 `figs.zip`、`tables.zip`；`JDCNet_revision_round3.zip` 已重建（33 个文件）。论文、附录与高亮版由作者另行上传。
+6. **提交**：作者答复已发送 BIMCV 许可申请，并要求提交还原后的改动。
 
 ## 第三轮投稿包 `submit/revision_round3/`（2026-10-13）
 
@@ -112,14 +123,8 @@
    - 当前不需要你决策，除非有新数据来源。
 2. 【部分修改】**独立队列的确认性验证**：预注册嵌套比较仍使用同一批 510 例患者，论文已如实写为局限。
    - 当前不需要你决策；如果将来有新的同患者 CT–X 光配对队列，可按 `docs/round3_experiment_plan.md` 的方式预注册后验证。
-
-（Fig. 2 发表许可问题已按作者选择 (b) 处理，移入"已全部修改"。）
-
-# 遗留问题
-
-当前没有需要你决策的问题。
-
-（已解决并移除的问题：手工高亮版（不需要，以 latexdiff 标记版代替）、4×3090 口令文件（已删除）、push（作者已执行）、Fig. 2 许可（选 b，已改为示意图）、`USAGE.md` 期刊（已改为 Discover AI）、`/data1/jdcnet_round3`（保留）、vGPU 3090 与 PRO 6000（作者已关机）、访问密钥（作者自行更换）；更早的：缺失结果文件、GPU 资源、审稿人 1 文献、更正声明确认、是否提交。）
+3. 【进行中】**Fig. 2 拼图的 BIMCV 书面许可**：作者已向 BIMCV 发送许可申请（2026-10-13），等待回复。
+   - 当前不需要你决策。收到回复后告诉我结果；如不获许可，可恢复无像素示意图版本（paper 子仓库提交 94f3818）。
 
 # 历史记录
 
@@ -666,3 +671,9 @@ Discover Artificial Intelligence（详见 `docs/competing_interests_statement_di
 
 - Windows 端运行 `paper/build.bat` 生成 combined PDF；`paper/build.bat main` / `paper/build.bat appendix` 分别生成 standalone 输出。
 - WSL 下无 pdflatex，编译需在 Windows 完成。
+
+# 遗留问题
+
+当前没有需要你决策的问题。
+
+（已解决并移除的问题：Fig. 2 拼图的 BIMCV 书面许可（作者已发送申请，见"未修改或部分修改"第 3 项）、还原拼图后的改动（作者要求提交）、手工高亮版（不需要，以 latexdiff 标记版代替）、4×3090 口令文件（已删除）、push（作者已执行）、`USAGE.md` 期刊（已改为 Discover AI）、`/data1/jdcnet_round3`（保留）、vGPU 3090 与 PRO 6000（作者已关机）、访问密钥（作者自行更换）；更早的：缺失结果文件、GPU 资源、审稿人 1 文献、更正声明确认、是否提交。）
