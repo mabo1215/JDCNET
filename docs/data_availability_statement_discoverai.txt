@@ -11,9 +11,14 @@ https://bimcv.cipf.es/bimcv-projects/bimcv-covid19/bimcv-covid19-dataset-researc
 The data are de-identified, and the agreement prohibits data sharing,
 re-identification, and publication or reproduction of any portion of the
 dataset without specific prior written permission. We therefore do not
-redistribute image pixels or individual image files. The manuscript reports
-derived aggregate results and a four-row anonymized case-level gate table
-(teacher confidence, prediction, ground truth, and gate outcome) with no
-patient identifiers. The patient-level split definitions, archived aggregate
-result records, and analysis scripts that support the findings of this study
-are available at https://github.com/mabo1215/JDCNET.
+redistribute image pixels or individual image files, and the manuscript
+contains no patient images. The historical paired subset is part of the
+public COVID-19 image data collection (Cohen et al.), and the external
+radiographs are available from MIDRC (https://www.midrc.org) under its data
+use terms. The patient-level split definitions, archived aggregate result
+records, analysis plan, and analysis scripts that support the findings of
+this study are available at https://github.com/mabo1215/JDCNET. Per-image
+model predictions, which are needed for the patient-level, external, and
+teacher analyses and are indexed by BIMCV and MIDRC identifiers, are
+available from the corresponding author on reasonable request, subject to the
+source data-use terms.
