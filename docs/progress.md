@@ -5,6 +5,18 @@
 
 # 已全部修改
 
+## 第三轮大修（续三）：按作者答复处理遗留问题（2026-10-13）
+
+作者答复：Fig. 2 选 (b)；`USAGE.md` 改为 Discover AI；同意 push 两个仓库；保留 4×3090 上的 `/data1/jdcnet_round3`；vGPU 3090 与 PRO 6000 已由作者关机；泄露的访问密钥由作者自行更换。
+
+1. **Fig. 2 改为无像素示意图**：删除 BIMCV 图像拼图，改为 TikZ 矢量示意图（单个病人：CT 体积 → 窗宽 [−1000, 400] HU → 四种教师视图 mid-slice / 3-slice / 均值投影 / DRR，仅训练使用；AP 胸片 → 学生输入，训练与部署均使用；注明同一病人但不一定同次就诊、阳性与阴性来自两个 BIMCV 发布）。标签改为 `fig:paired_data_schematic`，正文引用句同步改写。
+   - Declarations 的 Consent to publish 改为 "The manuscript contains no patient images and no identifiable personal data."；缩写表补 AP。
+   - 回复信"Language and presentation"一条与编辑 Declarations 回应中说明：因 BIMCV 协议不允许未经书面许可复制数据集图像，原拼图已替换为示意图；cover letter 同步。
+   - `paper/figs/ct_xray_paired_examples.png` 已从 paper 子仓库删除（git 历史中仍有该文件）；latexdiff 标记版中被删的 `\includegraphics` 为注释状态，不会渲染图像。`docs/bimcv_permission_request.txt` 不再需要，保留备查。
+2. **`USAGE.md`**：`目标会议或期刊：<Discover Artificial Intelligence (Springer Nature)>`。
+3. **构建**：main.pdf 33 页、appendix、combine 无错误/溢出/未定义引用；回复信 13 页；标记版 65 页 0 错误。
+4. **push**：本地已 commit；push 被本会话的权限设置拦截，未执行，需要作者手动 push（见遗留问题 3）。
+
 ## 第三轮大修（续二）：校对报告逐条修正（2026-10-13）
 
 第二轮独立校对（对照 `src/records/derived/*.json`）发现的问题已全部处理：
@@ -84,33 +96,25 @@
    - 当前不需要你决策，除非有新数据来源。
 2. 【部分修改】**独立队列的确认性验证**：预注册嵌套比较仍使用同一批 510 例患者，论文已如实写为局限。
    - 当前不需要你决策；如果将来有新的同患者 CT–X 光配对队列，可按 `docs/round3_experiment_plan.md` 的方式预注册后验证。
-3. 【部分修改】**Fig. 2（BIMCV 像素拼图）的发表许可**：降低分辨率不能免除 BIMCV 协议第 5 条的书面许可要求。
-   - 需要你提供/决策：见遗留问题 1。
 
-（原第 1–3 项，即 batch 匹配重跑、外部配对检验、Table 5 缺失指标，已在 4×3090 主机上完成，移入"已全部修改"。）
+（Fig. 2 发表许可问题已按作者选择 (b) 处理，移入"已全部修改"。）
 
 # 遗留问题
 
-1. **Fig. 2 配对像素图的发表许可**
+1. **手工高亮版**
    需要你提供/决策：
-   1. 降低分辨率不能免除许可。协议第 5 条原文为 "YOU MAY NOT DISTRIBUTE, PUBLISH, OR REPRODUCE A COPY of any portion or all of the BIMCV-COVID19 Dataset to others without specific prior written permission"，第 6 条禁止派生作品。可选：(a) 向 BIMCV 申请书面许可（邮件草稿 `docs/bimcv_permission_request.txt`）；(b) 用无像素示意图替换 Fig. 2；(c) 删除 Fig. 2。请选择 (a)/(b)/(c)。
+   1. `paper/main_highlighted.tex`、`appendix_highlighted.tex` 为上一轮版本；本轮用 latexdiff 生成的 `paper/main_diff_round3.pdf` 作为修订标记版。默认不再制作手工高亮版，如需要请说明。
    A:
-2. **仓库配置与高亮版**
+2. **4×3090 登录口令**
    需要你提供/决策：
-   1. `USAGE.md` 的目标期刊仍写 ACM TOMM，而实际投稿为 Discover Artificial Intelligence，是否需要改？
+   1. 为连接 4×3090，本机 WSL 中存有口令文件 `~/.jdc_tmp/c4.pass`（及包装脚本 `~/.jdc_tmp/c4.sh`）。实验已完成，是否删除？
    A:
-   2. `paper/main_highlighted.tex`、`appendix_highlighted.tex` 为上一轮版本；本轮用 latexdiff 生成 `paper/main_diff_round3.pdf` 代替。是否还需要手工高亮版？
-   A:
-3. **push 与远程资源**
+3. **push（需手动执行）**
    需要你提供/决策：
-   1. 本轮所有改动已 commit，尚未 push。是否 push 主仓库和 paper 子仓库？
-   A:
-   2. 4×3090 上的实验输出在 `/data1/jdcnet_round3`（含 240 个新 checkpoint 和预测，约数 GB）。是否保留？vGPU 3090 和 PRO 6000 当前为无卡开机状态，本轮已不需要，可关机。
-   A:
-   3. `C:\work\9\saveway.txt` 第 29–30 行的访问密钥曾出现在会话输出中，建议轮换。
+   1. 你已同意 push，但本会话的权限设置拦截了 push。请在终端执行：先 `git -C paper push origin main`（JDCNET_Overleaf），再在仓库根目录 `git push origin main`（JDCNET，含子仓库指针）。或在 Claude Code 设置中允许 push 后让我执行。
    A:
 
-（已解决并移除的问题：缺失结果文件（已在 vGPU 与 4×3090 找回）、GPU 资源（已在 4×3090 完成实验）、审稿人 1 文献（全部引用）、更正声明确认（三台主机均无被删结果的记录）、是否提交（已提交）。）
+（已解决并移除的问题：Fig. 2 许可（选 b，已改为示意图）、`USAGE.md` 期刊（已改为 Discover AI）、`/data1/jdcnet_round3`（保留）、vGPU 3090 与 PRO 6000（作者已关机）、访问密钥（作者自行更换）；更早的：缺失结果文件、GPU 资源、审稿人 1 文献、更正声明确认、是否提交。）
 
 # 历史记录
 
