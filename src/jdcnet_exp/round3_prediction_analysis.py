@@ -120,11 +120,17 @@ def main() -> None:
     for _, r in sup.iterrows():
         rec[("sup128_restarts", r["run"])] = r["test_balanced_accuracy"]
     diffs = []
+    mismatches = []
     for (g, name, kind), df in P.items():
         if kind == "test" and (g, name) in rec:
-            diffs.append(abs(ba(df.label.values, df.prob_pos.values) - rec[(g, name)]))
+            d = abs(ba(df.label.values, df.prob_pos.values) - rec[(g, name)])
+            diffs.append(d)
+            if d > 1e-6:
+                mismatches.append({"group": g, "run": name, "abs_ba_diff": float(d)})
     res["reproduction_max_abs_ba_diff"] = float(max(diffs)) if diffs else None
     res["reproduction_n"] = len(diffs)
+    res["reproduction_n_exact"] = len(diffs) - len(mismatches)
+    res["reproduction_mismatches"] = sorted(mismatches, key=lambda m: (m["group"], m["run"]))
 
     # ---------------- define methods: {cell: run name, group}
     cells = [(f, s) for f in range(5) for s in (42, 43, 44)]
@@ -233,6 +239,19 @@ def main() -> None:
         ext[f"cellwise_auc_diff {a_} - {b_}"] = cell_tests(np.array(per_cell))
         per_cell_ba = [ba(y, pa_[k]) - ba(y, pb_[k]) for k in range(len(cells))]
         ext[f"cellwise_ba_diff {a_} - {b_}"] = cell_tests(np.array(per_cell_ba))
+        # pre-specified McNemar-type comparison per checkpoint pair (exact binomial test on discordant images)
+        mc = []
+        for k in range(len(cells)):
+            ca, cb = (pa_[k] > 0.5).astype(int) == y, (pb_[k] > 0.5).astype(int) == y
+            n_a, n_b = int(np.sum(ca & ~cb)), int(np.sum(~ca & cb))
+            p_mc = float(stats.binomtest(n_a, n_a + n_b, 0.5).pvalue) if n_a + n_b > 0 else 1.0
+            mc.append({"a_only_correct": n_a, "b_only_correct": n_b, "p": p_mc})
+        ps = np.array([m["p"] for m in mc])
+        ext[f"mcnemar {a_} - {b_}"] = {"pairs": mc, "n_pairs": len(mc), "n_p_below_0.05": int(np.sum(ps < 0.05)),
+                                       "median_p": float(np.median(ps)), "min_p": float(ps.min()),
+                                       "mean_discordant": float(np.mean([m["a_only_correct"] + m["b_only_correct"] for m in mc])),
+                                       "n_pairs_a_better": int(sum(m["a_only_correct"] > m["b_only_correct"] for m in mc)),
+                                       "n_pairs_b_better": int(sum(m["a_only_correct"] < m["b_only_correct"] for m in mc))}
     res["external_midrc"] = ext
 
     # ---------------- teacher calibration
@@ -279,6 +298,14 @@ def main() -> None:
                 diffs.append(abs(ba(df.label.values[mk], df.prob_pos.values[mk]) - rt[n]))
         teach["reproduction_max_abs_ba_diff"] = float(max(diffs)) if diffs else None
     res["teacher"] = teach
+
+    # ---------------- pre-specified analysis 3 for analysis 1: patient-level bootstrap of every
+    # configuration against the batch-matched baseline (run last so earlier RNG draws are unchanged)
+    # comparisons already bootstrapped above are reused so each comparison has a single reported interval
+    pb16 = {m: dict(pb[f"{m} - sup128_r00"]) if f"{m} - sup128_r00" in pb else patient_boot(m, "sup128_r00") for m in jd_cfgs}
+    for m, h in zip(jd_cfgs, holm([pb16[m]["p_two_sided"] for m in jd_cfgs])):
+        pb16[m]["p_holm"] = h
+    res["patient_level_bootstrap_all16_vs_sup128_r00"] = pb16
 
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(res, indent=1, default=float), encoding="utf-8")

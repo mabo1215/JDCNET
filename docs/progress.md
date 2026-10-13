@@ -5,6 +5,46 @@
 
 # 已全部修改
 
+## 第三轮大修（续二）：校对报告逐条修正（2026-10-13）
+
+第二轮独立校对（对照 `src/records/derived/*.json`）发现的问题已全部处理：
+
+1. **数值统一**：
+   - 主分析嵌套比较的 CI 下限统一取记录指标（restart JSON）：+0.037 [+0.016, +0.058]（原写 +0.017 来自逐图像复算），与 best-of-8 的 +0.029 同源；正文、附录、回复信、cover letter 同步。
+   - CT-only 参考的 CI 改为 JSON 值：mid [+0.019, +0.070]、3-slice [+0.025, +0.079]、均值投影 [−0.002, +0.066]、DRR [−0.036, +0.055]。
+   - 附录门控 logit KD mid 上限 +0.010；对比学习 best-of-4 CI 统一为 [−0.021, +0.038]。
+2. **复现声明更正**：逐图像复算 BA 与记录在 613/615 个 run 上一致；`mid_f00_s43_pseudolabel_t080_l050` 差 0.006，`sup128_f01_s42_r04` 差 0.022（1 个病人）。分析脚本新增 `reproduction_n_exact` 与 `reproduction_mismatches` 字段。
+3. **补全预注册分析**（计划第 1、3、4 项）：
+   - 新增附录表 A7：16 个配置各自对 batch 128 第一个重启（r=0）的 cell 级与病人级比较及 Holm 校正。16 个配置均值全部为正（+0.002 至 +0.039；平均 +0.024 [−0.000, +0.051]，p=0.092），校正后均不显著（最小 Holm p：cell 级 0.56，病人级 0.33）。
+   - 外部 McNemar（逐 checkpoint 配对）：对 batch 512 监督模型 15 对中 2 对 p<0.05，且均是监督模型更好；对 batch 128 为 0/15。已写入 4.10 节、附录 A.9 与回复信。
+4. **措辞收紧**："small but real advantage" → "small within-cohort advantage"；"does not explain" → "is unlikely to explain"；"no effect" → "no detectable effect"；讨论中"honest uncertainty interval"一句改写；贡献列表同时给出 cell 级与病人级 CI；Table 3 "Validation-partition metrics only" 改为 "Paired comparison on the validation partition only"；敏感度范围注明是 16 个配置的范围；附录 A.8 指出 3-slice soft-KL 在 T_g=1.0 与 2.0 时 CI 均含 0。
+5. **可复现性声明**：逐图像预测含 BIMCV/MIDRC 编号、未纳入仓库，正文 4.11、Data availability 与回复信改为"cell 级统计可由公开记录复算，病人级/外部/教师分析需逐图像预测，可向通讯作者申请"。`src/records/README.md` 重写（列出 runs510/sup128 记录、各 JSON 与对应脚本）。
+6. **门控扫描**：原始记录显示扫描只有 8 个格子（T=4、阈值 0.55 未运行），附录"nine"改为"eight"，并把扫描汇总存档为 `src/records/gatedscan_balanced_summary.csv`（+0.034 [−0.004, +0.073] 可溯源）。
+7. **其他**：缩写表补 CE、CPU、GPU；"depth-to-RGB" 改为 "depth-to-color-image"；DPE/MHRA/DFPN 明确为研究内部标签；伦理编号改为 "CEIm: 12/2020"；soft-KL 公式加标签并用 `\eqref`；Table 7 由 tabularx 改为 tabular；Table 1 溢出消除；回复信中验证折写为 "(k+1) mod 5"、DeLong 对比对象写明 batch 512、"0.92 位于已探索的阈值之外"。
+8. **构建**：main.pdf 34 页、combine.pdf、appendix.pdf 无错误、无溢出、无未定义引用；回复信 13 页；title page 与独立表格文件（11 + 7 张表）已同步；latexdiff 标记版 `paper/main_diff_round3.pdf` 重新生成（65 页，0 错误；Table 2 因结构整体重写以蓝色整表显示）。
+9. 标题保持不变（校对建议加连字符为可选项，涉及投稿系统中的题名，未改动）。
+
+## 第三轮大修（续）：找回原始记录 + 预注册补充实验 + 论文与回复信重写（2026-10-13）
+
+1. **数据检索**：
+   - vGPU 3090（`ssh vgpu3090`，无卡）：找回 H800 镜像记录（`metrics_backup_20260625.tgz`、外部评估 60 个指标、216/466 重跑指标），拉回 `src/results/vgpu3090_recovered_20261013/`；图像缓存已不存在。
+   - PRO 6000：无 BIMCV/MIDRC 图像、无原始扫描结果（仅 Fig. 2 素材与一个教师 checkpoint）。
+   - **4×3090（`mabo1215@10.126.126.3`，原始实验主机）**：找到全部原始运行目录（Stage A 240、JDCNet 初始 120 + 扩展 A 60 + 扩展 B 60、对比学习 60、BiomedCLIP 15 等，均有 checkpoint 与测试集指标）、BIMCV 图像缓存（X 光 256 缓存、113 阳性 + 398 阴性 CT NIfTI）与 MIDRC 126 张外部图像。指标拉回 `src/results/c4_3090_recovered_20261013/`，整理为 `src/records/runs510_per_run.csv`。
+   - 已核实：MobileNetV2/EfficientNet、同模态 KD、病人级 bootstrap、延迟/Jetson、gate coverage 在任何主机上均无记录，维持删除；logit KD 在 510 上确实只有 T=4、α=0.6 一组。
+2. **预注册补充实验**（计划 `docs/round3_experiment_plan.md` 先于运行提交，commit 48f9923；只用 4c 的 GPU 0、1；输出在 4c `/data1/jdcnet_round3`，原目录未改动）：
+   - 实验 A：每个 fold/seed 训练 16 个 batch 128 的监督重启，共 240 run，0 失败。
+   - 逐图像预测：所有 checkpoint 在测试集与 MIDRC 上的概率；复算 BA 与记录在 613/615 个 run 上一致（另 2 个差 0.006 与 0.022，见续二）。
+   - 实验 C：用原脚本（commit 6ab9551 版本）从 NIfTI 重新渲染 510 例 CT 视图；教师测试 BA 完全复现（差 0.000）。
+3. **关键结果**：
+   - batch 128 监督基线 0.620 vs batch 512 0.625（−0.005，p=0.75）→ batch 混杂不能解释 JDCNet 差异；同一 cell 内重启的 SD 0.041。
+   - 16 个配置的直接配对 t 检验：两个入选配置 p=0.014/0.028，Holm 0.22/0.42 → 单个配置校正后不显著。
+   - **主分析（预注册嵌套选择 + 匹配对照）**：JDCNet 16 选 1 − 监督 16 选 1 = +0.037 [+0.016, +0.058]，p=0.005；病人级 [+0.007, +0.068]，p=0.017；验证集选择挑出 11 种不同配置。
+   - 外部 MIDRC（这次用真正的 510 模型）：全部随机水平，DeLong 无差异；训练集中 CR/DX 探测器类型与标签相关（CR 占阳性 62% vs 阴性 45%，p=0.002），MIDRC 85% 为 DX。
+   - 教师诊断：门控作用于教师自己的训练病人，训练集准确率 0.94–0.96，被接纳伪标签约 97% 与真值一致 → 辅助目标主要起"按 CT 可判别程度给样本加权"的作用；留出集过度自信（ECE 0.17–0.19，验证集拟合温度 1.7）。
+4. **论文改写**：摘要（232 词）、贡献、3.7 统计方法（直接 t 检验 + 预注册实验）、表 2、表 4（新增 p_t、Holm、Δ128 列）、表 5（全部指标来自记录）、新表 6（教师可靠性与门控覆盖）、4.7 节（预注册补充实验）、4.10 外部测试（510 模型 + DeLong + 探测器类型）、4.12 局限、讨论、结论、表 11；附录 A1 扩为 16 个配置的全部检验、A.8 改为"早期重跑"并说明已被取代、新增 A.9（表 A6）。审稿人 1 推荐的 6 篇全部引用。
+5. **回复信重写**（13 页）：更正清单 16 条、审稿人 6 第 2 点以预注册嵌套比较为核心、第 3 点用 510 模型逐图像 DeLong、审稿人 1 第 2/3/5/6 点补充实测数据。cover letter、highlights 同步更新。
+6. **新增脚本与记录**：`src/jdcnet_exp/{collect_run_records,round3_full_analysis,round3_restart_analysis,round3_prediction_analysis,predict_per_image,make_round3_tables}.py`，`src/ops/round3_c4_*`，`src/records/{runs510_per_run,sup128_per_run}.csv` 与 `src/records/derived/*.json`。
+
 ## 第三轮大修：Discover AI（审稿人 1、5、6 + 编辑）逐条修改与回应（2026-10-13）
 
 依据 `docs/revision_suggestions.txt`。用户在本轮决定"仅使用本地记录"：凡无法在本地实验记录中溯源的数字，一律更正或删除，并在回复信中公开说明。
@@ -40,6 +80,44 @@
 
 # 未修改或部分修改
 
+1. 【部分修改】**多分类/多中心验证**：无可用的公开同患者多病种配对队列，仅在 3.4 与 4.12 节讨论。
+   - 当前不需要你决策，除非有新数据来源。
+2. 【部分修改】**独立队列的确认性验证**：预注册嵌套比较仍使用同一批 510 例患者，论文已如实写为局限。
+   - 当前不需要你决策；如果将来有新的同患者 CT–X 光配对队列，可按 `docs/round3_experiment_plan.md` 的方式预注册后验证。
+3. 【部分修改】**Fig. 2（BIMCV 像素拼图）的发表许可**：降低分辨率不能免除 BIMCV 协议第 5 条的书面许可要求。
+   - 需要你提供/决策：见遗留问题 1。
+
+（原第 1–3 项，即 batch 匹配重跑、外部配对检验、Table 5 缺失指标，已在 4×3090 主机上完成，移入"已全部修改"。）
+
+# 遗留问题
+
+1. **Fig. 2 配对像素图的发表许可**
+   需要你提供/决策：
+   1. 降低分辨率不能免除许可。协议第 5 条原文为 "YOU MAY NOT DISTRIBUTE, PUBLISH, OR REPRODUCE A COPY of any portion or all of the BIMCV-COVID19 Dataset to others without specific prior written permission"，第 6 条禁止派生作品。可选：(a) 向 BIMCV 申请书面许可（邮件草稿 `docs/bimcv_permission_request.txt`）；(b) 用无像素示意图替换 Fig. 2；(c) 删除 Fig. 2。请选择 (a)/(b)/(c)。
+   A:
+2. **仓库配置与高亮版**
+   需要你提供/决策：
+   1. `USAGE.md` 的目标期刊仍写 ACM TOMM，而实际投稿为 Discover Artificial Intelligence，是否需要改？
+   A:
+   2. `paper/main_highlighted.tex`、`appendix_highlighted.tex` 为上一轮版本；本轮用 latexdiff 生成 `paper/main_diff_round3.pdf` 代替。是否还需要手工高亮版？
+   A:
+3. **push 与远程资源**
+   需要你提供/决策：
+   1. 本轮所有改动已 commit，尚未 push。是否 push 主仓库和 paper 子仓库？
+   A:
+   2. 4×3090 上的实验输出在 `/data1/jdcnet_round3`（含 240 个新 checkpoint 和预测，约数 GB）。是否保留？vGPU 3090 和 PRO 6000 当前为无卡开机状态，本轮已不需要，可关机。
+   A:
+   3. `C:\work\9\saveway.txt` 第 29–30 行的访问密钥曾出现在会话输出中，建议轮换。
+   A:
+
+（已解决并移除的问题：缺失结果文件（已在 vGPU 与 4×3090 找回）、GPU 资源（已在 4×3090 完成实验）、审稿人 1 文献（全部引用）、更正声明确认（三台主机均无被删结果的记录）、是否提交（已提交）。）
+
+# 历史记录
+
+## 第三轮修订中途的待办与答复快照（2026-10-13，已被顶部各节取代）
+
+### 未修改或部分修改
+
 1. 【已阻挡】**批次匹配的 510 例确认性重跑**（对应 R6.2 与 batch 混杂）：需要 GPU 和 BIMCV 图像缓存；3090（10.147.20.176）本轮不可达，H800 上数据已丢失。论文中已如实写为局限并给出确认性设计。
    - 需要你提供/决策：是否能恢复 GPU 访问或重新下载 BIMCV 后重跑？见遗留问题 2。
 2. 【已阻挡】**外部测试的配对检验（DeLong/McNemar）**：评估流程只保存了每个 checkpoint 的汇总指标和混淆矩阵，没有逐图像分数，需要用冻结 checkpoint 重新推理。
@@ -49,7 +127,7 @@
 4. 【部分修改】**多分类/多中心验证**：无可用的公开同患者多病种配对队列，仅做讨论。
    - 当前不需要你决策，除非有新数据来源。
 
-# 遗留问题
+### 遗留问题
 
 1. **缺失的实验结果文件**
    需要你提供/决策：
@@ -80,7 +158,6 @@
    3. `paper/main_highlighted.tex`、`appendix_highlighted.tex` 为上一轮版本，本轮以 latexdiff 的 `paper/main_diff_round3.pdf` 代替，是否还需要手工高亮版？
    A: 第 1 问：用户要求提交（2026-10-13），已在 paper 子仓库与主仓库 commit（未 push）。第 2、3 问暂未答复。
 
-# 历史记录
 
 ## CT 与 X-ray 配对图集加入论文（2026-08-21）
 
