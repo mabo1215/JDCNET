@@ -5,6 +5,12 @@
 
 # 已全部修改
 
+## 摘要措辞修正（2026-10-13）
+
+1. 核对作者从投稿系统编译的 `JDCNet_revised_source_round3.pdf`：与本地最新版 41 页逐页内容一致，40 页像素级相同，第 3 页仅项目符号字形不同（两套 TeX 环境的字体差异）。
+2. 摘要中 "batch size did not change the baseline" 改为 "batch size had no detectable effect on the baseline"（CI [−0.032, +0.022] 只支持"未检测到差别"，与正文其他位置一致）；标题页摘要同步；摘要 234 词。
+3. 重新编译（正文 34 页、合并 41 页、标记版 65 页，均无错误），投稿包 `submit/revision_round3/` 与各 zip 已同步并复核一致。作者需重新上传正文/源码；旧的 `JDCNet_revised_source_round3.pdf` 已不是最新。
+
 ## 按作者要求还原 Fig. 2 原始拼图（2026-10-13）
 
 作者要求把 Fig. 2 还原为原来的 8 组 CT–X 光配对拼图（撤销此前选择的方案 (b)）。
