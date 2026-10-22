@@ -11,7 +11,8 @@
 2. **独立本地备份**：删除前全部 7,511 个被忽略文件已复制到 `C:\source\JDCNET_local_backup_20261022`，约 1,070.32 MiB；每个文件均比对源文件与备份的 SHA-256，清单为该目录下的 `backup_manifest.csv`。两个仓库的完整可达历史另存为 `JDCNET.bundle`、`JDCNET_Overleaf.bundle`，均通过 `git bundle verify`，后者保留 `refs/stash`。这些备份只在本机，不是异地备份，不能随原目录一起删除。
 3. **恢复 Git 跟踪范围**：取消对 `USAGE.md`、`agents/`、`.claude/rules/`、实验配置及 `.gitmodules` 的笼统忽略；实验结果只开放汇总指标、训练历史和运行级统计/报告；投稿材料只开放第三轮非患者影像材料。患者 manifest、逐图像预测、模型权重、原始数据、临时同步脚本、含 Fig. 2 患者影像的稿件 PDF/源码压缩包继续排除，完整副本在上述本地备份。
 4. **子模块恢复**：`.gitmodules` 中 paper 地址由旧 `COREY_Transformer_latex` 修正为实际使用的 `JDCNET_Overleaf`，避免重新克隆时取错仓库。没有修改或重新提交论文内容。
-5. **恢复方式**：正常使用 `git clone --recurse-submodules https://github.com/mabo1215/JDCNET.git`；若需要旧 stash，从本地 paper bundle 导入 `refs/stash`，不要直接套用到当前稿件。仅靠 GitHub 无法恢复被排除的数据、逐图像预测和完整投稿包；删除前应保留整个本地备份目录，建议再复制到外置盘或受控存储。
+5. **恢复方式**：Windows 使用 `git clone --config core.longpaths=true --recurse-submodules https://github.com/mabo1215/JDCNET.git`，避免长目录下的实验记录触发文件名长度限制；若需要旧 stash，从本地 paper bundle 导入 `refs/stash`，不要直接套用到当前稿件。仅靠 GitHub 无法恢复被排除的数据、逐图像预测和完整投稿包；删除前应保留整个本地备份目录，建议再复制到外置盘或受控存储。
+6. **提交与验证**：归档提交 `da5e428` 已推送 GitHub（5,066 个文件变更，新增材料约 41 MiB）。4,867 个结果 JSON 均通过解析检查；新增文本通过凭据/患者标识模式筛查；本次编辑的忽略规则、子模块元数据与进度文档通过空白检查。已用独立工作目录从 GitHub 恢复主仓库及 paper 子模块，验证关键文件、4,867 个结果 JSON、子模块提交 `914f7c0` 和干净工作区；无需重新训练或编译论文。归档快照保持原始内容，未清理历史报告及期刊模板自带的尾随空白。
 
 ## 摘要措辞修正（2026-10-13）
 
