@@ -1,0 +1,13 @@
+run_name,status,history_csv,best_pt,balanced_accuracy,macro_f1,mcc,auc,accuracy,specificity,sensitivity,loss,epoch,error
+bimcv_pathc_h800_resnet18_teacher_ct_s42,complete,True,True,0.7022908785203867,0.6913473956091261,0.42858363770160407,,0.698744769874477,0.8717948717948718,0.5327868852459017,,,
+bimcv_pathc_h800_resnet18_teacher_ct_s43,complete,True,True,0.6828499369482977,0.6604925744857486,0.4149263810269219,,0.6778242677824268,0.9230769230769231,0.4426229508196721,,,
+bimcv_pathc_h800_resnet18_teacher_ct_s44,complete,True,True,0.7203306711503432,0.7195867262061115,0.4412180845850076,,0.7196652719665272,0.7521367521367521,0.6885245901639344,,,
+bimcv_pathc_h800_resnet18_teacher_ct_s45,complete,True,True,0.6750035028723553,0.6472225855271763,0.41055983642437033,,0.6694560669456067,0.9401709401709402,0.4098360655737705,,,
+bimcv_pathc_h800_resnet18_xray_cross_modal_kd_s42,partial,False,True,1.0,1.0,0.0,,1.0,0.0,1.0,,5,
+bimcv_pathc_h800_resnet18_xray_cross_modal_kd_s43,partial,False,True,1.0,1.0,0.0,,1.0,0.0,1.0,,1,
+bimcv_pathc_h800_resnet18_xray_cross_modal_kd_s44,partial,False,True,1.0,1.0,0.0,,1.0,0.0,1.0,,11,
+bimcv_pathc_h800_resnet18_xray_cross_modal_kd_s45,partial,False,True,1.0,1.0,0.0,,1.0,0.0,1.0,,7,
+bimcv_pathc_h800_resnet18_xray_supervised_s42,complete,True,True,0.6097449908925319,0.609126879451332,0.22085579318335835,,0.6108786610878661,0.5555555555555556,0.6639344262295082,,,
+bimcv_pathc_h800_resnet18_xray_supervised_s43,complete,True,True,0.6093947036569987,0.6081345533400329,0.22112546977250414,,0.6108786610878661,0.5384615384615384,0.680327868852459,,,
+bimcv_pathc_h800_resnet18_xray_supervised_s44,complete,True,True,1.0,1.0,0.0,,1.0,0.0,1.0,,,
+bimcv_pathc_h800_resnet18_xray_supervised_s45,partial,False,True,1.0,1.0,0.0,,1.0,0.0,1.0,,10,

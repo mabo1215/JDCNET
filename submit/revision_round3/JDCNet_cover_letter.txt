@@ -1,0 +1,135 @@
+Cover Letter
+Resubmission to Discover Artificial Intelligence (Springer Nature)
+Submission ID: bf05c1ad-f7f2-44f8-a235-de9eeb659798
+
+Title: JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost
+       Preserving X Ray Inference
+
+Submission category: Original Research Article (revised manuscript following
+Major Revision)
+
+Dear Editor,
+
+Please find enclosed our revised manuscript, "JDCNet Uses Confidence Gated
+Privileged Modality Distillation for Cost Preserving X Ray Inference"
+(Submission ID bf05c1ad-f7f2-44f8-a235-de9eeb659798), together with a
+point-by-point response to the Editor and to Reviewers 1, 5, and 6, and a
+marked-up version of the main text.
+
+WHAT THE PAPER STUDIES
+
+We investigate whether computed tomography (CT), available only during model
+development, can improve an X-ray-only classifier without changing the
+deployed model. JDCNet applies an auxiliary CT-teacher target only on training
+samples that the teacher classifies confidently. At test time the deployed
+model is a standard ResNet-18 X-ray classifier with the same computation graph
+as the supervised baseline.
+
+ACCURACY OF REPORTING AND NEW EVIDENCE
+
+Following the Editor's request that results be accurately reported, we
+retrieved the complete per-run records of the original experiments and
+re-audited every number in the manuscript. The audit led to substantive
+corrections, which are listed openly at the start of the response letter.
+Most importantly, the 16 JDCNet configurations were explored adaptively rather
+than registered in advance, and the supervised baseline had been trained with
+a larger batch size than JDCNet. Several previously reported quantities could
+not be traced to any record and have been removed or recomputed.
+
+To address these issues and Reviewer 6's concerns about selection optimism,
+we wrote an analysis plan and committed it before running a supplementary
+experiment on the original splits. The experiment comprised 240 batch-matched
+supervised restarts, per-patient predictions for every checkpoint, and
+teacher-calibration diagnostics.
+
+MAIN FINDINGS (REVISED)
+
+On 510 same-patient paired patients from the public BIMCV-COVID19 releases:
+
+  - 15 of 16 JDCNet configurations improved mean balanced accuracy (BA) over
+    the supervised baseline (average +0.020), but no individual configuration
+    is significant after Holm adjustment.
+  - The training budget is unlikely to explain the results: supervised BA was
+    0.620 at JDCNet's batch size versus 0.625 originally.
+  - In the pre-registered nested comparison, both methods selected one of 16
+    runs per cross-validation cell on the validation partition. JDCNet
+    exceeded supervised training by +0.037 BA (95% CI +0.016 to +0.058;
+    patient-level +0.007 to +0.068).
+  - Logit distillation and contrastive alignment showed no gain.
+  - Teacher diagnostics indicate that the gate acts mainly as CT-informed
+    sample weighting.
+  - All models, including JDCNet, performed at chance on an external MIDRC
+    radiograph set.
+
+The conclusion is therefore a small, method-level advantage within one public
+cohort and a binary task, with no evidence of external generalization.
+
+SUMMARY OF CHANGES IN THIS REVISION
+
+  - Disclosed the configuration-selection history; added directly computed
+    and multiplicity-adjusted p-values for all 16 configurations, unselected
+    averages, and the pre-registered nested comparison with a matched
+    control (Reviewer 6).
+  - Clarified that CT teachers were trained within each cross-validation fold
+    and seed, so no test patient was seen by a teacher (Reviewer 6).
+  - Re-evaluated the external test with the actual 510-patient models,
+    per-image predictions, confidence intervals, and paired DeLong tests;
+    possible causes, including a class-dependent mix of detector types in the
+    training data, are presented as hypotheses (Reviewers 1 and 6).
+  - Showed analytically that, for a two-class teacher, temperature scaling of
+    the gate is equivalent to a threshold change, and reported the measured
+    teacher calibration and gate coverage (Reviewer 1).
+  - Quantified the sensitivity to the gate threshold and loss weight against
+    seed-to-seed variability, and discussed selection overfitting
+    (Reviewer 1).
+  - Discussed the extension to multi-class and multi-label settings
+    (Reviewer 1).
+  - Moderated the clinical, triage, regulatory, and deployment-cost
+    statements; renamed the "teacher upper bound" to "CT-only reference";
+    described the recovery ratio as descriptive; and defined Macro-F1
+    (Reviewer 6).
+  - Removed duplicated text, unified US spelling, and defined all acronyms on
+    first use (Reviewer 5).
+  - Updated the literature with references from 2022-2026, including all
+    works suggested by the reviewers.
+  - Corrected the cohort description, implementation details, and comparator
+    scope; re-measured inference cost; and redrew the mechanism figure.
+  - The Declarations section contains separate Ethical approval, Consent to
+    participate, and Consent to publish subheadings.
+
+RELEVANCE TO DISCOVER ARTIFICIAL INTELLIGENCE
+
+Training-only privileged modalities arise wherever a richer modality is
+available during development but not at the point of care. Examples include
+CT for X-ray, whole-slide imaging for cytology, and OCT for fundus
+photography. Beyond the method itself, the paper offers a worked example of
+selection-aware evaluation on a small paired medical cohort: full reporting of
+the search, multiplicity adjustment, and a pre-registered nested comparison
+with a matched control.
+
+REPRODUCIBILITY
+
+Source code, patient-level split definitions, the analysis plan, per-run
+aggregate records, and analysis scripts are publicly available at:
+https://github.com/mabo1215/JDCNET
+
+ORIGINALITY AND SUBMISSION STATUS
+
+This manuscript has not been published previously and is not under
+consideration elsewhere. All authors have approved the revised manuscript. The
+BIMCV data used are publicly released and de-identified. No new patient data
+were collected, and no ethics approval beyond that of the original data
+collection was required.
+
+This journal uses single-anonymous review, so author names and affiliations
+are included directly in the manuscript.
+
+We thank the Editor and the Reviewers for their constructive comments, and we
+thank you for your time and consideration.
+
+Sincerely,
+
+Bo Ma (corresponding author)
+Auckland University of Technology
+Auckland 1024, New Zealand
+amabo1215@gmail.com

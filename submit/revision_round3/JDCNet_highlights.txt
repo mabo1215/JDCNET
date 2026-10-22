@@ -1,0 +1,7 @@
+Highlights
+
+- CT supervises an X-ray classifier during training only; the deployed graph is unchanged
+- 15 of 16 confidence-gated configurations improve balanced accuracy, by about 0.02 on average
+- A pre-registered nested comparison with 240 matched restarts gives a +0.037 advantage
+- Teacher diagnostics show the gate acts mainly as CT-informed sample weighting
+- All models fail on an external radiograph set, bounding the single-cohort evidence

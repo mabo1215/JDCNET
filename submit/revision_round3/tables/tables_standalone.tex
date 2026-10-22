@@ -1,0 +1,509 @@
+\documentclass[pdflatex,sn-vancouver,Numbered]{sn-jnl}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage{makecell}
+\usepackage{manyfoot}
+\usepackage{hyperref}
+\raggedbottom
+%% Standalone copy of the manuscript tables, regenerated from main.tex and
+%% appendix.tex. Cross-references to sections, equations, and other tables are
+%% printed as in the manuscript.
+\begin{document}
+\title{Tables}
+\author*[1]{\fnm{Bo} \sur{Ma}}
+\affil*[1]{\orgname{Auckland University of Technology}}
+\maketitle
+\noindent Tables for: \textit{JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost Preserving X Ray Inference}, in the order in which they appear in the manuscript (main text, then appendix).
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 1.} Methodological comparison of JDCNet with related privileged-modality and confidence-aware distillation methods. ``Fixed-cost deploy.'' denotes whether the deployed model is audited to have the same parameters and MACs as a single-modality baseline; ``Negative-channel reporting'' denotes whether the study reports alternative transfer mechanisms that were tested and did not help.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{0.92}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash\hspace{0pt}}p{0.14\textwidth}>{\raggedright\arraybackslash\hspace{0pt}}p{0.15\textwidth}>{\raggedright\arraybackslash\hspace{0pt}}p{0.07\textwidth}>{\raggedright\arraybackslash\hspace{0pt}}p{0.11\textwidth}>{\raggedright\arraybackslash\hspace{0pt}}p{0.16\textwidth}>{\raggedright\arraybackslash\hspace{0pt}}p{0.14\textwidth}>{\raggedright\arraybackslash\hspace{0pt}}X@{}}
+\toprule
+Method & Modality pairing & Same-pt.? & Fixed-cost deploy.? & Gating / selection mechanism & Target granularity & Negative-channel reporting \\
+\midrule
+JDCNet (ours) & CT (train only) $\to$ X-ray & Yes & Yes, X-ray-only & Hard per-sample confidence mask & Argmax label or untempered two-class distribution & Yes \\
+Chen et al.~ & Multimodal magnetic resonance imaging (MRI; train) $\to$ unimodal & Yes & Not audited & Down-weighting of incorrect teacher outputs & Segmentation maps & No \\
+Cahan et al.~ & Chest X-ray $\leftrightarrow$ CT pulmonary angiography & Yes & Not audited & Latent-diffusion prior & Continuous latent representation & No \\
+DANTE~ & Cross-modal (disentangled) & Not specified & Not audited & Shared/\allowbreak specific disentanglement & Continuous representation & No \\
+K-MaT~ & Multi-anatomy teacher mixture & Not CT--X-ray & Not audited & Instance routing across teachers & Continuous & No \\
+KRD~ & Generic (non-medical) & N/A & N/A & Continuous reliability weight & Softened distribution & No \\
+MST-Distill~ & Generic mixture-of-teacher & N/A & N/A & Continuous instance routing & Softened distribution & No \\
+BDKD~ & Generic calibration-balanced KD & N/A & N/A & Continuous divergence weighting & Softened distribution & No \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 2.} Summary of the 510-patient paired comparisons (five folds $\times$ three seeds). Unless stated otherwise, $\Delta\mathrm{BA}$ is against the batch-512 supervised baseline. $p$: paired $t$-test over the 15 fold/seed cells (patient-level bootstrap for the row so marked); $p_{\mathrm{Holm}}$: Holm-adjusted across the 16 JDCNet configurations. The two JDCNet rows marked ``selected'' were chosen post hoc from 16 configurations (Table~4).\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xrlccc@{}}
+\toprule
+Comparison & $\Delta\mathrm{BA}$ & 95\% CI & $+/0/-$ & $p$ & $p_{\mathrm{Holm}}$ \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{Does the CT view carry class signal? (CT-only reference)}} \\
+\quad CT mid-slice & $+0.045$ & [$+0.019$, $+0.070$] & 11/0/4 & $0.005$ & -- \\
+\quad CT 3-slice & $+0.051$ & [$+0.025$, $+0.079$] & 12/0/3 & $0.003$ & -- \\
+\multicolumn{6}{@{}l}{\emph{Does JDCNet move the X-ray student? (original sweep)}} \\
+\quad 3-slice, soft-KL, $\tau{=}0.70$, $\lambda{=}1.0$ (selected) & $+0.0345$ & [$+0.0112$, $+0.0571$] & 10/0/5 & $0.014$ & $0.22$ \\
+\quad Mid, hard, $\tau{=}0.80$, $\lambda{=}1.5$ (selected) & $+0.0329$ & [$+0.0074$, $+0.0584$] & 10/1/4 & $0.028$ & $0.42$ \\
+\quad Average of all 16 configurations (unselected) & $+0.020$ & [$+0.003$, $+0.039$] & 13/0/2 & $0.060$ & -- \\
+\quad Average of the 8 initial configurations (unselected) & $+0.016$ & [$-0.001$, $+0.035$] & 8/0/7 & $0.11$ & -- \\
+\multicolumn{6}{@{}l}{\emph{Pre-registered supplementary experiment (batch 128, 16 supervised restarts per cell)}} \\
+\quad Supervised batch 128 ($r{=}0$) minus supervised batch 512 & $-0.005$ & [$-0.032$, $+0.022$] & 8/0/7 & $0.75$ & -- \\
+\quad JDCNet best of 16 minus supervised best of 16, selected on validation (primary) & $+0.037$ & [$+0.016$, $+0.058$] & 11/1/3 & $0.005$ & -- \\
+\quad Same comparison, patient-level bootstrap & $+0.037$ & [$+0.007$, $+0.068$] & -- & $0.017$ & -- \\
+\quad Average of all 16 configurations minus mean of 16 restarts & $+0.019$ & [$+0.006$, $+0.031$] & 12/0/3 & $0.016$ & -- \\
+\multicolumn{6}{@{}l}{\emph{Do alternative channels move the X-ray student?}} \\
+\quad Gated logit KD, mid-slice & $-0.022$ & [$-0.055$, $+0.010$] & 5/0/10 & $0.23$ & -- \\
+\quad Gated logit KD, DRR & $-0.064$ & [$-0.095$, $-0.034$] & 3/0/12 & $0.002$ & -- \\
+\quad Plain logit KD, 3-slice & $-0.036$ & [$-0.062$, $-0.013$] & 4/0/11 & $0.016$ & -- \\
+\quad Contrastive alignment, best of 4 & $+0.008$ & [$-0.021$, $+0.038$] & 7/1/7 & $0.61$ & -- \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 3.} Data sources and their roles. Only the 510-patient paired BIMCV cohort supports the main comparisons.\par}
+\vspace{6pt}
+
+
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{0.20\textwidth}|>{\raggedright\arraybackslash}p{0.17\textwidth}|>{\raggedright\arraybackslash}p{0.15\textwidth}|>{\raggedright\arraybackslash}p{0.20\textwidth}|>{\raggedright\arraybackslash}X|}
+\hline
+Cohort / source & Size & Pairing & Role in paper & Main caveat \\ \hline
+Primary BIMCV paired cohort & 510 patients ($113^+ / 397^-$) & Same-patient CT--X-ray & JDCNet sweep, CT-only references, logit-KD and contrastive comparators, batch-matched supervised restarts & Single public source; classes from two releases; binary task. \\ \hline
+Balanced BIMCV subsets & 226--228 patients (1:1); 216 with a rendered CT teacher view & Same-patient CT--X-ray & CT-view comparison, BiomedCLIP control, earlier reruns (appendix) & Smaller, class-balanced; different split. \\ \hline
+BIMCV rerun split & 466 patients with a rendered CT teacher view & Same-patient CT--X-ray & Earlier gate-temperature rerun (appendix) & Paired comparison on the validation partition only. \\ \hline
+Historical Cohen paired subset & 19 patients / 26 X-rays & Same-patient CT--X-ray & Early feasibility and instability diagnosis & Too small for ranking. \\ \hline
+External MIDRC radiographs & 126 images ($63^+/63^-$) & X-ray only & Frozen-student stress test of the 510-patient models & Different source, detector mix, labels, and population. \\ \hline
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 4.} All 16 JDCNet configurations on the 510-patient BIMCV cohort (ResNet-18 student; five folds $\times$ seeds 42--44). Stage: I, initial grid; A, extension A ($\lambda{=}1.5$); B, extension B (soft-KL), in the order they were run. $+/0/-$: fold/seed cells with positive, zero, and negative $\Delta\mathrm{BA}$ against the batch-512 supervised baseline. CI: recorded percentile bootstrap. $p$: paired $t$-test over the 15 cells; $p_{\mathrm{H}}$: Holm-adjusted over the 16 configurations. $\Delta_{128}$: mean difference from the average of the 16 batch-128 supervised restarts of the same cell. Rule: meets the planned decision rule (mean $\geq+0.03$ and lower CI bound $>0$).\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{1.6pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabular}{@{}lcccccrlcccc@{}}
+\toprule
+Teacher & $\tau$ & $\lambda$ & Target & Stage & $+/0/-$ & $\Delta\mathrm{BA}$ & 95\% CI & $p$ & $p_{\mathrm{H}}$ & $\Delta_{128}$ & Rule \\
+\midrule
+3-slice & 0.70 & 1.0 & soft-KL & B & 10/0/5 & $+0.0345$ & [$+0.0112$, $+0.0571$] & 0.014 & 0.22 & $+0.033$ & Yes \\
+Mid & 0.80 & 1.5 & hard & A & 10/1/4 & $+0.0329$ & [$+0.0074$, $+0.0584$] & 0.028 & 0.42 & $+0.032$ & Yes \\
+Mid & 0.70 & 1.0 & hard & I & 10/0/5 & $+0.0298$ & [$-0.0002$, $+0.0597$] & 0.079 & 1.00 & $+0.029$ & -- \\
+Mid & 0.70 & 1.5 & hard & A & 9/0/6 & $+0.0296$ & [$+0.0026$, $+0.0577$] & 0.061 & 0.86 & $+0.029$ & -- \\
+Mid & 0.70 & 1.0 & soft-KL & B & 10/0/5 & $+0.0264$ & [$+0.0017$, $+0.0547$] & 0.082 & 1.00 & $+0.025$ & -- \\
+3-slice & 0.80 & 1.0 & soft-KL & B & 10/0/5 & $+0.0258$ & [$-0.0029$, $+0.0546$] & 0.11 & 1.00 & $+0.025$ & -- \\
+3-slice & 0.80 & 1.0 & hard & I & 10/0/5 & $+0.0247$ & [$+0.0012$, $+0.0504$] & 0.082 & 1.00 & $+0.024$ & -- \\
+3-slice & 0.70 & 0.5 & hard & I & 10/0/5 & $+0.0239$ & [$-0.0032$, $+0.0501$] & 0.11 & 1.00 & $+0.023$ & -- \\
+Mid & 0.80 & 1.0 & soft-KL & B & 9/0/6 & $+0.0231$ & [$-0.0083$, $+0.0544$] & 0.19 & 1.00 & $+0.022$ & -- \\
+3-slice & 0.80 & 1.5 & hard & A & 9/0/6 & $+0.0181$ & [$-0.0105$, $+0.0464$] & 0.25 & 1.00 & $+0.017$ & -- \\
+3-slice & 0.80 & 0.5 & hard & I & 9/0/6 & $+0.0151$ & [$-0.0185$, $+0.0479$] & 0.40 & 1.00 & $+0.014$ & -- \\
+Mid & 0.80 & 0.5 & hard & I & 10/0/5 & $+0.0144$ & [$-0.0063$, $+0.0358$] & 0.22 & 1.00 & $+0.013$ & -- \\
+Mid & 0.80 & 1.0 & hard & I & 10/0/5 & $+0.0127$ & [$-0.0177$, $+0.0423$] & 0.44 & 1.00 & $+0.012$ & -- \\
+3-slice & 0.70 & 1.0 & hard & I & 7/0/8 & $+0.0066$ & [$-0.0182$, $+0.0330$] & 0.63 & 1.00 & $+0.005$ & -- \\
+Mid & 0.70 & 0.5 & hard & I & 7/0/8 & $+0.0005$ & [$-0.0247$, $+0.0264$] & 0.97 & 1.00 & $-0.001$ & -- \\
+3-slice & 0.70 & 1.5 & hard & A & 9/0/6 & $-0.0031$ & [$-0.0315$, $+0.0253$] & 0.84 & 1.00 & $-0.004$ & -- \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 5.} Absolute test-partition performance on the 510-patient cohort, mean (SD) over 15 fold/seed cells. Macro-F1 is the unweighted mean of the per-class F1 scores; sensitivity refers to the COVID-19 class.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xccccc@{}}
+\toprule
+Method & BA & AUC & Macro-F1 & Sensitivity & Specificity \\
+\midrule
+Supervised X-ray, batch 512 & $0.625\,(0.050)$ & $0.674\,(0.049)$ & $0.568$ & $0.629\,(0.139)$ & $0.620\,(0.128)$ \\
+Supervised X-ray, batch 128 ($r{=}0$) & $0.620\,(0.066)$ & $0.668\,(0.053)$ & $0.558$ & $0.646\,(0.130)$ & $0.594\,(0.127)$ \\
+JDCNet 3-slice soft-KL & $0.659\,(0.041)$ & $0.713\,(0.027)$ & $0.618$ & $0.607\,(0.153)$ & $0.711\,(0.125)$ \\
+JDCNet mid hard & $0.658\,(0.038)$ & $0.692\,(0.045)$ & $0.607$ & $0.642\,(0.138)$ & $0.674\,(0.132)$ \\
+Plain logit KD, mid & $0.614\,(0.071)$ & $0.676\,(0.072)$ & $0.565$ & $0.550\,(0.214)$ & $0.679\,(0.228)$ \\
+Gated logit KD, mid & $0.603\,(0.079)$ & $0.660\,(0.068)$ & $0.528$ & $0.558\,(0.290)$ & $0.647\,(0.302)$ \\
+Gated logit KD, DRR & $0.561\,(0.059)$ & $0.613\,(0.077)$ & $0.429$ & $0.689\,(0.287)$ & $0.433\,(0.324)$ \\
+CT-only reference, mid & $0.670\,(0.051)$ & $0.747\,(0.050)$ & $0.653$ & $0.531\,(0.155)$ & $0.809\,(0.097)$ \\
+CT-only reference, 3-slice & $0.676\,(0.045)$ & $0.754\,(0.032)$ & $0.662$ & $0.534\,(0.136)$ & $0.818\,(0.096)$ \\
+Contrastive alignment, best & $0.633\,(0.047)$ & $0.661\,(0.052)$ & $0.577$ & $0.642\,(0.090)$ & $0.623\,(0.092)$ \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 6.} CT-teacher reliability by partition (mean over the 15 fold/seed teachers of each view). Cov.: fraction of samples with teacher confidence above $\tau$; Acc.\ ret./rej.: teacher accuracy on samples with confidence above/below $\tau{=}0.80$; ECE: expected calibration error (15 bins); $T_{\mathrm{val}}$: temperature fitted on the validation partition by negative log-likelihood. The gate acts on the training partition.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabular}{@{}llcccccc@{}}
+\toprule
+View & Partition & Acc. & ECE & Cov.\ $\tau{=}0.70$ & Cov.\ $\tau{=}0.80$ & Acc.\ ret./rej. & $T_{\mathrm{val}}$ \\
+\midrule
+Mid-slice & train & 0.943 & 0.032 & 0.89 & 0.84 & 0.965 / 0.700 & 1.72 \\
+ & val & 0.787 & 0.169 & 0.83 & 0.76 & 0.828 / 0.689 & 1.72 \\
+ & test & 0.747 & 0.189 & 0.82 & 0.75 & 0.772 / 0.568 & 1.72 \\
+3-slice & train & 0.962 & 0.021 & 0.95 & 0.92 & 0.981 / 0.727 & 1.71 \\
+ & val & 0.789 & 0.174 & 0.89 & 0.82 & 0.813 / 0.674 & 1.71 \\
+ & test & 0.755 & 0.194 & 0.90 & 0.82 & 0.792 / 0.551 & 1.71 \\
+Mean proj. & train & 0.881 & 0.057 & 0.84 & 0.74 & 0.920 / 0.688 & 2.52 \\
+ & val & 0.764 & 0.176 & 0.79 & 0.68 & 0.807 / 0.687 & 2.52 \\
+ & test & 0.723 & 0.190 & 0.79 & 0.69 & 0.765 / 0.523 & 2.52 \\
+DRR & train & 0.865 & 0.060 & 0.84 & 0.77 & 0.937 / 0.590 & 1.15 \\
+ & val & 0.746 & 0.194 & 0.80 & 0.71 & 0.732 / 0.681 & 1.15 \\
+ & test & 0.699 & 0.202 & 0.79 & 0.71 & 0.768 / 0.524 & 1.15 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 7.} Anonymized case-level outputs of a mid-slice CT teacher and the confidence gate ($\tau_{\mathrm{gate}}=0.80$; fold~0, seed~42). Case labels do not encode patient identifiers, and no pixels, filenames, or identifiers are reproduced. The source collection is the BIMCV-COVID19 portal, \url{https://bimcv.cipf.es/bimcv-projects/bimcv-covid19}. The four examples are illustrative, not a performance estimate.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Case & Teacher confidence & Teacher prediction & Ground truth & Gate outcome \\
+\midrule
+Case A & 0.9992 & COVID-19 & COVID-19 & Accepted \\
+Case B & 0.9997 & Non-COVID & COVID-19 & Accepted \\
+Case C & 0.7619 & COVID-19 & COVID-19 & Rejected \\
+Case D & 0.7707 & Non-COVID & COVID-19 & Rejected \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 8.} Supporting evidence layers and what each contributes.\par}
+\vspace{6pt}
+
+
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabularx}{\columnwidth}{|>{\raggedright\arraybackslash}p{0.30\columnwidth}|>{\raggedright\arraybackslash}p{0.36\columnwidth}|>{\raggedright\arraybackslash}X|}
+\hline
+Evidence layer & Main observation & Role \\ \hline
+19-patient paired cohort & Seed-level swings between chance and perfect scores & Feasibility only \\ \hline
+Balanced-subset gated-logit scan & Best configuration positive, CI crosses zero & Instability diagnosis \\ \hline
+510-patient logit-KD runs & Negative or neutral across four teacher views & Comparator evidence \\ \hline
+226-patient BiomedCLIP control & No detectable difference from ResNet-18 ($+0.002$, CI $\pm0.05$) & Capacity control \\ \hline
+Pre-registered restarts & No detectable batch-size effect; nested JDCNet advantage $+0.037$ & Selection and budget control \\ \hline
+External MIDRC test & All students at chance & Generalization warning \\ \hline
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 9.} Inference cost at $224{\times}224$ input in 32-bit floating point (FP32), batch size 1, model forward pass only. MACs count convolution and linear layers. Latency is the median (interquartile range) of 1{,}000 timed passes after 50 warm-ups on a laptop with an Intel Core i7-13700H CPU (one thread) and an NVIDIA GeForce RTX 4050 Laptop GPU (PyTorch 2.5.1); a repeated run differed by up to a factor of two on the GPU because of power management, so timings are illustrative. The supervised, JDCNet, and logit-KD students share one deployed graph and therefore one row.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}Xcccc@{}}
+\toprule
+Deployed model & Params / MACs & CPU latency & GPU latency & GPU peak mem. \\
+\midrule
+ResNet-18 X-ray classifier (supervised, JDCNet, logit KD) & 11.18\,M / 1.81\,G & 55.4 (5.5)\,ms & 2.63 (0.45)\,ms & 62\,MB \\
+Module-augmented student (historical pilot) & 0.57\,M / 3.02\,G & 99.8 (11.1)\,ms & 1.93 (0.29)\,ms & 34\,MB \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 10.} External stress test of the 510-patient models on 126 MIDRC radiographs (63/63). Values are means over the 15 fold/seed checkpoints of each method; 95\% CIs reflect image-level sampling. Ens.\ AUC: AUC of the checkpoint-averaged score. Pos.\ rate: fraction of images predicted COVID-19.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{0.92}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}Xcccc@{}}
+\toprule
+Students (checkpoints) & BA [95\% CI] & AUC [95\% CI] & Ens.\ AUC & Pos.\ rate \\
+\midrule
+Supervised, batch 512 (15) & 0.514 [0.427, 0.599] & 0.505 [0.404, 0.606] & 0.517 & 0.68 \\
+Supervised, batch 128 (15) & 0.498 [0.412, 0.584] & 0.489 [0.387, 0.590] & 0.477 & 0.57 \\
+JDCNet 3-slice soft-KL (15) & 0.492 [0.406, 0.578] & 0.498 [0.397, 0.599] & 0.485 & 0.67 \\
+JDCNet mid hard (15) & 0.503 [0.417, 0.589] & 0.511 [0.409, 0.612] & 0.507 & 0.60 \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table 11.} Benefits and limitations of JDCNet as supported by the present evidence.\par}
+\vspace{6pt}
+
+
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.95}
+\begin{tabularx}{\columnwidth}{|>{\raggedright\arraybackslash}p{0.20\columnwidth}|>{\raggedright\arraybackslash}p{0.37\columnwidth}|>{\raggedright\arraybackslash}X|}
+\hline
+Dimension & Benefit or evidence & Limitation or risk \\ \hline
+Deployed model & CT is used only in training; the deployed graph is the supervised ResNet-18 classifier, so per-image inference cost is unchanged. & Same-patient CT is needed for training; one extra teacher forward pass per training sample. \\ \hline
+Within-cohort performance & Nested, batch-matched comparison: $+0.037$ BA (patient-level CI $[+0.007,+0.068]$); 15 of 16 configurations positive. & One cohort; no single configuration significant after adjustment; validation partition used for two selections. \\ \hline
+Operating point & Higher specificity and AUC, toward the CT teacher's profile. & Sensitivity unchanged or lower; retrospective metrics only. \\ \hline
+Generalization & -- & All models at chance on an external radiograph set; single source; binary task. \\ \hline
+Clinical translation & X-ray-only inputs avoid CT at inference. & No workflow, outcome, calibration, or regulatory evaluation. \\ \hline
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table A1.} Tests computed directly from the archived per fold/seed records of the 16 JDCNet configurations (510-patient cohort; $n{=}15$ paired cells; differences against the batch-512 supervised baseline). Stage: I, initial; A, extension A; B, extension B. $p_t$: paired $t$-test; $p_W$: Wilcoxon signed-rank; $p_b$: bootstrap (shift method, 10{,}000 resamples); $p_s$: exact sign test; $p_{BH}$: Benjamini--Hochberg-adjusted $p_t$. $\Delta$Sens, $\Delta$Spec, $\Delta$AUC: mean paired differences in sensitivity, specificity, and AUC.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{1.1pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccrcccccrrr@{}}
+\toprule
+View & $\tau$ & $\lambda$ & Target & Stage & $\Delta\mathrm{BA}$ & $p_t$ & $p_W$ & $p_b$ & $p_s$ & $p_{BH}$ & $\Delta$Sens & $\Delta$Spec & $\Delta$AUC \\
+\midrule
+3-slice & 0.70 & 1.0 & soft & B & $+0.0345$ & 0.014 & 0.022 & 0.003 & 0.30 & 0.22 & $-0.022$ & $+0.091$ & $+0.039$ \\
+Mid & 0.80 & 1.5 & hard & A & $+0.0329$ & 0.028 & 0.035 & 0.010 & 0.18 & 0.22 & $+0.013$ & $+0.053$ & $+0.018$ \\
+Mid & 0.70 & 1.0 & hard & I & $+0.0298$ & 0.079 & 0.095 & 0.050 & 0.30 & 0.22 & $-0.001$ & $+0.061$ & $+0.033$ \\
+Mid & 0.70 & 1.5 & hard & A & $+0.0296$ & 0.061 & 0.14 & 0.032 & 0.61 & 0.22 & $-0.005$ & $+0.064$ & $+0.006$ \\
+Mid & 0.70 & 1.0 & soft & B & $+0.0264$ & 0.082 & 0.14 & 0.051 & 0.30 & 0.22 & $+0.016$ & $+0.036$ & $+0.022$ \\
+3-slice & 0.80 & 1.0 & soft & B & $+0.0258$ & 0.11 & 0.14 & 0.082 & 0.30 & 0.23 & $-0.021$ & $+0.073$ & $+0.026$ \\
+3-slice & 0.80 & 1.0 & hard & I & $+0.0247$ & 0.082 & 0.17 & 0.050 & 0.30 & 0.22 & $-0.037$ & $+0.086$ & $+0.027$ \\
+3-slice & 0.70 & 0.5 & hard & I & $+0.0239$ & 0.11 & 0.14 & 0.087 & 0.30 & 0.23 & $-0.005$ & $+0.053$ & $+0.018$ \\
+Mid & 0.80 & 1.0 & soft & B & $+0.0231$ & 0.19 & 0.23 & 0.15 & 0.61 & 0.33 & $-0.044$ & $+0.091$ & $+0.018$ \\
+3-slice & 0.80 & 1.5 & hard & A & $+0.0181$ & 0.25 & 0.25 & 0.22 & 0.61 & 0.36 & $-0.018$ & $+0.054$ & $+0.038$ \\
+3-slice & 0.80 & 0.5 & hard & I & $+0.0151$ & 0.40 & 0.30 & 0.37 & 0.61 & 0.54 & $+0.016$ & $+0.014$ & $+0.018$ \\
+Mid & 0.80 & 0.5 & hard & I & $+0.0144$ & 0.22 & 0.23 & 0.18 & 0.30 & 0.34 & $+0.016$ & $+0.013$ & $+0.014$ \\
+Mid & 0.80 & 1.0 & hard & I & $+0.0127$ & 0.44 & 0.49 & 0.41 & 0.30 & 0.54 & $-0.019$ & $+0.045$ & $+0.016$ \\
+3-slice & 0.70 & 1.0 & hard & I & $+0.0066$ & 0.63 & 0.76 & 0.63 & 1.00 & 0.72 & $-0.052$ & $+0.065$ & $+0.012$ \\
+Mid & 0.70 & 0.5 & hard & I & $+0.0005$ & 0.97 & 0.98 & 0.97 & 1.00 & 0.97 & $-0.061$ & $+0.062$ & $+0.006$ \\
+3-slice & 0.70 & 1.5 & hard & A & $-0.0031$ & 0.84 & 0.93 & 0.83 & 0.61 & 0.90 & $-0.077$ & $+0.071$ & $0.000$ \\
+\multicolumn{5}{@{}l}{Average of the 8 initial} & $+0.0160$ & 0.11 & 0.28 & 0.078 & 1.00 & -- & -- & -- & -- \\
+\multicolumn{5}{@{}l}{Average of all 16} & $+0.0197$ & 0.060 & 0.026 & 0.032 & 0.007 & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular*}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table A2.} Comparator interpretation. Unless marked otherwise, rows are paired differences against the supervised X-ray baseline on the 510-patient cohort.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{0.21\columnwidth}>{\raggedright\arraybackslash}p{0.40\columnwidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Family & Representative result & Reading \\
+\midrule
+CT-only reference & Mid $+0.045$ [$+0.019,+0.070$]; 3-slice $+0.051$ [$+0.025,+0.079$] & CT carries signal \\
+JDCNet & 15/16 configurations positive; nested, batch-matched comparison $+0.037$ [$+0.016,+0.058$] & Small within-cohort gain \\
+Gated logit KD & Mid $-0.022$ [$-0.055,+0.010$]; 3-slice $-0.026$; mean proj.\ $-0.014$; DRR $-0.064$ [$-0.095,-0.034$] & No gain \\
+Plain logit KD & 3-slice $-0.036$ [$-0.062,-0.013$]; other views $-0.016$ to $-0.001$, CIs include zero & No gain \\
+Contrastive alignment & Best of 4: $+0.008$ [$-0.021,+0.038$] & No gain \\
+BiomedCLIP (226 subset) & $+0.002$ [$-0.048,+0.050$] vs.\ ResNet-18 on the same subset & No gain \\
+Gated logit KD (earlier balanced-subset scan) & Best of eight configurations $+0.034$, CI crosses zero & Not reproduced at 510 \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table A3.} Contrastive alignment (InfoNCE pretraining followed by supervised fine-tuning) on the 510-patient cohort ($n=15$ paired fold/seed cells per row).\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}Xcccc@{}}
+\toprule
+Teacher view & $\tau_{\mathrm{NCE}}$ & BA mean [95\% CI] & $\Delta\mathrm{BA}$ [95\% CI] & $+/0/-$ \\
+\midrule
+3-slice stack & 0.20 & 0.633 [0.610, 0.656] & $+0.008$ [$-0.021,+0.038$] & 7/1/7 \\
+3-slice stack & 0.07 & 0.627 [0.594, 0.657] & $+0.003$ [$-0.023,+0.030$] & 7/0/8 \\
+Mid-slice     & 0.20 & 0.620 [0.594, 0.643] & $-0.005$ [$-0.030,+0.020$] & 5/0/10 \\
+Mid-slice     & 0.07 & 0.616 [0.590, 0.642] & $-0.008$ [$-0.038,+0.027$] & 5/0/10 \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table A4.} CT view comparison on the class-balanced 226-patient BIMCV subset (five folds $\times$ seeds 42--44, $n{=}15$ cells per row). $\Delta\mathrm{BA}$ is the paired difference against the supervised X-ray baseline trained on the same subset.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{0.88}
+\begin{tabularx}{\columnwidth}{@{}p{0.24\columnwidth}lXc@{}}
+\toprule
+Teacher view & Method & $\Delta\mathrm{BA}$ [95\% CI] & $+/0/-$ \\
+\midrule
+Mid-slice            & CT-only ref.  & $+0.011$ [$-0.024,+0.046$] & 8/0/7 \\
+                     & Plain KD      & $-0.022$ [$-0.062,+0.021$] & 6/0/9 \\
+                     & Gated KD      & $-0.014$ [$-0.053,+0.023$] & 8/0/7 \\
+3-slice stack        & CT-only ref.  & $+0.019$ [$-0.013,+0.058$] & 8/3/5 \\
+                     & Plain KD      & $-0.030$ [$-0.083,+0.016$] & 7/0/8 \\
+                     & Gated KD      & $-0.045$ [$-0.092,+0.000$] & 5/0/10 \\
+Mean projection      & CT-only ref.  & $+0.045$ [$+0.008,+0.081$] & 9/1/5 \\
+                     & Plain KD      & $-0.031$ [$-0.082,+0.019$] & 5/1/9 \\
+                     & Gated KD      & $-0.015$ [$-0.058,+0.027$] & 6/2/7 \\
+DRR                  & CT-only ref.  & $+0.023$ [$-0.023,+0.066$] & 9/0/6 \\
+                     & Plain KD      & $-0.043$ [$-0.095,+0.014$] & 4/1/10 \\
+                     & Gated KD      & $-0.005$ [$-0.048,+0.039$] & 8/0/7 \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table A5.} Batch-matched gate-temperature rerun on a 466-patient split (single seed, $n{=}5$ folds per row; validation-partition BA). $\tau'$: raw-confidence threshold equivalent to gating at $\tau$ with temperature $T_{\mathrm{g}}$. $\Delta\mathrm{BA}$ is the paired difference against the batch-matched supervised baseline (validation BA $0.664$ for the 3-slice row set and $0.604$ for the mid-slice row set, which use different student manifests); the last column is the change relative to $T_{\mathrm{g}}{=}1.0$.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}Xccccc@{}}
+\toprule
+Configuration & $T_{\mathrm{g}}$ & $\tau'$ & BA & $\Delta\mathrm{BA}$ [95\% CI] & vs.\ $T_{\mathrm{g}}{=}1.0$ \\
+\midrule
+3-slice soft-KL, $\tau{=}0.70$ & 0.5 & 0.60 & 0.711 & $+0.047$ [$+0.028,+0.064$] & $+0.025$ \\
+3-slice soft-KL, $\tau{=}0.70$ & 1.0 & 0.70 & 0.686 & $+0.022$ [$-0.011,+0.068$] & $0.000$ \\
+3-slice soft-KL, $\tau{=}0.70$ & 2.0 & 0.84 & 0.691 & $+0.027$ [$-0.001,+0.061$] & $+0.005$ \\
+\midrule
+Mid hard, $\tau{=}0.80$  & 0.5 & 0.67 & 0.680 & $+0.076$ [$+0.035,+0.117$] & $+0.007$ \\
+Mid hard, $\tau{=}0.80$  & 1.0 & 0.80 & 0.673 & $+0.069$ [$+0.034,+0.106$] & $0.000$ \\
+Mid hard, $\tau{=}0.80$  & 2.0 & 0.94 & 0.659 & $+0.054$ [$+0.024,+0.088$] & $-0.014$ \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table A6.} Pre-registered supplementary comparisons on the 510-patient splits (batch-matched supervised restarts). Cell-level: paired over 15 fold/seed cells (bootstrap CI, paired $t$-test). Patient-level: paired bootstrap over 510 patients with out-of-fold predictions pooled per seed (10{,}000 resamples).\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.0pt}
+\renewcommand{\arraystretch}{0.92}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}Xcccc@{}}
+\toprule
+Comparison & Cell-level $\Delta\mathrm{BA}$ [95\% CI] & $p$ & Patient-level $\Delta\mathrm{BA}$ [95\% CI] & $p$ \\
+\midrule
+Supervised batch 128 ($r{=}0$) $-$ batch 512 & $-0.005$ [$-0.032$, $+0.022$] & 0.75 & $-0.004$ [$-0.038$, $+0.029$] & 0.82 \\
+Supervised best of 16 $-$ supervised $r{=}0$ & $+0.013$ [$-0.011$, $+0.038$] & 0.33 & -- & -- \\
+JDCNet best of 16 $-$ supervised best of 16 (primary) & $+0.037$ [$+0.016$, $+0.058$] & 0.005 & $+0.037$ [$+0.007$, $+0.068$] & 0.017 \\
+JDCNet best of 8 $-$ supervised best of 8 & $+0.029$ [$+0.007$, $+0.049$] & 0.022 & -- & -- \\
+JDCNet best of 16 $-$ supervised batch 512 & $+0.046$ [$+0.021$, $+0.072$] & 0.004 & $+0.046$ [$+0.010$, $+0.082$] & 0.012 \\
+3-slice soft-KL $-$ supervised $r{=}0$ & $+0.039$ [$+0.002$, $+0.074$] & 0.063 & $+0.039$ [$+0.003$, $+0.077$] & 0.036 \\
+Mid hard $-$ supervised $r{=}0$ & $+0.038$ [$+0.009$, $+0.069$] & 0.035 & $+0.038$ [$+0.001$, $+0.073$] & 0.045 \\
+Average of 16 configurations $-$ mean of 16 restarts & $+0.019$ [$+0.006$, $+0.031$] & 0.016 & -- & -- \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\clearpage
+
+\begin{minipage}{\textwidth}
+{\small\noindent\textbf{Table A7.} Pre-specified batch-matched comparison of every JDCNet configuration against the first batch-128 supervised restart ($r{=}0$) of the same cell (510-patient cohort; rows in the order of Table~A1, where the exploration stage of each configuration is listed). Cell level: mean paired difference over the 15 fold/seed cells, bootstrap CI, and paired $t$-test $p_t$. Patient level: paired bootstrap over the 510 patients with out-of-fold predictions pooled per seed (10{,}000 resamples) and two-sided bootstrap $p_b$. $p_{\mathrm{H}}$: Holm-adjusted over the 16 configurations.\par}
+\vspace{6pt}
+
+
+\centering
+\scriptsize
+\setlength{\tabcolsep}{1.0pt}
+\renewcommand{\arraystretch}{0.9}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccccccccc@{}}
+\toprule
+ & & & & \multicolumn{5}{c}{Cell level} & \multicolumn{3}{c}{Patient level} \\
+\cmidrule(lr){5-9}\cmidrule(l){10-12}
+View & $\tau$ & $\lambda$ & Target & $+/0/-$ & $\Delta\mathrm{BA}$ & 95\% CI & $p_t$ & $p_{\mathrm{H}}$ & 95\% CI & $p_b$ & $p_{\mathrm{H}}$ \\
+\midrule
+3-slice & 0.70 & 1.0 & soft & 11/0/4 & $+0.039$ & [$+0.002$, $+0.074$] & 0.063 & 0.95 & [$+0.003$, $+0.077$] & 0.036 & 0.54 \\
+Mid & 0.80 & 1.5 & hard & 9/0/6 & $+0.038$ & [$+0.009$, $+0.069$] & 0.035 & 0.56 & [$+0.001$, $+0.073$] & 0.045 & 0.63 \\
+Mid & 0.70 & 1.0 & hard & 9/0/6 & $+0.034$ & [$+0.000$, $+0.071$] & 0.086 & 1.00 & [$-0.001$, $+0.071$] & 0.061 & 0.72 \\
+Mid & 0.70 & 1.5 & hard & 9/1/5 & $+0.034$ & [$+0.004$, $+0.069$] & 0.064 & 0.95 & [$+0.005$, $+0.064$] & 0.021 & 0.33 \\
+Mid & 0.70 & 1.0 & soft & 9/0/6 & $+0.031$ & [$-0.000$, $+0.064$] & 0.091 & 1.00 & [$-0.000$, $+0.062$] & 0.050 & 0.66 \\
+3-slice & 0.80 & 1.0 & soft & 10/0/5 & $+0.030$ & [$-0.005$, $+0.065$] & 0.12 & 1.00 & [$-0.002$, $+0.063$] & 0.065 & 0.72 \\
+3-slice & 0.80 & 1.0 & hard & 9/1/5 & $+0.029$ & [$-0.006$, $+0.064$] & 0.14 & 1.00 & [$-0.002$, $+0.062$] & 0.069 & 0.72 \\
+3-slice & 0.70 & 0.5 & hard & 10/0/5 & $+0.029$ & [$+0.000$, $+0.057$] & 0.077 & 1.00 & [$-0.001$, $+0.060$] & 0.060 & 0.72 \\
+Mid & 0.80 & 1.0 & soft & 10/0/5 & $+0.028$ & [$-0.011$, $+0.065$] & 0.19 & 1.00 & [$-0.008$, $+0.065$] & 0.13 & 1.00 \\
+3-slice & 0.80 & 1.5 & hard & 9/0/6 & $+0.023$ & [$-0.016$, $+0.064$] & 0.30 & 1.00 & [$-0.017$, $+0.061$] & 0.26 & 1.00 \\
+3-slice & 0.80 & 0.5 & hard & 11/0/4 & $+0.020$ & [$-0.003$, $+0.041$] & 0.11 & 1.00 & [$-0.012$, $+0.052$] & 0.20 & 1.00 \\
+Mid & 0.80 & 0.5 & hard & 10/0/5 & $+0.019$ & [$-0.011$, $+0.051$] & 0.26 & 1.00 & [$-0.011$, $+0.051$] & 0.21 & 1.00 \\
+Mid & 0.80 & 1.0 & hard & 9/0/6 & $+0.017$ & [$-0.016$, $+0.049$] & 0.33 & 1.00 & [$-0.015$, $+0.050$] & 0.29 & 1.00 \\
+3-slice & 0.70 & 1.0 & hard & 9/1/5 & $+0.011$ & [$-0.012$, $+0.035$] & 0.39 & 1.00 & [$-0.024$, $+0.046$] & 0.52 & 1.00 \\
+Mid & 0.70 & 0.5 & hard & 9/0/6 & $+0.005$ & [$-0.026$, $+0.034$] & 0.75 & 1.00 & [$-0.030$, $+0.040$] & 0.77 & 1.00 \\
+3-slice & 0.70 & 1.5 & hard & 8/0/7 & $+0.002$ & [$-0.035$, $+0.039$] & 0.94 & 1.00 & [$-0.036$, $+0.037$] & 0.95 & 1.00 \\
+\multicolumn{4}{@{}l}{Average of all 16} & 10/0/5 & $+0.024$ & [$-0.000$, $+0.051$] & 0.092 & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular*}
+\end{minipage}
+\clearpage
+
+\end{document}

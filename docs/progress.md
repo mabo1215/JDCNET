@@ -5,6 +5,14 @@
 
 # 已全部修改
 
+## D1. 删除工作目录前的归档与恢复检查（2026-10-22）
+
+1. **初始状态**：主仓库与 paper 子仓库的工作区均干净，main 均与 GitHub 实时远端一致；`docs/revision_roadmap.md` 已受版本控制，不存在遗漏。paper 另有一份旧 NeurIPS 排版 stash（`build.bat`、`main.tex`），未套用到当前 Discover AI 稿件。
+2. **独立本地备份**：删除前全部 7,511 个被忽略文件已复制到 `C:\source\JDCNET_local_backup_20261022`，约 1,070.32 MiB；每个文件均比对源文件与备份的 SHA-256，清单为该目录下的 `backup_manifest.csv`。两个仓库的完整可达历史另存为 `JDCNET.bundle`、`JDCNET_Overleaf.bundle`，均通过 `git bundle verify`，后者保留 `refs/stash`。这些备份只在本机，不是异地备份，不能随原目录一起删除。
+3. **恢复 Git 跟踪范围**：取消对 `USAGE.md`、`agents/`、`.claude/rules/`、实验配置及 `.gitmodules` 的笼统忽略；实验结果只开放汇总指标、训练历史和运行级统计/报告；投稿材料只开放第三轮非患者影像材料。患者 manifest、逐图像预测、模型权重、原始数据、临时同步脚本、含 Fig. 2 患者影像的稿件 PDF/源码压缩包继续排除，完整副本在上述本地备份。
+4. **子模块恢复**：`.gitmodules` 中 paper 地址由旧 `COREY_Transformer_latex` 修正为实际使用的 `JDCNET_Overleaf`，避免重新克隆时取错仓库。没有修改或重新提交论文内容。
+5. **恢复方式**：正常使用 `git clone --recurse-submodules https://github.com/mabo1215/JDCNET.git`；若需要旧 stash，从本地 paper bundle 导入 `refs/stash`，不要直接套用到当前稿件。仅靠 GitHub 无法恢复被排除的数据、逐图像预测和完整投稿包；删除前应保留整个本地备份目录，建议再复制到外置盘或受控存储。
+
 ## 摘要措辞修正（2026-10-13）
 
 1. 核对作者从投稿系统编译的 `JDCNet_revised_source_round3.pdf`：与本地最新版 41 页逐页内容一致，40 页像素级相同，第 3 页仅项目符号字形不同（两套 TeX 环境的字体差异）。

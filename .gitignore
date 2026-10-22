@@ -1,23 +1,33 @@
 __pycache__/
 src/runs/
 src/data/
-src/configs/
 .vscode/
 
 # Codex rules
 src/AGENTS.md
-USAGE.md
-agents/*
 .gitkeep
 .codex/
 AGENTS.md
+!agents/AGENTS.md
+!agents/.codex/
 
 .env
 
 logs/
 *.log
 
-src/results/
+# Keep aggregate experiment evidence, but not patient-level records or weights.
+src/results/**
+!src/results/**/
+!src/results/**/best_metrics.json
+!src/results/**/metrics.json
+!src/results/**/history.json
+!src/results/**/*.md
+!src/results/**/*summary*.csv
+!src/results/**/*deltas*.csv
+!src/results/**/*per_run_metrics*.csv
+!src/results/**/*fold_summary*.csv
+!src/results/**/*_status.tsv
 
 # Temporary sync and data transfer directories
 src/tmp_sync/
@@ -28,11 +38,28 @@ src/bimcv_transfer/
 *.tar.gz
 *.tar.bz2
 
-.claude/
+.claude/*
+!.claude/rules/
 
-submit/
+# Preserve non-patient round-3 deliverables; full packages remain in local backup.
+submit/*
+!submit/revision_round3/
+submit/revision_round3/*
+!submit/revision_round3/*.txt
+!submit/revision_round3/JDCNet_gate_case_examples.csv
+!submit/revision_round3/JDCNet_revised_appendix.pdf
+!submit/revision_round3/JDCNet_tables_standalone.pdf
+!submit/revision_round3/JDCNet_title_page.pdf
+!submit/revision_round3/JDCNet_response_to_reviewers.pdf
+!submit/revision_round3/tables.zip
+!submit/revision_round3/tables/
+!submit/revision_round3/figs/
+submit/revision_round3/figs/*
+!submit/revision_round3/figs/Fig1.pdf
+!submit/revision_round3/figs/Fig1.png
+!submit/revision_round3/figs/Fig3.png
+!submit/revision_round3/figs/FigA1.pdf
+!submit/revision_round3/figs/FigA1.png
 
 # LaTeX and document build intermediates
 docs/build/
-
-.gitmodules
