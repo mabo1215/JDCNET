@@ -1,0 +1,39 @@
+{
+  "experiment_name": "teacher_ct_all_nomhra_s45",
+  "manifest_path": "data/covid_real/covid_ct_all_manifest.csv",
+  "output_dir": "runs/covid_matrix/teacher_ct_all_nomhra_s45",
+  "seed": 45,
+  "model": {
+    "name": "teacher",
+    "num_classes": 2,
+    "input_size": 128,
+    "use_dpe": true,
+    "use_mhra": false,
+    "use_dfpn": true,
+    "paired_input": false
+  },
+  "data": {
+    "train_split": "train",
+    "val_split": "val",
+    "train_modalities": [
+      "ct"
+    ],
+    "val_modalities": [
+      "ct"
+    ],
+    "batch_size": 16,
+    "num_workers": 0,
+    "paired_image_column": "teacher_image_path"
+  },
+  "optimization": {
+    "epochs": 5,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001
+  },
+  "distillation": {
+    "enabled": false,
+    "temperature": 4.0,
+    "alpha": 0.6,
+    "teacher_checkpoint": ""
+  }
+}

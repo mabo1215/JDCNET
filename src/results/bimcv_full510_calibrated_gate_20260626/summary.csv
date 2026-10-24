@@ -1,0 +1,17 @@
+cell,T,meaning,split,n,BA,BA_SD,AUC,dBA,dBA_lo,dBA_hi,dBA_vs_T100
+3slice_soft,0.5,overconfident,val,5,0.7112,0.0289,0.7484,0.0468,0.0284,0.0642,0.0249
+3slice_soft,0.5,overconfident,test,5,0.6108,0.0546,0.6934,nan,nan,nan,
+3slice_soft,1.0,uncalibrated(orig),val,5,0.6863,0.0452,0.7073,0.0219,-0.0109,0.068,0.0
+3slice_soft,1.0,uncalibrated(orig),test,5,0.6114,0.0698,0.6782,nan,nan,nan,
+3slice_soft,2.0,softened/calibrated,val,5,0.6912,0.0296,0.7183,0.0268,-0.0008,0.0613,0.0049
+3slice_soft,2.0,softened/calibrated,test,5,0.603,0.0533,0.6909,nan,nan,nan,
+mid_hard,0.5,overconfident,val,5,0.6799,0.0194,0.7068,0.0757,0.035,0.1175,0.007
+mid_hard,0.5,overconfident,test,5,0.6293,0.0275,0.6747,nan,nan,nan,
+mid_hard,1.0,uncalibrated(orig),val,5,0.6729,0.0239,0.7105,0.0687,0.0335,0.1064,0.0
+mid_hard,1.0,uncalibrated(orig),test,5,0.5744,0.0565,0.6478,nan,nan,nan,
+mid_hard,2.0,softened/calibrated,val,5,0.6586,0.0334,0.7067,0.0543,0.0239,0.0883,-0.0143
+mid_hard,2.0,softened/calibrated,test,5,0.6012,0.0195,0.6589,nan,nan,nan,
+supervised_3slice,NA,baseline,val,5,0.6644,0.0344,0.7128,0.0,,,
+supervised_3slice,NA,baseline,test,0,nan,0.0,nan,0.0,,,
+supervised_mid,NA,baseline,val,5,0.6042,0.0646,0.6557,0.0,,,
+supervised_mid,NA,baseline,test,0,nan,0.0,nan,0.0,,,

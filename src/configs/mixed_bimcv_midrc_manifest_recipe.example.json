@@ -1,0 +1,25 @@
+{
+  "sources": {
+    "bimcv_manifest": "data/bimcv/bimcv_paired_manifest.csv",
+    "midrc_manifest": null,
+    "midrc_metadata_json": "data/midrc_manifests/MIDRC_strict_chest_paired_559cases_largestCT_nearestXR.metadata.json",
+    "midrc_root": "/data1/midrc/raw_559cases_combined"
+  },
+  "outputs": {
+    "manifest": "data/midrc_manifests/mixed_bimcv_midrc_manifest.csv",
+    "summary": "results/mixed_bimcv_midrc_manifest_summary.json",
+    "split_dir": "data/midrc_manifests/mixed_bimcv_midrc_splits"
+  },
+  "split": {
+    "train_frac": 0.7,
+    "val_frac": 0.1,
+    "test_frac": 0.2,
+    "seed": 42
+  },
+  "ratios": {
+    "train_positive": 0.5,
+    "val_positive": null,
+    "test_positive": null,
+    "sampling_mode": "upsample"
+  }
+}

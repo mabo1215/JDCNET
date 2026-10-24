@@ -1,0 +1,43 @@
+{
+  "experiment_name": "student_xray_cross_modal_attention_transfer_resampled_r07",
+  "manifest_path": "data/covid_resampling/split_07/paired_cross_manifest.csv",
+  "output_dir": "runs/covid_resampling/student_xray_cross_modal_attention_transfer_resampled_r07",
+  "seed": 42,
+  "model": {
+    "name": "student",
+    "num_classes": 2,
+    "input_size": 128,
+    "use_dpe": false,
+    "use_mhra": false,
+    "use_dfpn": false,
+    "paired_input": false
+  },
+  "data": {
+    "train_split": "train",
+    "val_split": "val",
+    "train_modalities": [
+      "xray"
+    ],
+    "val_modalities": [
+      "xray"
+    ],
+    "batch_size": 16,
+    "num_workers": 0,
+    "paired_image_column": "teacher_image_path",
+    "use_weighted_sampler": false
+  },
+  "optimization": {
+    "epochs": 5,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001
+  },
+  "distillation": {
+    "enabled": true,
+    "temperature": 4.0,
+    "alpha": 0.6,
+    "teacher_checkpoint": "runs/covid_resampling/teacher_ct_paired_plain_r07/best.pt",
+    "feature_hint_weight": 0.0,
+    "attention_transfer_weight": 0.2,
+    "feature_hint_dim": 128
+  }
+}
