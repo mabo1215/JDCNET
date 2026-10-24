@@ -1,0 +1,8 @@
+# Store text files with LF and check them out with LF on every client.
+# Git for Windows defaults to core.autocrlf=true, which otherwise rewrites the
+# whole tree with CRLF and makes WSL git report every text file as modified.
+* text=auto eol=lf
+
+# cmd.exe parses batch files reliably only with CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
