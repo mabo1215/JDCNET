@@ -4,8 +4,9 @@ For each thyroid ultrasound image this script:
   1. reads burned-in text locally, to mask it and to infer the scanner series,
   2. crops the imaging sector from local texture,
   3. rejects colour Doppler frames, whose flow signal would be mistaken for marks,
-  4. detects caliper endpoints from coloured marks, or from achromatic cross templates,
-  5. derives a weak lesion box from the main cluster of endpoints,
+  4. searches tint-relative chroma for vivid caliper marks, and accepts them only when they form two
+     crossing perpendicular measurements, or one measurement with a visible line,
+  5. derives a weak lesion box from the accepted endpoints,
   6. writes a caliper-erased copy of the sector for model input.
 
 Raw identifiers and raw OCR text are never written to the results directory. The pseudonym key and
@@ -25,17 +26,20 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 
 SCANNER_RULES = [
-    ("philips", r"philips|epiq|affiniti|iu22|ie33|hd11|hd15"),
+    ("philips", r"philips|epiq|affiniti|iu22|ie33|hd11|hd15|l12-5"),
     ("ge_logiq", r"logiq|voluson|\bs8\b"),
-    ("mindray", r"mindray|resona|\bdc-?[0-9]{1,2}\b"),
-    ("canon_aplio", r"aplio|canon"),
-    ("xr80a", r"xr-?80"),
-    ("siemens_sequoia", r"sequoia"),
+    ("mindray", r"mindra|resona|\bdc-?[0-9]{1,2}\b|iclear|ibeam|ssi1580|l14-5wu"),
+    ("canon_aplio", r"aplio|canon|apure|precision"),
+    ("xr80a", r"xr-?80|xrboa"),
+    ("siemens_sequoia", r"sequoia|hmid|toggle|\bcal1\b"),
     ("siemens_s", r"siemens|\bs[123]000\b|juniper|acuson"),
-    ("ultimus", r"ultimus"),
+    ("ultimus", r"ultimus|u5-15le"),
     ("hisense", "hisense|\u6d77\u4fe1"),
     ("toshiba_xario", r"xario|toshiba"),
     ("esaote_mylab", r"mylab|esaote"),
+    # Interface-based groups: no vendor string was readable, so these only support cross-group comparison.
+    ("ui_dist_ab", r"dist\s?[ab]\b|dista|distb"),
+    ("ui_qscan", r"qscan|lx5|l3-12a"),
 ]
 
 
@@ -52,156 +56,218 @@ def sector_box(gray: np.ndarray, text_mask: np.ndarray) -> tuple[int, int, int, 
     g = gray.astype(np.float32)
     mean = cv2.blur(g, (11, 11))
     std = np.sqrt(np.maximum(cv2.blur(g * g, (11, 11)) - mean * mean, 0))
-    tex = ((std > 5) & (mean > 12)).astype(np.uint8)
-    tex[text_mask > 0] = 0
-    tex = cv2.morphologyEx(tex, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
-    tex = cv2.morphologyEx(tex, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
-    tex = cv2.morphologyEx(tex, cv2.MORPH_OPEN, np.ones((31, 31), np.uint8))
-    n, labels, stats, _ = cv2.connectedComponentsWithStats(tex, connectivity=8)
     h, w = gray.shape
-    if n <= 1:
-        return 0, 0, w, h
-    i = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
-    x, y, bw, bh = stats[i, :4]
-    region = labels[y:y + bh, x:x + bw] == i
-    cols = np.where(region.mean(0) >= 0.30)[0]
-    rows = np.where(region.mean(1) >= 0.30)[0]
-    if cols.size == 0 or rows.size == 0:
-        return int(x), int(y), int(x + bw), int(y + bh)
-    return int(x + cols[0]), int(y + rows[0]), int(x + cols[-1] + 1), int(y + rows[-1] + 1)
+    best = (0, 0, w, h)
+    for std_thr, mean_thr in ((5, 12), (3, 8)):
+        tex = ((std > std_thr) & (mean > mean_thr)).astype(np.uint8)
+        tex[text_mask > 0] = 0
+        tex = cv2.morphologyEx(tex, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))
+        tex = cv2.morphologyEx(tex, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
+        tex = cv2.morphologyEx(tex, cv2.MORPH_OPEN, np.ones((31, 31), np.uint8))
+        n, labels, stats, _ = cv2.connectedComponentsWithStats(tex, connectivity=8)
+        if n <= 1:
+            continue
+        i = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+        x, y, bw, bh = stats[i, :4]
+        region = labels[y:y + bh, x:x + bw] == i
+        cols = np.where(region.mean(0) >= 0.30)[0]
+        rows = np.where(region.mean(1) >= 0.30)[0]
+        if cols.size and rows.size:
+            best = (int(x + cols[0]), int(y + rows[0]), int(x + cols[-1] + 1), int(y + rows[-1] + 1))
+        else:
+            best = (int(x), int(y), int(x + bw), int(y + bh))
+        if (best[2] - best[0]) * (best[3] - best[1]) >= 0.20 * h * w:
+            return best
+    return best
 
 
-def colour_mask(sector: np.ndarray) -> np.ndarray:
-    """Return pixels that are coloured relative to the image tint."""
-    hsv = cv2.cvtColor(sector, cv2.COLOR_BGR2HSV)
-    hue, sat, val = hsv[..., 0].astype(np.int32), hsv[..., 1], hsv[..., 2]
-    moderately = (sat > 35) & (val > 40)
-    if moderately.mean() > 0.15:
-        # A tinted display colours the whole image, so marks must differ from the dominant hue.
-        hist = np.bincount(hue[moderately], minlength=180)
-        tint = int(np.argmax(np.convolve(np.r_[hist, hist[:9]], np.ones(9), "same")[:180]))
-        dist = np.minimum(np.abs(hue - tint), 180 - np.abs(hue - tint))
-        return ((sat > 110) & (val > 110) & (dist > 15)).astype(np.uint8)
-    return ((sat > 70) & (val > 80)).astype(np.uint8)
-
-
-def cross_templates() -> list[np.ndarray]:
+def cross_templates() -> list[tuple[np.ndarray, int, int]]:
+    """Return cross templates as (template, family, size), where family 0 is plus and 1 is X."""
     temps = []
-    for size in (7, 9, 11, 13, 15):
+    for size in (7, 9, 11, 13, 15, 17, 19):
         c = size // 2
         plus = np.zeros((size, size), np.float32)
         plus[c, :] = 1
         plus[:, c] = 1
         ex = np.maximum(np.eye(size, dtype=np.float32), np.fliplr(np.eye(size, dtype=np.float32)))
-        for shape in (plus, ex):
-            temps.append(shape)
+        for family, shape in enumerate((plus, ex)):
+            temps.append((shape, family, size))
             hollow = shape.copy()
             hollow[c - 1:c + 2, c - 1:c + 2] = 0
-            temps.append(hollow)
+            temps.append((hollow, family, size))
+            if size >= 11:
+                temps.append((cv2.dilate(shape, np.ones((3, 3), np.uint8)), family, size))
     return temps
 
 
 TEMPLATES = cross_templates()
 
 
-def achromatic_marks(gray: np.ndarray, thresh: float) -> list[tuple[int, int, int]]:
-    """Find bright thin cross-shaped marks. Returns x, y, half-size."""
-    tophat = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))).astype(np.float32)
+def residual_chroma(sector: np.ndarray) -> np.ndarray:
+    """Return chroma after removing the tint-versus-brightness trend of the image."""
+    lab = cv2.cvtColor(sector, cv2.COLOR_BGR2LAB).astype(np.float32)
+    lum, a, b = lab[..., 0], lab[..., 1] - 128, lab[..., 2] - 128
+    bright = lum > 40
+    ka, kb = (np.median(a[bright] / lum[bright]), np.median(b[bright] / lum[bright])) if bright.sum() >= 100 else (0.0, 0.0)
+    return np.hypot(a - ka * lum, b - kb * lum)
+
+
+def colour_mask(chroma: np.ndarray, lum: np.ndarray) -> np.ndarray:
+    med = float(np.median(chroma))
+    mad = 1.4826 * float(np.median(np.abs(chroma - med)))
+    return ((chroma > max(9.0, med + 6 * mad)) & (lum > 35)).astype(np.uint8)
+
+
+def find_candidates(maps: list[tuple[np.ndarray, float]], text_mask: np.ndarray, margin: int,
+                    ncc_thresh: float, limit: int = 30) -> np.ndarray:
+    """Return candidate marks as rows of x, y, score, family, size, channel."""
+    h, w = text_mask.shape
     hits = []
-    for t in TEMPLATES:
-        res = cv2.matchTemplate(tophat, t, cv2.TM_CCOEFF_NORMED)
-        ys, xs = np.where(res >= thresh)
-        for x, y in zip(xs, ys):
-            patch = gray[y:y + t.shape[0], x:x + t.shape[1]]
-            if patch[t > 0].mean() >= 130:  # rejects low-contrast speckle matches
-                hits.append((float(res[y, x]), int(x + t.shape[1] // 2), int(y + t.shape[0] // 2), t.shape[0] // 2))
-    hits.sort(reverse=True)
-    kept: list[tuple[int, int, int]] = []
-    for _, cx, cy, half in hits:
-        if all((cx - k[0]) ** 2 + (cy - k[1]) ** 2 > 100 for k in kept):
-            kept.append((cx, cy, half))
-    return kept[:8]
+    for channel, (image, min_strength) in enumerate(maps):
+        for t, family, size in TEMPLATES:
+            ncc = cv2.matchTemplate(image, t, cv2.TM_CCOEFF_NORMED)
+            strength = cv2.matchTemplate(image, t, cv2.TM_CCORR) / t.sum()
+            ys, xs = np.where((ncc >= ncc_thresh) & (strength >= min_strength))
+            for x, y in zip(xs, ys):
+                cx, cy = int(x + size // 2), int(y + size // 2)
+                if margin < cx < w - margin and margin < cy < h - margin and text_mask[cy, cx] == 0:
+                    hits.append((cx, cy, float(ncc[y, x]), family, size, channel))
+    hits.sort(key=lambda r: -r[2])
+    kept: list[tuple] = []
+    for hit in hits:
+        if all((hit[0] - k[0]) ** 2 + (hit[1] - k[1]) ** 2 > 36 for k in kept):
+            kept.append(hit)
+            if len(kept) == limit:
+                break
+    return np.asarray(kept, float).reshape(-1, 6)
+
+
+def matching_pairs(c: np.ndarray, min_len: float, max_len: float) -> tuple[np.ndarray, np.ndarray]:
+    """Return index pairs that could be the two ends of one measurement."""
+    i, j = np.triu_indices(len(c), 1)
+    same = (c[i, 3] == c[j, 3]) & (c[i, 5] == c[j, 5]) & (np.abs(c[i, 4] - c[j, 4]) <= 4)
+    length = np.hypot(c[i, 0] - c[j, 0], c[i, 1] - c[j, 1])
+    keep = same & (length >= min_len) & (length <= max_len)
+    return i[keep], j[keep]
+
+
+def orthogonal_measurement(c: np.ndarray, min_len: float, max_len: float, min_score: float) -> np.ndarray | None:
+    """Find two crossing, roughly perpendicular measurements, as drawn for long and short axes."""
+    if len(c) < 4:
+        return None
+    i, j = matching_pairs(c, min_len, max_len)
+    if len(i) < 2:
+        return None
+    start = c[i][:, :2]
+    vec = c[j][:, :2] - start
+    length = np.hypot(vec[:, 0], vec[:, 1])
+    a, b = np.triu_indices(len(i), 1)
+    cross = vec[a, 0] * vec[b, 1] - vec[a, 1] * vec[b, 0]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        delta = start[b] - start[a]
+        t = (delta[:, 0] * vec[b, 1] - delta[:, 1] * vec[b, 0]) / cross
+        u = (delta[:, 0] * vec[a, 1] - delta[:, 1] * vec[a, 0]) / cross
+        sine = np.abs(cross) / (length[a] * length[b])
+    disjoint = (i[a] != i[b]) & (i[a] != j[b]) & (j[a] != i[b]) & (j[a] != j[b])
+    ratio = np.minimum(length[a], length[b]) / np.maximum(length[a], length[b])
+    ok = disjoint & (t > 0.1) & (t < 0.9) & (u > 0.1) & (u < 0.9) & (sine >= 0.90) & (ratio >= 0.25)
+    if not ok.any():
+        return None
+    score = (c[i[a], 2] + c[j[a], 2] + c[i[b], 2] + c[j[b], 2]) / 4
+    score[~ok] = -1
+    best = int(np.argmax(score))
+    if score[best] < min_score:
+        return None
+    return c[[i[a[best]], j[a[best]], i[b[best]], j[b[best]]], :2]
+
+
+def single_measurement(c: np.ndarray, line_map: np.ndarray, min_len: float, max_len: float,
+                       min_score: float) -> np.ndarray | None:
+    """Find one measurement: two matching marks joined by a visible dotted or solid line."""
+    if len(c) < 2:
+        return None
+    i, j = matching_pairs(c, min_len, max_len)
+    best, best_score = None, min_score
+    for p, q in zip(i, j):
+        score = (c[p, 2] + c[q, 2]) / 2
+        if score <= best_score:
+            continue
+        n = int(np.hypot(*(c[p, :2] - c[q, :2])))
+        ts = np.linspace(0.1, 0.9, max(n, 2))
+        xs = (c[p, 0] + ts * (c[q, 0] - c[p, 0])).astype(int)
+        ys = (c[p, 1] + ts * (c[q, 1] - c[p, 1])).astype(int)
+        if line_map[ys, xs].mean() >= 0.30:
+            best, best_score = c[[p, q], :2], score
+    return best
 
 
 @dataclass
 class Detection:
-    points: np.ndarray  # endpoint coordinates inside the sector
+    points: np.ndarray  # measurement endpoints inside the sector
     mask: np.ndarray  # pixels to erase
-    source: str  # colour, colour_line, achromatic, doppler or none
+    source: str  # orthogonal, single, doppler or none
     n_clusters: int
-
-
-def merge_close(points: list[tuple[float, float, float]], radius: float) -> list[tuple[float, float]]:
-    """Merge a mark with its adjacent digit label, keeping the larger component's position."""
-    ordered = sorted(points, key=lambda p: -p[2])
-    kept: list[tuple[float, float]] = []
-    for x, y, _ in ordered:
-        if all((x - k[0]) ** 2 + (y - k[1]) ** 2 > radius ** 2 for k in kept):
-            kept.append((x, y))
-    return kept
 
 
 def detect_marks(sector: np.ndarray, text_mask: np.ndarray, ach_thresh: float) -> Detection:
     h, w = sector.shape[:2]
     gray = cv2.cvtColor(sector, cv2.COLOR_BGR2GRAY)
-    colour = colour_mask(sector)
+    lum = cv2.cvtColor(sector, cv2.COLOR_BGR2LAB)[..., 0].astype(np.float32)
+    chroma = residual_chroma(sector)
+    colour = colour_mask(chroma, lum)
     colour[text_mask > 0] = 0
-    n, labels, stats, cents = cv2.connectedComponentsWithStats(colour, connectivity=8)
+    hue = cv2.cvtColor(sector, cv2.COLOR_BGR2HSV)[..., 0].astype(np.int32)
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(colour, connectivity=8)
 
-    # Flow signal forms filled blobs, which caliper strokes never do.
-    filled = sum(int(stats[i, cv2.CC_STAT_AREA]) for i in range(1, n) if stats[i, cv2.CC_STAT_AREA] > 120
-                 and stats[i, cv2.CC_STAT_AREA] / (stats[i, 2] * stats[i, 3]) > 0.35)
-    if filled > 0.004 * h * w:
+    # Flow signal forms filled red or blue blobs. Caliper marks are yellow, green or thin.
+    flow = 0
+    for i in range(1, n):
+        area = int(stats[i, cv2.CC_STAT_AREA])
+        if area > 120 and area / (stats[i, 2] * stats[i, 3]) > 0.35:
+            hv = hue[labels == i]
+            if (((hv <= 15) | (hv >= 165) | ((hv >= 95) & (hv <= 135))).mean()) >= 0.6:
+                flow += area
+    if flow > 0.004 * h * w:
         return Detection(np.zeros((0, 2)), np.zeros((h, w), np.uint8), "doppler", 0)
 
-    margin = max(5, int(0.03 * max(h, w)))
-    ends, tiny = [], []
+    side = max(h, w)
+    margin = max(5, int(0.03 * side))
+    min_len, max_len = 0.05 * side, 0.80 * side
+    tophat = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))).astype(np.float32)
+    # Luminance candidates produced many false measurements on speckle during development, so only
+    # vivid coloured marks are accepted. This trades coverage for precision.
+    maps = [(np.minimum(chroma, 60.0), 25.0)]
+    cand = find_candidates(maps, text_mask, margin, ach_thresh - 0.07, limit=14)
+
     erase = np.zeros((h, w), np.uint8)
     for i in range(1, n):
-        x, y, bw, bh, area = stats[i]
-        cx, cy = cents[i]
-        if area < 2 or cx < margin or cy < margin or cx > w - margin or cy > h - margin:
-            continue
-        erase[labels == i] = 1
-        side = max(bw, bh)
-        if side >= 23 and area / (bw * bh) < 0.30:
-            # A solid measurement line merged with its marks: its extreme pixels are the endpoints.
-            ys, xs = np.where(labels == i)
-            pts = np.c_[xs, ys].astype(np.float32)
-            axis = np.linalg.svd(pts - pts.mean(0), full_matrices=False)[2][0]
-            proj = (pts - pts.mean(0)) @ axis
-            ends += [(*pts[proj.argmin()], float(area)), (*pts[proj.argmax()], float(area))]
-        elif 4 <= side <= 22 and area >= 6 and area / (bw * bh) <= 0.85:
-            ends.append((float(cx), float(cy), float(area)))
-        elif side <= 4:
-            tiny.append((float(cx), float(cy), float(area)))
+        area = stats[i, cv2.CC_STAT_AREA]
+        if 2 <= area <= 0.01 * h * w:
+            erase[labels == i] = 1
 
-    points = merge_close(ends, 12.0)
-    source = "colour"
-    if len(points) < 2 and len(tiny) >= 4:
-        # Very small marks: a dotted line still spans the two endpoints.
-        pts = np.asarray([(t[0], t[1]) for t in tiny], np.float32)
-        axis = np.linalg.svd(pts - pts.mean(0), full_matrices=False)[2][0]
-        proj = (pts - pts.mean(0)) @ axis
-        points = [tuple(pts[proj.argmin()]), tuple(pts[proj.argmax()])]
-        source = "colour_line"
-    if len(points) < 2:
-        ach = [a for a in achromatic_marks(gray, ach_thresh)
-               if margin < a[0] < w - margin and margin < a[1] < h - margin and text_mask[a[1], a[0]] == 0]
-        for cx, cy, half in ach:
-            cv2.rectangle(erase, (cx - half - 1, cy - half - 1), (cx + half + 1, cy + half + 1), 1, -1)
-        points = [(float(a[0]), float(a[1])) for a in ach]
-        source = "achromatic"
-    if len(points) < 2:
+    points = orthogonal_measurement(cand, min_len, max_len, ach_thresh)
+    source = "orthogonal"
+    if points is None:
+        line_map = cv2.dilate(colour, np.ones((3, 3), np.uint8))
+        points = single_measurement(cand, line_map, min_len, max_len, ach_thresh + 0.04)
+        source = "single"
+    if points is None:
         return Detection(np.zeros((0, 2)), erase, "none", 0)
 
-    arr = np.asarray(points, float)
-    cl = DBSCAN(eps=0.30 * max(h, w), min_samples=2).fit_predict(arr)
-    valid = cl[cl >= 0]
-    if valid.size == 0:
-        return Detection(np.zeros((0, 2)), erase, "none", 0)
-    main = np.bincount(valid).argmax()
-    return Detection(arr[cl == main], erase, source, int(valid.max() + 1))
+    # Erase the marks and any bright or coloured line pixels between them, whatever their colour.
+    for x, y in points.astype(int):
+        cv2.rectangle(erase, (x - 10, y - 10), (x + 10, y + 10), 1, -1)
+    strokes = np.zeros((h, w), np.uint8)
+    pairs = [(0, 1), (2, 3)] if len(points) == 4 else [(0, 1)]
+    for p, q in pairs:
+        cv2.line(strokes, tuple(int(v) for v in points[p]), tuple(int(v) for v in points[q]), 1, 3)
+    erase[(strokes > 0) & ((tophat > 25) | (colour > 0))] = 1
+    # A full square would blank tissue, so inside each square keep only pixels that look like strokes.
+    square = np.zeros((h, w), np.uint8)
+    for x, y in points.astype(int):
+        cv2.rectangle(square, (x - 10, y - 10), (x + 10, y + 10), 1, -1)
+    erase[(square > 0) & (tophat <= 15) & (colour == 0)] = 0
+    return Detection(points, erase, source, len(pairs))
 
 
 def load_ocr(image_uid: str, im: np.ndarray, cache: dict, engine) -> list[tuple[np.ndarray, str]]:
@@ -220,7 +286,7 @@ def main() -> None:
     ap.add_argument("--cache-dir", type=Path, required=True, help="Private directory for cropped and erased images")
     ap.add_argument("--key-file", type=Path, required=True, help="Private pseudonym key")
     ap.add_argument("--ocr-cache", type=Path, required=True, help="Private OCR cache, which may contain identifiers")
-    ap.add_argument("--ach-thresh", type=float, default=0.66)
+    ap.add_argument("--ach-thresh", type=float, default=0.62, help="Minimum mean template score of a measurement")
     args = ap.parse_args()
 
     cache = json.loads(args.ocr_cache.read_text(encoding="utf-8")) if args.ocr_cache.exists() else {}
@@ -259,7 +325,7 @@ def main() -> None:
             h, w = sector.shape[:2]
 
             det = detect_marks(sector, text_mask, args.ach_thresh)
-            erase = cv2.dilate(det.mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+            erase = cv2.dilate(det.mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
             erase = ((erase > 0) | (text_mask > 0)).astype(np.uint8)
             erased = cv2.inpaint(sector, erase, 5, cv2.INPAINT_TELEA) if erase.any() else sector
 
@@ -276,8 +342,8 @@ def main() -> None:
                 bx0, by0 = det.points.min(0)
                 bx1, by1 = det.points.max(0)
                 bw, bh = bx1 - bx0, by1 - by0
-                # A usable box has real extent, few marks and is not most of the sector.
-                ok = (max(bw, bh) >= 0.05 * max(h, w) and bw * bh <= 0.5 * h * w and len(det.points) <= 8)
+                # A usable box has real extent and is not most of the sector.
+                ok = max(bw, bh) >= 0.05 * max(h, w) and bw * bh <= 0.5 * h * w
                 row.update(box_x0=round(float(bx0), 1), box_y0=round(float(by0), 1), box_x1=round(float(bx1), 1),
                            box_y1=round(float(by1), 1), usable=int(ok))
             rows.append(row)
@@ -295,7 +361,7 @@ def main() -> None:
 
     usable = sum(r["usable"] for r in rows)
     print(f"images={len(rows)} usable_boxes={usable} ({usable / len(rows):.1%})")
-    for src in ("colour", "colour_line", "achromatic", "doppler", "none"):
+    for src in ("orthogonal", "single", "doppler", "none"):
         print(src, sum(r["source"] == src for r in rows))
 
 
