@@ -27,3 +27,19 @@ A GO means lesions can be found. It does not show that cancer can be diagnosed o
 - Patient-level bootstrap with 2000 resamples for every confidence interval.
 - Occlusion control for the classifier: replace the weak lesion box with inpainted surrounding
   tissue. A classifier that reads the lesion should lower its malignant call rate.
+
+## Addendum: clinician-box evaluation, fixed before any clinician annotation was returned
+
+Sample: 100 images, one per patient, stratified across scanner groups. At most 14 images come from
+any one group, so the per-series threshold of G3 (>= 30 images) cannot be applied to this sample.
+
+- Reference: clinician box around the measured nodule. Images marked unusable are excluded and counted.
+- Primary population: images outside the two groups that dominated the automatic boxes.
+- Primary test, same thresholds as G2: hit >= 70%, median box IoU >= 0.40, hit gain over the centre
+  prior >= 15 points with a patient-bootstrap 95% CI excluding 0. Median IoU takes precedence when hit
+  and IoU disagree, because the lesion-removed control kept a 53% hit rate.
+- Per-group results are descriptive only, with intervals, because group sizes are small.
+- Caliper handling: automatic erasure is weak on achromatic marks in these groups, so raw and erased
+  inputs are both reported, and the result cannot rule out caliper influence on those marks.
+- Sensitivity analysis: repeat on nodules the clinician called cancer, excluding "no" and "unsure".
+- The clinician's cancer call is an imaging judgement, not pathology.
