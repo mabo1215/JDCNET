@@ -1,0 +1,129 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage[hidelinks,colorlinks=true,linkcolor=black,urlcolor=blue,citecolor=black]{hyperref}
+\usepackage{xurl}
+
+\setlength{\parskip}{0.55em}
+
+\newenvironment{rcomment}{\par\noindent\begin{minipage}{\linewidth}\itshape\color{black!75}}{\end{minipage}\par}
+
+\hypersetup{
+  pdftitle={Response to Editor and Reviewers JDCNet (Quality Check)},
+  pdfauthor={Bo Ma, Wei Qi Yan, Jinsong Wu, Kun Liu},
+  pdfsubject={Response to Editor and Reviewers, Discover Artificial Intelligence}
+}
+
+\begin{document}
+\sloppy
+
+\begin{center}
+{\LARGE\bfseries Response to Editor and Reviewers}
+\end{center}
+
+\noindent\textbf{Manuscript:} ``JDCNet Uses Confidence Gated Privileged Modality Distillation for Cost Preserving X Ray Inference''\\
+\textbf{Journal:} Discover Artificial Intelligence\\
+\textbf{Submission ID:} bf05c1ad-f7f2-44f8-a235-de9eeb659798
+
+We thank the Editor and the Reviewers for their time and for their positive
+assessment of the previous revision. We respond below to each comment.
+Comments are reproduced in italics.
+
+\hrulefill
+
+\section*{Editor (Quality Check)}
+
+\begin{rcomment}
+1. Data availability statement (in system): When submitting your revised
+manuscript, please select `yes' under the data availability declaration. This
+ensures that your data statement will be automatically extracted from your
+manuscript. Please make sure that Data availability statement in system and
+manuscript exactly matches.
+\end{rcomment}
+
+\textbf{Response.} We have selected ``Yes. I used or generated research data
+in this study'' under the data availability declaration in the submission
+system. The statement entered in the system and the ``Data availability''
+paragraph in the Declarations of the revised manuscript are now identical,
+word for word.
+
+The statement previously entered in the system had not been updated after the
+last revision. It did not mention the historical paired subset, the external
+MIDRC radiographs, or the availability of per-image predictions on request.
+We replaced it with the manuscript statement. To make an exact match possible, the manuscript
+paragraph no longer contains numbered citations; the two data descriptors are
+given by their DOIs instead and remain cited in the body of the paper.
+Following the journal's guidance on data availability statements, each
+dataset is identified by name, repository, and a persistent identifier where
+one exists. The statement now reads:
+
+\begin{quote}
+The BIMCV-COVID19 imaging data (BIMCV-COVID19+ and BIMCV-COVID19- releases;
+data descriptor: \url{https://doi.org/10.48550/arXiv.2006.01174}) used in this
+study are available from the data custodians (Valencian Region
+Medical ImageBank) at \url{https://bimcv.cipf.es/bimcv-projects/bimcv-covid19}
+under the BIMCV-COVID19 Research Use Agreement:
+\url{https://bimcv.cipf.es/bimcv-projects/bimcv-covid19/bimcv-covid19-dataset-research-use-agreement-2/}.
+The data are de-identified, and the agreement prohibits data sharing,
+re-identification, and publication or reproduction of any portion of the
+dataset without specific prior written permission. We therefore do not
+redistribute the dataset or individual image files, and the manuscript
+contains no patient images.
+The historical paired subset is part of the public COVID-19 image data
+collection (Cohen et al., \url{https://doi.org/10.59275/j.melba.2020-48g7}),
+which is openly available at
+\url{https://github.com/ieee8023/covid-chestxray-dataset}. The external
+radiographs are available from the Medical Imaging and Data Resource Center
+(MIDRC; \url{https://www.midrc.org}) under its data use terms. The
+patient-level split definitions, archived aggregate result records, analysis
+plan, and analysis scripts that support the findings of this study are
+available at \url{https://github.com/mabo1215/JDCNET}. Per-image model
+predictions, which are needed for the patient-level, external, and teacher
+analyses and are indexed by BIMCV and MIDRC identifiers, are available from
+the corresponding author on reasonable request, subject to the source
+data-use terms.
+\end{quote}
+
+The other declarations entered in the system (funding, competing interests,
+and acknowledgements) already match the manuscript and are unchanged.
+
+\textbf{Other changes to the manuscript.} While aligning the declarations,
+we made the manuscript free of patient images. Fig.~2, previously a montage of
+eight CT--radiograph example pairs, is replaced by a schematic drawn by the
+authors. For one patient, it shows the CT volume, the four CT teacher views
+used only during training, and the radiograph used in training and at
+deployment; it contains no patient images. The sentence introducing Fig.~2 and
+the Consent to publish statement (``The manuscript contains no patient images
+and no identifiable personal data'') are updated accordingly, and the
+abbreviation AP (anteroposterior) is added to Section~3.1. Consequently, the
+manuscript contains no third-party material. No result or conclusion has
+changed.
+
+\hrulefill
+
+\section*{Reviewer 1}
+
+\begin{rcomment}
+Thanks to the respected authors, all corrections have been made.
+\end{rcomment}
+
+\textbf{Response.} We thank Reviewer~1 for the careful review and for
+confirming that all requested corrections have been made.
+
+\section*{Reviewer 6}
+
+\begin{rcomment}
+The authors have addressed my concerns. I have no more comments regarding this
+work.
+\end{rcomment}
+
+\textbf{Response.} We thank Reviewer~6 for the constructive comments in the
+previous rounds, which substantially improved the statistical reporting of the
+paper, and for confirming that the concerns have been addressed.
+
+\end{document}

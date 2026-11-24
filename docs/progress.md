@@ -5,6 +5,21 @@
 
 # 已全部修改
 
+## A4. Discover AI 质检：数据可用性声明与系统逐字一致（2026-11-24）
+
+编辑质检意见：系统中数据可用性声明选 "Yes"，系统文本与稿件必须完全一致。审稿人 1、6 无新意见。
+
+1. **发现的问题**：系统里填的是第三轮之前的旧版本（"不分发图像像素"、"四行 gate 表"），没有提 Cohen 历史子集、MIDRC 外部数据、逐图像预测可申请，也没提 Fig. 2 拼图；稿件版本又比 `docs/data_availability_statement_discoverai.txt` 少了 Fig. 2 说明，并带有 `\cite{cohen2020covid}`，粘进系统后无法逐字一致。
+2. **统一文本**：以作者 10-13 确认过的声明文件为准（含 Fig. 2 说明），稿件 Declarations 的 Data availability 段落改为同一段纯文本；引用改为文字 "(Cohen et al.)"（该文献在正文早期实验一段仍有引用，参考文献列表不受影响）；图号用 `\ref` 生成 "Fig. 2"。声明文件去掉 "of the manuscript"，改为单段，可直接粘贴。
+3. **验证**：重新编译（正文 34 页、合并 41 页、附录 7 页，0 错误、0 未定义引用）；从 PDF 抽取该段与声明文件比对，除连字/断行/页码等抽取噪声外逐字一致。
+4. **回复信**：`docs/response_to_editor_round4.tex/.pdf`（2 页）：编辑意见逐条回应并附完整声明；如实说明 11-03 对 Fig. 2 烧录文字的遮挡（第三轮上传后才做的改动）；感谢审稿人 1、6。
+5. **上传包**：`submit/revision_round4/`（git 忽略，仅本地）：回复信、正文 PDF、合并 PDF、附录 PDF、源码 zip（独立编译 41 页 0 错误）、遮挡后的 Fig2.png、声明文本与 `UPLOAD_README.txt`。
+6. **按系统指引补 DOI**：系统说明要求每个数据集写名称、存放位置和永久标识符。声明中补充 BIMCV 数据描述论文 DOI（10.48550/arXiv.2006.01174）、Cohen 数据集 DOI（10.59275/j.melba.2020-48g7）及其 GitHub 仓库地址，MIDRC 写全称。两个 DOI 均取自 `ref.bib`。MIDRC 具体子集未能从仓库确认，没有写 DOI。稿件、声明文件、回复信同步修改；重新编译后比对仍逐字一致，上传包已更新。
+7. **正文 4.11 节措辞对齐**：原文 "do not redistribute pixel data" 与 Fig. 2 展示图像相矛盾，改为 "do not redistribute the dataset or individual image files (Fig. 2 shows de-identified examples for illustration only)"，与声明一致；回复信 "Other changes" 一并说明。重新编译 0 错误，上传包已更新。
+8. **标记版**：本机没有可用的 latexdiff（MiKTeX 版缺 Windows Perl，下载脚本被拦截），按第三轮 latexdiff 的样式（新增蓝色波浪线、删除红色删除线）手工标记三处改动：Fig. 2 图注（第 15 页）、4.11 节（第 24 页）、Data availability（第 27–28 页，旧段整段删除、新段整段新增）。对照基线为第三轮提交版本 `914f7c0`；附录自第三轮起未改动。`paper/main_diff_round4.tex/.pdf`，上传包中为 `JDCNet_marked_up_manuscript.pdf`（41 页，0 错误）。图像本身的遮挡在标记版中无法显示，已在图注与回复信中说明。
+9. **`submit/figures_and_tables/JDCNet_figures.zip`**：原包是 7 月首投时的 5 张旧图，没有现在的 Fig. 2。已改为当前全部图件（Fig1.pdf/png、遮挡后的 Fig2.png、Fig3.png、FigA1.pdf/png，Fig1/Fig3/FigA1 与第三轮导出一致）；旧包另存为 `JDCNet_figures_20260709_backup.zip`。
+10. **作者需在系统中操作**：Data availability 选 Yes，删除旧文本，粘贴声明文件中 "Statement text" 段落；资助、利益冲突、致谢保持不变（已与稿件一致）。paper 子仓库的 main.tex 改动尚未提交。
+
 ## A3. 超声病灶定位可行性初测（2026-11-05）
 
 新课题，不属于 JDCNet 论文。用公开数据训练的外部模型，在合作单位的超声队列上测试能否定位病灶，结果用于决定是否继续申请更多资料。判定标准在看到模型结果之前写定。
